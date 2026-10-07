@@ -4,4 +4,4 @@ from flask import render_template
 app = Flask(__name__) 
 @app.route("/")
 def Inicio():
-    return "¡Hola, Munde UTNG 3!"
+   return render_template("Encuesta.html")
