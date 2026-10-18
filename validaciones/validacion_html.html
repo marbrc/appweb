@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interfaz validada - versión HTML</title>
+  <style>
+    /* estilo sencillo solo para que se vea tipo  ordenado y los estilos bonitos van en estilos.css */
+    body { font-family: Arial, sans-serif; background: #e8f0fc; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; padding: 1rem; }
+    form { background: #fff; padding: 1.2rem; border-radius: 12px; width: 320px; }
+    label { display: block; margin-top: .6rem; font-weight: bold; font-size: .9rem; }
+    input, select { width: 100%; padding: .5rem; margin-top: .2rem; box-sizing: border-box; }
+    button { width: 100%; margin-top: 1rem; padding: .6rem; background: #1f6feb; color: #fff; border: 0; border-radius: 8px; }
+    /* Sin JavaScript: el mismo navegador marca el campo en rojo si esta mal y en verde si esta bien */
+    input:user-invalid, select:user-invalid { border: 2px solid #c5221f; }
+    input:user-valid, select:user-valid { border: 2px solid #1f9d57; }
+  </style>
+</head>
+<body>
+
+  <!-- FORMULARIO 1 REGISTRO DE USUARIO -->
+  <!-- pues aqui no hay nada de JavaScript poq todas las validaciones son atributos de HTML5 -->
+  <!-- method="get" es solo para practicar y  si todo esta bien la pg se recarga con los datos en la direccion y se usan datos de prueba -->
+  <form action="#" method="get">
+    <h2>Registro de usuario</h2>
+
+    <!-- required = obligatorio, minlength y maxlength = largo, pattern = formato permitido, title = mensaje que sale si falla -->
+    <label>Nombre completo
+      <input type="text" name="nombre" required minlength="3" maxlength="60"
+             pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" title="Solo letras y espacios, de 3 a 60 caracteres">
+    </label>
+
+    <!-- type="email" revisa que sea un correo y pattern obliga a que sea del dominio de la escuela -->
+    <label>Correo institucional
+      <input type="email" name="correo" required
+             pattern=".+@utng\.edu\.mx" title="Usa tu correo institucional (@utng.edu.mx)">
+    </label>
+
+    <!-- la contraseña necesita mayúscula, minúscula y número y cd ?=  es una de esas condiciones) -->
+    <label>Contraseña
+      <input type="password" name="clave" required minlength="8" maxlength="20"
+             pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}" title="De 8 a 20 caracteres con mayúscula, minúscula y número">
+    </label>
+
+    <!-- LIMITACION: con html solo no se puede comparar este campo con la contraseña de arriba,
+         eso solo se puede con JavaScript y  aqui solo se revisa que no estr vacio y que tenga el mismo formato -->
+    <label>Confirmar contraseña
+      <input type="password" name="clave2" required minlength="8" maxlength="20"
+             pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}" title="Debe ser igual a la contraseña (eso solo lo comprueba la versión JavaScript)">
+    </label>
+
+    <!-- en el select required hace q no se pueda dejar la opción vacía -->
+    <label>Rol
+      <select name="rol" required>
+        <option value="">Selecciona un rol</option>
+        <option>Alumno</option>
+        <option>Docente</option>
+        <option>Administrador</option>
+      </select>
+    </label>
+
+    <button>Registrarse</button>
+  </form>
+
+  <!-- FORMULARIO 2 INICIO DE SESIÓN -->
+  <form action="#" method="get">
+    <h2>Iniciar sesión</h2>
+    <label>Correo institucional
+      <input type="email" name="correo" required title="Escribe un correo válido">
+    </label>
+    <label>Contraseña
+      <input type="password" name="clave" required title="Escribe tu contraseña">
+    </label>
+    <button>Iniciar sesión</button>
+  </form>
+
+</body>
+</html>
