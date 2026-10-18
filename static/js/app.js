@@ -3,7 +3,6 @@
 // tdv no hay base de datoooos. usuarios y evaluaciones se guardan locamente y eso solo solo para probar
 
 
-
 const PREG = [
   "El profesor expone los contenidos y prácticas de su asignatura de manera clara, gradual y congruente.",
   "El profesor proporciona orientación y apoyo a los alumnos con problemas de aprendizaje.",
@@ -191,7 +190,7 @@ const forms = {
   eval(f, d) {
     // la evaluacion es anonima no se guarda ningun dato del alumno
     guardar("evaluaciones", [...leer("evaluaciones"), { fecha: new Date().toLocaleDateString("es-MX"), ...d }]);
-    f.reset(); iniciar(); cuenta(); buscar("#gracias").hidden = false;
+    f.reset(); iniciar(); cuenta(); ir("enviado"); celebrar();
   }
 };
 
@@ -277,7 +276,7 @@ function clase() {
   buscar("#preguntas").disabled = !ok;
   buscar("#aviso").hidden = ok;
   buscar("#clase").hidden = !ok;
-  if (ok) buscar("#clase").textContent = `✔ Evaluando a ${sel("prof").value}, ${sel("mat").value} (grupo ${sel("grupo").value})`;
+  if (ok) buscar("#clase").textContent = `Evaluando a ${sel("prof").value}, ${sel("mat").value} (grupo ${sel("grupo").value})`;
 }
 
 // iniciar: deja los filtros como al principio con solo "carrera" activa
@@ -416,3 +415,61 @@ buscarTodos(".lat").forEach(nav => nav.addEventListener("click", e => {
 
 // al final muestro la pantalla que toque cuando se abre la pagina
 mostrar();
+
+
+
+// ---------- PANTALLA DE GRACIAS (con confeti) Y HASTA PRONTO ----------
+
+// reloj guarda el temporizador que pasa del gracias a la pregunta de si quiere salir
+let reloj;
+
+// celebrar: se llama cuando se envia la evaluacion. muestra el gracias, tira el confeti
+// y a los 4 segundos pasa solo a la pregunta de si quiere salir
+function celebrar() {
+  buscar("#gracias-a").hidden = false;
+  buscar("#gracias-b").hidden = true;
+  confeti();
+  clearTimeout(reloj);
+  reloj = setTimeout(preguntarSalir, 4000);
+}
+
+// preguntarSalir: quita el gracias y muestra "deseas salir del sitio?"
+function preguntarSalir() {
+  clearTimeout(reloj);
+  buscar("#gracias-a").hidden = true;
+  buscar("#gracias-b").hidden = false;
+}
+
+// los botones: "Continuar" se salta la espera y "Si, salir" cierra la sesion y va a la pantalla de hasta pronto
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-sigue]")) preguntarSalir();
+  if (e.target.closest("[data-salir]")) { sesion = null; ir("adios"); }
+});
+
+// confeti: dibuja papelitos de colores que caen en el canvas #confeti que ocupa toda la pantalla
+function confeti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; // si la persona no quiere animaciones no se hace
+  const lienzo = buscar("#confeti"), c = lienzo.getContext("2d");
+  lienzo.width = innerWidth; lienzo.height = innerHeight;
+  const colores = ["#1f6feb", "#f5a524", "#1f9d57", "#c9363f", "#8e44ad", "#ffd400"];
+  // cada papelito tiene su posicion (x, y), su tamaño (w, h), su color, su velocidad (vx, vy) y cuanto gira
+  const papeles = Array.from({ length: 160 }, () => ({
+    x: Math.random() * lienzo.width, y: -Math.random() * lienzo.height * .6,
+    w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+    color: colores[Math.floor(Math.random() * colores.length)],
+    vx: Math.random() * 2 - 1, vy: 2 + Math.random() * 3,
+    giro: Math.random() * 6, vg: Math.random() * .4 - .2
+  }));
+  let cuadros = 0;
+  (function pintar() {
+    c.clearRect(0, 0, lienzo.width, lienzo.height);
+    papeles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.giro += p.vg;   // lo muevo y lo giro un poquito
+      c.save(); c.translate(p.x, p.y); c.rotate(p.giro);
+      c.fillStyle = p.color; c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      c.restore();
+    });
+    if (++cuadros < 240) requestAnimationFrame(pintar); // 240 cuadros son como 4 segundos
+    else c.clearRect(0, 0, lienzo.width, lienzo.height);
+  })();
+}

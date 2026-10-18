@@ -222,6 +222,36 @@
   </div>
 </section>
 
+<!-- 9. Evaluación enviada: gracias con confeti y luego pregunta si quiere salir -->
+<section class="pantalla" id="enviado" hidden>
+  <canvas id="confeti"></canvas>
+  <div class="tarjeta grande" id="gracias-a">
+    <div class="emoji">🎉</div>
+    <h1>¡Gracias!</h1>
+    <p>Tu evaluación ha sido enviada.</p>
+    <p class="nota">Tus respuestas son anónimas y ayudan a mejorar las clases.</p>
+    <button class="btn sec" data-sigue>Continuar</button>
+  </div>
+  <div class="tarjeta grande" id="gracias-b" hidden>
+    <h2>¿Deseas salir del sitio?</h2>
+    <p class="sub">Si quieres, puedes evaluar a otro profesor.</p>
+    <div class="acciones-c">
+      <button class="btn" data-salir>Sí, salir</button>
+      <button class="btn sec" data-ir="alumno">No, evaluar a otro profesor</button>
+    </div>
+  </div>
+</section>
+
+<!-- 10. Hasta pronto -->
+<section class="pantalla" id="adios" hidden>
+  <div class="tarjeta grande">
+    <div class="emoji">👋</div>
+    <h1>¡Hasta pronto!</h1>
+    <p>Gracias por ayudarnos a mejorar las clases.</p>
+    <button class="btn" data-ir="bienvenida">Volver al inicio</button>
+  </div>
+</section>
+
 </main>
 <script src="/static/js/app.js"></script>
 </body>
