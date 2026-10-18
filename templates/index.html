@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es" data-tema="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encuesta Docente UTNG</title>
+<link rel="stylesheet" href="/static/css/estilos.css">
+</head>
+<body>
+<header class="barra">
+  <b>Encuesta Docente UTNG</b>
+  <span>
+    <button id="salir" data-ir="login" hidden>Cerrar sesión</button>
+    <details class="cfg">
+      <summary>⚙ Configuración</summary>
+      <div>
+        <p>Tema</p>
+        <button data-t="claro">Azul claro</button>
+        <button data-t="oscuro">Azul oscuro</button>
+        <button data-t="negro">Negro</button>
+      </div>
+    </details>
+  </span>
+</header>
+
+<main>
+<!-- 1. Bienvenida -->
+<section class="pantalla" id="bienvenida">
+  <div class="tarjeta">
+    <div class="logo">UTNG</div>
+    <p class="sub">Universidad Tecnológica del Norte de Guanajuato</p>
+    <h1>Encuesta de Satisfacción Docente</h1>
+    <p>Tu opinión ayuda a mejorar las clases</p>
+    <button class="btn" data-ir="acceso">Comenzar</button>
+    <p class="nota">🔒 Respuestas anónimas</p>
+  </div>
+</section>
+
+<!-- 2. Iniciar sesión o registrarse -->
+<section class="pantalla" id="acceso" hidden>
+  <div class="tarjeta">
+    <h2>Bienvenido</h2>
+    <p class="sub">Para continuar, inicia sesión o crea tu cuenta.</p>
+    <button class="btn" data-ir="login">Iniciar sesión</button>
+    <button class="btn sec" data-ir="registro">Registrarse</button>
+    <p class="nota">Para administradores, docentes y alumnos.</p>
+  </div>
+</section>
+
+<!-- 3. Iniciar sesión -->
+<section class="pantalla" id="login" hidden>
+  <form class="tarjeta" data-f="login">
+    <h2>Iniciar sesión</h2>
+    <p class="sub">Entra con tu correo institucional.</p>
+    <label>Correo institucional<input type="email" name="correo" required></label>
+    <label>Contraseña<span class="pw"><input type="password" name="clave" minlength="6" required></span></label>
+    <p class="err" hidden></p>
+    <button class="btn">Iniciar sesión</button>
+    <p class="links"><a href="#recuperar" data-ir="recuperar">¿Olvidaste tu contraseña?</a><a href="#registro" data-ir="registro">Crear cuenta</a></p>
+  </form>
+</section>
+
+<!-- 4. Registro -->
+<section class="pantalla" id="registro" hidden>
+  <form class="tarjeta" data-f="registro">
+    <h2>Registro de usuario</h2>
+    <p class="sub">Completa tus datos para crear tu cuenta.</p>
+    <label>Nombre completo<input name="nombre" required></label>
+    <label>Correo institucional<input type="email" name="correo" required></label>
+    <label>Contraseña<span class="pw"><input type="password" name="clave" minlength="6" required></span></label>
+    <label>Rol
+      <select name="rol" required>
+        <option value="">Selecciona un rol</option>
+        <option value="alumno">Alumno</option>
+        <option value="docente">Docente</option>
+        <option value="administrador">Administrador</option>
+      </select>
+    </label>
+    <p class="err" hidden></p>
+    <button class="btn">Registrarse</button>
+    <p class="links"><span>¿Ya tienes cuenta?</span><a href="#login" data-ir="login">Inicia sesión</a></p>
+  </form>
+</section>
+
+<!-- 5. Recuperar contraseña: correo -> código -> nueva contraseña -->
+<section class="pantalla" id="recuperar" hidden>
+  <form class="tarjeta" data-f="recuperar">
+    <h2>Recuperar contraseña</h2>
+    <p class="sub">Escribe tu correo institucional y te enviaremos un código para restablecerla.</p>
+    <label>Correo institucional<input type="email" name="correo" required></label>
+    <p class="err" hidden></p>
+    <button class="btn">Enviar código</button>
+    <button type="button" class="btn sec" data-ir="login">Volver a iniciar sesión</button>
+  </form>
+</section>
+
+<section class="pantalla" id="codigo" hidden>
+  <form class="tarjeta" data-f="codigo">
+    <h2>Verifica tu correo</h2>
+    <p class="sub">Escribe el código de 6 dígitos que enviamos a tu correo institucional.</p>
+    <div class="codigo"></div>
+    <p class="err" hidden></p>
+    <button class="btn">Verificar código</button>
+    <p class="nota">Modo de prueba: sirve cualquier código de 6 dígitos.</p>
+  </form>
+</section>
+
+<section class="pantalla" id="nueva" hidden>
+  <form class="tarjeta" data-f="nueva">
+    <h2>Crear nueva contraseña</h2>
+    <p class="sub">Escribe tu nueva contraseña y confírmala.</p>
+    <label>Nueva contraseña<span class="pw"><input type="password" name="clave" minlength="6" required></span></label>
+    <label>Confirmar contraseña<span class="pw"><input type="password" name="clave2" minlength="6" required></span></label>
+    <p class="err" hidden></p>
+    <button class="btn">Guardar contraseña</button>
+  </form>
+</section>
+
+<!-- 6. Rol alumno: evaluación docente -->
+<section class="pantalla ancho" id="alumno" hidden>
+  <form class="tarjeta" data-f="eval">
+    <h2>Evaluación docente</h2>
+    <p class="sub">Tus respuestas son anónimas. Primero elige la clase y después responde.</p>
+    <h3 class="paso"><b>1</b>Elige la clase</h3>
+    <div class="fila3">
+      <label>Carrera<select name="carrera" id="f-carrera" required></select></label>
+      <label>Cuatrimestre<select name="cuatri" id="f-cuatri" required></select></label>
+      <label>Grupo<select name="grupo" id="f-grupo" required></select></label>
+      <label>Profesor<select name="profesor" id="f-prof" required></select></label>
+      <label>Materia<select name="materia" id="f-mat" required></select></label>
+    </div>
+    <p class="chip" id="clase" hidden></p>
+    <h3 class="paso"><b>2</b>Responde las 12 preguntas</h3>
+    <p class="sub" id="aviso">Elige la clase para desbloquear las preguntas.</p>
+    <p class="sub">Califica del 1 (muy mal) al 10 (excelente).</p>
+    <div class="prog"><i></i></div>
+    <p class="sub" id="cuenta">0 de 12 respondidas</p>
+    <fieldset id="preguntas" disabled></fieldset>
+    <h3 class="paso"><b>3</b>Comentarios</h3>
+    <label>Cuéntanos qué mejorar o qué te gustó (opcional)<textarea name="comentario" rows="3" placeholder="Escribe tus comentarios aquí..."></textarea></label>
+    <p class="err" hidden></p>
+    <p class="ok" id="gracias" hidden>¡Gracias! Tu evaluación se envió.</p>
+    <div class="pie"><span class="nota">🔒 Tus respuestas son anónimas</span><button class="btn">Enviar evaluación</button></div>
+  </form>
+</section>
+
+<!-- 7. Rol docente: mis resultados -->
+<section class="pantalla ancho" id="docente" hidden>
+  <div class="tarjeta">
+    <h2>Mis resultados</h2>
+    <p class="sub">Datos de ejemplo, después salen de la base de datos.</p>
+    <p>Promedio general <span class="dest" id="pg"></span></p>
+    <table><thead><tr><th>#</th><th>Pregunta</th><th>Promedio</th></tr></thead><tbody id="tabla-d"></tbody></table>
+    <h3>Comentarios</h3>
+    <ul id="coms"></ul>
+  </div>
+</section>
+
+<!-- 8. Rol administrador: resumen general -->
+<section class="pantalla" id="admin" hidden>
+  <div class="panel">
+    <nav class="lat">
+      <b>UTNG</b>
+      <button class="act">Inicio</button><button>Grupos</button><button>Docentes</button><button>Materias</button><button>Preguntas</button><button>Reportes</button>
+    </nav>
+    <div class="cont">
+      <div id="resumen">
+        <h2>Resumen general</h2>
+        <div class="stats">
+          <div><small>Grupos registrados</small><b>12</b></div>
+          <div><small>Docentes</small><b>28</b></div>
+          <div><small>Materias</small><b>34</b></div>
+          <div><small>Encuestas respondidas</small><b>486</b></div>
+        </div>
+        <h3>Promedio por pregunta</h3>
+        <div class="barras" id="barras"></div>
+        <h3>Reportes recientes</h3>
+        <table><thead><tr><th>Fecha</th><th>Grupo</th><th>Profesor</th><th>Promedio</th></tr></thead><tbody id="rep"></tbody></table>
+      </div>
+      <p id="pend" class="nota" hidden>La sección <b></b> la integra el equipo.</p>
+    </div>
+  </div>
+</section>
+</main>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
