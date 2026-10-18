@@ -12,7 +12,7 @@
   <span>
     <button id="salir" data-ir="login" hidden>Cerrar sesión</button>
     <details class="cfg">
-      <summary>⚙ Configuración</summary>
+      <summary>Configuración</summary>
       <div>
         <p>Tema</p>
         <button data-t="claro">Azul claro</button>
@@ -32,11 +32,11 @@
     <h1>Encuesta de Satisfacción Docente</h1>
     <p>Tu opinión ayuda a mejorar las clases</p>
     <button class="btn" data-ir="acceso">Comenzar</button>
-    <p class="nota">🔒 Respuestas anónimas</p>
+    <p class="nota">Respuestas anónimas</p>
   </div>
 </section>
 
-<!-- 2. Iniciar sesión o registrarse -->
+<!-- 2 Iniciar sesión o registrarse -->
 <section class="pantalla" id="acceso" hidden>
   <div class="tarjeta">
     <h2>Bienvenido</h2>
@@ -47,7 +47,7 @@
   </div>
 </section>
 
-<!-- 3. Iniciar sesión -->
+<!-- 3 Iniciar sesión -->
 <section class="pantalla" id="login" hidden>
   <form class="tarjeta" data-f="login">
     <h2>Iniciar sesión</h2>
@@ -86,8 +86,8 @@
 <section class="pantalla" id="recuperar" hidden>
   <form class="tarjeta" data-f="recuperar">
     <h2>Recuperar contraseña</h2>
-    <p class="sub">Escribe tu correo institucional y te enviaremos un código para restablecerla.</p>
-    <label>Correo institucional<input type="email" name="correo" required></label>
+    <p class="sub">Escribe tu correo  y te enviaremos un código para restablecerla.</p>
+    <label>Correo <input type="email" name="correo" required></label>
     <p class="err" hidden></p>
     <button class="btn">Enviar código</button>
     <button type="button" class="btn sec" data-ir="login">Volver a iniciar sesión</button>
@@ -97,11 +97,11 @@
 <section class="pantalla" id="codigo" hidden>
   <form class="tarjeta" data-f="codigo">
     <h2>Verifica tu correo</h2>
-    <p class="sub">Escribe el código de 6 dígitos que enviamos a tu correo institucional.</p>
+    <p class="sub">Escribe el código de 6 dígitos que enviamos a tu correo .</p>
     <div class="codigo"></div>
     <p class="err" hidden></p>
     <button class="btn">Verificar código</button>
-    <p class="nota">Modo de prueba: sirve cualquier código de 6 dígitos.</p>
+    <p class="nota">modo de prueba aqui sirve el código de 6 dg cualquiera.</p>
   </form>
 </section>
 
@@ -140,7 +140,7 @@
     <label>Cuéntanos qué mejorar o qué te gustó (opcional)<textarea name="comentario" rows="3" placeholder="Escribe tus comentarios aquí..."></textarea></label>
     <p class="err" hidden></p>
     <p class="ok" id="gracias" hidden>¡Gracias! Tu evaluación se envió.</p>
-    <div class="pie"><span class="nota">🔒 Tus respuestas son anónimas</span><button class="btn">Enviar evaluación</button></div>
+    <div class="pie"><span class="nota">Tus respuestas son anónimas</span><button class="btn">Enviar evaluación</button></div>
   </form>
 </section>
 
