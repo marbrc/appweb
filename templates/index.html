@@ -132,7 +132,7 @@
     <p class="chip" id="clase" hidden></p>
     <h3 class="paso"><b>2</b>Responde las 12 preguntas</h3>
     <p class="sub" id="aviso">Elige la clase para desbloquear las preguntas.</p>
-    <p class="sub">Califica del 1 (muy mal) al 10 (excelente).</p>
+    <p class="sub">Califica del 5 (muy mal) al 10 (excelente).</p>
     <div class="prog"><i></i></div>
     <p class="sub" id="cuenta">0 de 12 respondidas</p>
     <fieldset id="preguntas" disabled></fieldset>
@@ -143,44 +143,85 @@
     <div class="pie"><span class="nota">Tus respuestas son anónimas</span><button class="btn">Enviar evaluación</button></div>
   </form>
 </section>
-
-<!-- 7. Rol docente: mis resultados -->
-<section class="pantalla ancho" id="docente" hidden>
-  <div class="tarjeta">
-    <h2>Mis resultados</h2>
-    <p class="sub">Datos de ejemplo, después salen de la base de datos.</p>
-    <p>Promedio general <span class="dest" id="pg"></span></p>
-    <table><thead><tr><th>#</th><th>Pregunta</th><th>Promedio</th></tr></thead><tbody id="tabla-d"></tbody></table>
-    <h3>Comentarios</h3>
-    <ul id="coms"></ul>
+<!-- 7. Rol docente -->
+<section class="pantalla" id="docente" hidden>
+  <div class="panel">
+    <!-- data-p es el principio del id de las vistas de este menu -->
+    <nav class="lat" data-p="d-">
+      <b>UTNG</b>
+      <button data-v="resultados" class="act">Mis resultados</button>
+      <button data-v="comentarios">Comentarios</button>
+    </nav>
+    <div class="cont">
+      <div id="d-resultados">
+        <h2>Mis resultados</h2>
+        <p class="sub">Datos de ejemplo, después salen de la base de datos.</p>
+        <div class="stats"><div><small>Promedio general</small><b id="pg"></b></div></div>
+        <div class="tabla-wrap"><table><thead><tr><th>#</th><th>Pregunta</th><th>Promedio</th></tr></thead><tbody id="tabla-d"></tbody></table></div>
+      </div>
+      <div id="d-comentarios" hidden>
+        <h2>Comentarios</h2>
+        <ul id="coms"></ul>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- 8. Rol administrador: resumen general -->
+<!-- 8. Rol de admin -->
 <section class="pantalla" id="admin" hidden>
   <div class="panel">
-    <nav class="lat">
+    <!-- data-v = que vista abre el botón, data-c = que catálogo se llena -->
+    <nav class="lat" data-p="v-">
       <b>UTNG</b>
-      <button class="act">Inicio</button><button>Grupos</button><button>Docentes</button><button>Materias</button><button>Preguntas</button><button>Reportes</button>
+      <button data-v="inicio" class="act">Inicio</button>
+      <button data-v="catalogo" data-c="grupos">Grupos</button>
+      <button data-v="catalogo" data-c="docentes">Docentes</button>
+      <button data-v="catalogo" data-c="materias">Materias</button>
+      <button data-v="catalogo" data-c="preguntas">Preguntas</button>
+      <button data-v="reportes">Reportes</button>
     </nav>
     <div class="cont">
-      <div id="resumen">
+
+      <!-- vista inicio -->
+      <div id="v-inicio">
         <h2>Resumen general</h2>
         <div class="stats">
-          <div><small>Grupos registrados</small><b>12</b></div>
-          <div><small>Docentes</small><b>28</b></div>
-          <div><small>Materias</small><b>34</b></div>
+          <div><small>Grupos registrados</small><b id="n-grupos"></b></div>
+          <div><small>Docentes</small><b id="n-docentes"></b></div>
+          <div><small>Materias</small><b id="n-materias"></b></div>
           <div><small>Encuestas respondidas</small><b>486</b></div>
         </div>
         <h3>Promedio por pregunta</h3>
         <div class="barras" id="barras"></div>
         <h3>Reportes recientes</h3>
-        <table><thead><tr><th>Fecha</th><th>Grupo</th><th>Profesor</th><th>Promedio</th></tr></thead><tbody id="rep"></tbody></table>
+        <div class="tabla-wrap"><table><thead><tr><th>Fecha</th><th>Grupo</th><th>Profesor</th><th>Promedio</th></tr></thead><tbody id="rep"></tbody></table></div>
       </div>
-      <p id="pend" class="nota" hidden>La sección <b></b> la integra el equipo.</p>
+
+      <!-- vista catálogo la misma sirve para grupos, docentes, materias y preguntas-->
+      <div id="v-catalogo" hidden>
+        <div class="barra-acc"><h2 id="cat-titulo"></h2><button class="btn" id="cat-nuevo">+ Nuevo</button></div>
+        <form id="cat-form" class="form-cat" data-f="catalogo" hidden></form>
+        <div class="tabla-wrap"><table><thead id="cat-head"></thead><tbody id="cat-body"></tbody></table></div>
+      </div>
+
+      <!-- vista de reportes -->
+      <div id="v-reportes" hidden>
+        <h2>Reportes</h2>
+        <div class="filtros">
+          <label>Grupo<select id="r-grupo"></select></label>
+          <label>Profesor<select id="r-prof"></select></label>
+          <label>Materia<select id="r-mat"></select></label>
+        </div>
+        <h3 id="r-titulo"></h3>
+        <p class="sub">Datos de ejemplo tomados de la hoja de reporte.</p>
+        <div class="barras" id="r-barras"></div>
+        <div class="tabla-wrap"><table class="rep"><thead id="r-head"></thead><tbody id="r-tabla"></tbody></table></div>
+      </div>
+
     </div>
   </div>
 </section>
+
 </main>
 <script src="/static/js/app.js"></script>
 </body>

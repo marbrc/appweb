@@ -97,3 +97,43 @@ th:last-child,td:last-child{text-align:right}
 .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;font-size:.75rem;text-align:center;color:var(--mut)}
 .col i{display:block;background:var(--bar);border-radius:.25rem .25rem 0 0}
 @media(max-width:700px){.panel{grid-template-columns:1fr}.lat{grid-auto-flow:column;overflow-x:auto}}
+
+
+/* ===== PANTALLAS A TAMAÑO COMPLETO ===== */
+main{padding:0}
+.pantalla{min-height:calc(100vh - 3.4rem)}
+/* Pantallas de entrada y de alumno: con espacio alrededor */
+#bienvenida,#acceso,#login,#registro,#recuperar,#codigo,#nueva,#alumno{padding:1.5rem}
+#bienvenida .tarjeta{max-width:64rem;min-height:28rem;align-content:center}
+/* Alumno: la tarjeta ocupa todo el ancho y las preguntas se acomodan en columnas */
+#alumno{place-items:start stretch}
+.ancho .tarjeta{max-width:none}
+#preguntas{grid-template-columns:repeat(auto-fit,minmax(26rem,1fr))}
+/* Docente y administrador: menú a la izquierda y contenido a todo lo ancho */
+.panel{max-width:none;min-height:calc(100vh - 3.4rem);border:0;border-radius:0}
+.cont{display:grid;gap:1.2rem;align-content:start;min-width:0;padding:1.5rem 2rem}
+#v-inicio,#v-catalogo,#v-reportes,#d-resultados,#d-comentarios{display:grid;gap:1rem;align-content:start}
+.barras{height:14rem}
+.tabla-wrap{overflow-x:auto}
+.barra-acc{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem}
+.form-cat{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.8rem;padding:1rem;background:var(--in);border:1px solid var(--bd);border-radius:.8rem}
+.acciones{display:flex;gap:.6rem;align-items:end}
+.mini{padding:.3rem .7rem;color:var(--tx);background:var(--in);border:1px solid var(--bd);border-radius:.5rem}
+.mini.rojo{color:var(--err);border-color:var(--err)}
+.filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.8rem}
+.rep td:last-child,.rep th:last-child{text-align:left}
+
+/* ===== PREGUNTAS: UNA POR FILA Y LOS 10 NUMEROS EN UNA SOLA LINEA ===== */
+#preguntas{grid-template-columns:1fr;gap:1.8rem}
+.esc{display:grid;grid-template-columns:repeat(10,1fr);gap:.5rem;max-width:40rem}
+.esc span{width:100%}
+/* en el celular se acomodan 5 y 5 para que no se vean chiquitos */
+@media(max-width:520px){.esc{grid-template-columns:repeat(5,1fr)}}
+
+/* ===== PREGUNTAS: UNA POR FILA, ESCALA DEL 5 AL 10 Y ESPACIO DE DOS RENGLONES ===== */
+#preguntas{grid-template-columns:1fr;gap:3rem}
+.esc{grid-template-columns:repeat(6,1fr);max-width:26rem}
+/* colores: 5 y 6 rojo, 7 y 8 amarillo, 9 y 10 verde */
+.esc label:nth-child(-n+2) input:checked+span{background:#c9363f;border-color:#c9363f;color:#fff}
+.esc label:nth-child(n+3):nth-child(-n+4) input:checked+span{background:#f5a524;border-color:#f5a524;color:#1a1a1a}
+.esc label:nth-child(n+5):nth-child(-n+6) input:checked+span{background:#1f8f4e;border-color:#1f8f4e;color:#fff}
