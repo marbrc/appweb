@@ -1,116 +1,290 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Interfaz validada - versión JavaScript</title>
-  <style>
-    /* estilo sencillo solo para que se vea tipo  ordenado y los estilos bonitos van en estilos.css */
-    body { font-family: Arial, sans-serif; background: #e8f0fc; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; padding: 1rem; }
-    form { background: #fff; padding: 1.2rem; border-radius: 12px; width: 320px; }
-    label { display: block; margin-top: .6rem; font-weight: bold; font-size: .9rem; }
-    input, select { width: 100%; padding: .5rem; margin-top: .2rem; box-sizing: border-box; }
-    button { width: 100%; margin-top: 1rem; padding: .6rem; background: #1f6feb; color: #fff; border: 0; border-radius: 8px; }
-    /* clases que pone el JavaScript: mal = rojo, bien = verde */
-    .mal { border: 2px solid #c5221f; }
-    .bien { border: 2px solid #1f9d57; }
-    .error { display: block; min-height: 1em; color: #c5221f; font-size: .8rem; }
-    .ok { color: #1f9d57; font-weight: bold; }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interfaz validada - versión JavaScript</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #e8f0fc;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        form {
+            background: #fff;
+            padding: 1.2rem;
+            border-radius: 12px;
+            width: 320px;
+        }
+
+        label {
+            display: block;
+            margin-top: .6rem;
+            font-weight: bold;
+            font-size: .9rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: .5rem;
+            margin-top: .2rem;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 1rem;
+            padding: .6rem;
+            background: #1f6feb;
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .mal {
+            border: 2px solid #c5221f;
+        }
+
+        .bien {
+            border: 2px solid #1f9d57;
+        }
+
+        .error {
+            display: block;
+            min-height: 1em;
+            color: #c5221f;
+            font-size: .8rem;
+        }
+
+        .ok {
+            color: #1f9d57;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
 
-  <!-- novalidate = el navegador no valida sol lo valida mi JavaScript de abajo -->
-  <!-- Cada campo va en un div "campo" y tiene un <small class="error"> donde se escribe el mensaje de erro -->
-  <form id="formRegistro" novalidate>
-    <h2>Registro de usuario</h2>
-    <div class="campo"><label>Nombre completo <input type="text" name="nombre"></label><small class="error"></small></div>
-    <div class="campo"><label>Correo institucional <input type="email" name="correo"></label><small class="error"></small></div>
-    <div class="campo"><label>Contraseña <input type="password" name="clave"></label><small class="error"></small></div>
-    <div class="campo"><label>Confirmar contraseña <input type="password" name="clave2"></label><small class="error"></small></div>
-    <div class="campo">
-      <label>Rol
-        <select name="rol">
-          <option value="">Selecciona un rol</option>
-          <option>Alumno</option>
-          <option>Docente</option>
-          <option>Administrador</option>
-        </select>
-      </label>
-      <small class="error"></small>
-    </div>
-    <button>Registrarse</button>
-    <p class="ok" hidden>Registro correcto</p>
-  </form>
+    <!-- FORMULARIO DE REGISTRO -->
+    <form id="formRegistro" novalidate>
+        <h2>Registro de usuario</h2>
 
-  <form id="formLogin" novalidate>
-    <h2>Iniciar sesión</h2>
-    <div class="campo"><label>Correo institucional <input type="email" name="correo"></label><small class="error"></small></div>
-    <div class="campo"><label>Contraseña <input type="password" name="clave"></label><small class="error"></small></div>
-    <button>Iniciar sesión</button>
-    <p class="ok" hidden>Inicio de sesión correcto</p>
-  </form>
+        <div class="campo">
+            <label for="nombre">Nombre completo</label>
+            <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                minlength="3"
+                maxlength="60"
+                autocomplete="name"
+            >
+            <small class="error"></small>
+        </div>
 
-<script>
-  // ----------  REGLAS ----------
-  // cada regla recibe lo que escribió la persona y el formulario 
-  // si esta bien regresa true y si está mal regresa el mensaje de error q se va a mostrar
-  // si el campo esta vacío ni entra aqui antes lo detiene la función revisar
-  const reglasRegistro = {
-    nombre: v => /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{3,60}$/.test(v) || "Solo letras y espacios, de 3 a 60 caracteres",
-    correo: v => /^[^@\s]+@utng\.edu\.mx$/.test(v) || "Usa tu correo institucional (@utng.edu.mx)",
-    clave: v => /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$/.test(v) || "De 8 a 20 caracteres con mayúscula, minúscula y número",
-    clave2: (v, f) => v === f.clave.value || "Las contraseñas no son iguales" // esto es lo que HTML solo no puede hacer
-  };
-  const reglasLogin = {
-    correo: v => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) || "Escribe un correo válido"
-  };
+        <div class="campo">
+            <label for="correo">Correo institucional</label>
+            <input type="email" id="correo" name="correo">
+            <small class="error"></small>
+        </div>
 
-  // ----------REVISARUN CAMPO ----------
-  // revisa un campo escribe el mensaje debajo y lo pinta de rojo o verde
-  // y regresa true si esta bien o false si esta mal
-  function revisar(campo, reglas) {
-    const valor = campo.type === "password" ? campo.value : campo.value.trim(); // a las contraseñas no les quia espacios
-    let mensaje = "";                                                           // vacio = sin error
-    if (valor === "") {
-      mensaje = "Este campo es obligatorio";
-    } else if (reglas[campo.name]) {
-      const resultado = reglas[campo.name](valor, campo.form);
-      if (resultado !== true) mensaje = resultado;                              // si no regresó true es el mensaje de error
-    }
-    campo.closest(".campo").querySelector(".error").textContent = mensaje;      // pongo el mensaje debajo del campo
-    campo.classList.toggle("mal", mensaje !== "");                              // rojo si hay error
-    campo.classList.toggle("bien", mensaje === "");                             // verde si no hay
-    return mensaje === "";
-  }
+        <div class="campo">
+            <label for="clave">Contraseña</label>
+            <input
+                type="password"
+                id="clave"
+                name="clave"
+                minlength="8"
+                maxlength="20"
+            >
+            <small class="error"></small>
+        </div>
 
-  // ---------- ACTIVAR UN FORMULARIO ----------
-  function activar(form, reglas) {
-    const campos = [...form.querySelectorAll("input, select")]; // todos los campos del formulario
-    const ok = form.querySelector(".ok");                       // el mensaje de "correcto
+        <div class="campo">
+            <label for="clave2">Confirmar contraseña</label>
+            <input
+                type="password"
+                id="clave2"
+                name="clave2"
+                minlength="8"
+                maxlength="20"
+            >
+            <small class="error"></small>
+        </div>
 
-    campos.forEach(campo => {
-      // blur = cuando sale del campo lo revissa
-      campo.addEventListener("blur", () => revisar(campo, reglas));
-      // input = mientras escriba si estaba mal lo reviso otra vez para que el error se quite en cuantose modifca
-      campo.addEventListener("input", () => {
-        ok.hidden = true;
-        if (campo.classList.contains("mal")) revisar(campo, reglas);
-      });
-    });
+        <div class="campo">
+            <label for="rol">Rol</label>
+            <select id="rol" name="rol">
+                <option value="">Selecciona un rol</option>
+                <option value="Alumno">Alumno</option>
+                <option value="Docente">Docente</option>
+                <option value="Administrador">Administrador</option>
+            </select>
+            <small class="error"></small>
+        </div>
 
-    // submit = cuando presiono el botón
-    form.addEventListener("submit", e => {
-      e.preventDefault();                                     // no deja que se envíe solo
-      const resultados = campos.map(c => revisar(c, reglas)); // revisa tds los campos y cada uno da true o false
-      ok.hidden = !resultados.every(r => r);                  // el mensaje de correcto solo se ve si todos están bien
-    });
-  }
+        <button type="submit">Registrarse</button>
+        <p class="ok" hidden>Registro correcto</p>
+    </form>
 
-  // ---------- ACTIVAR DOS FORMULARIOS ----------
-  activar(document.querySelector("#formRegistro"), reglasRegistro);
-  activar(document.querySelector("#formLogin"), reglasLogin);
-</script>
+    <!-- FORMULARIO DE INICIO DE SESIÓN -->
+    <form id="formLogin" novalidate>
+        <h2>Iniciar sesión</h2>
+
+        <div class="campo">
+            <label for="correoLogin">Correo electrónico</label>
+            <input type="email" id="correoLogin" name="correo">
+            <small class="error"></small>
+        </div>
+
+        <div class="campo">
+            <label for="claveLogin">Contraseña</label>
+            <input type="password" id="claveLogin" name="clave">
+            <small class="error"></small>
+        </div>
+
+        <button type="submit">Iniciar sesión</button>
+        <p class="ok" hidden>Inicio de sesión correcto</p>
+    </form>
+
+    <script>
+        // REGLAS DE VALIDACIÓN DEL REGISTRO
+
+        const reglasRegistro = {
+            nombre: v =>
+                /^[A-Za-zÁÉÍÓÚÜáéíóúüÑñ ]{3,60}$/.test(v)
+                || "Solo letras y espacios, de 3 a 60 caracteres",
+
+            correo: v =>
+                /^[^@\s]+@utng\.edu\.mx$/i.test(v)
+                || "Usa tu correo institucional (@utng.edu.mx)",
+
+            clave: v =>
+                /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$/.test(v)
+                || "De 8 a 20 caracteres con mayúscula, minúscula y número",
+
+            clave2: (v, form) =>
+                v === form.querySelector('[name="clave"]').value
+                || "Las contraseñas no son iguales",
+
+            rol: v =>
+                ["Alumno", "Docente", "Administrador"].includes(v)
+                || "Selecciona un rol válido"
+        };
+
+        // REGLAS DE INICIO DE SESIÓN
+
+        const reglasLogin = {
+            correo: v =>
+                /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)
+                || "Escribe un correo válido"
+        };
+
+        // REVISAR UN CAMPO
+
+        function revisar(campo, reglas) {
+            const valor = campo.type === "password"
+                ? campo.value
+                : campo.value.trim();
+
+            let mensaje = "";
+
+            if (valor === "") {
+                mensaje = "Este campo es obligatorio";
+            } else if (reglas[campo.name]) {
+                const resultado = reglas[campo.name](
+                    valor,
+                    campo.form
+                );
+
+                if (resultado !== true) {
+                    mensaje = resultado;
+                }
+            } else if (
+                campo.type === "email" &&
+                !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valor)
+            ) {
+                mensaje = "Escribe un correo válido";
+            }
+
+            const contenedor = campo.closest(".campo");
+            contenedor.querySelector(".error").textContent = mensaje;
+
+            campo.classList.toggle("mal", mensaje !== "");
+            campo.classList.toggle("bien", mensaje === "");
+
+            return mensaje === "";
+        }
+
+        // ACTIVAR LAS VALIDACIONES DE CADA FORMULARIO
+
+        function activar(form, reglas) {
+            const campos = [
+                ...form.querySelectorAll("input, select")
+            ];
+
+            const mensajeOk = form.querySelector(".ok");
+
+            campos.forEach(campo => {
+                campo.addEventListener("blur", () => {
+                    revisar(campo, reglas);
+                });
+
+                campo.addEventListener("input", () => {
+                    mensajeOk.hidden = true;
+
+                    if (campo.classList.contains("mal")) {
+                        revisar(campo, reglas);
+                    }
+                });
+
+                campo.addEventListener("change", () => {
+                    mensajeOk.hidden = true;
+
+                    if (campo.classList.contains("mal")) {
+                        revisar(campo, reglas);
+                    }
+                });
+            });
+
+            form.addEventListener("submit", evento => {
+                evento.preventDefault();
+
+                mensajeOk.hidden = true;
+
+                const resultados = campos.map(campo =>
+                    revisar(campo, reglas)
+                );
+
+                const formularioValido =
+                    resultados.every(resultado => resultado);
+
+                if (formularioValido) {
+                    mensajeOk.hidden = false;
+                }
+            });
+        }
+
+        // INICIAR LAS VALIDACIONES
+
+        activar(
+            document.getElementById("formRegistro"),
+            reglasRegistro
+        );
+
+        activar(
+            document.getElementById("formLogin"),
+            reglasLogin
+        );
+    </script>
 
 </body>
 </html>
