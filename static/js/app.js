@@ -375,7 +375,7 @@ document.addEventListener("click", e => {
   if (t.id === "cat-nuevo") formulario(-1);
   if (t.id === "cat-cancelar") buscar("#cat-form").hidden = true;
   if (t.dataset.editar) formulario(+t.dataset.editar);
-  if (t.dataset.borrar && confirm("¿Eliminar este registro?")) { CATALOGOS[cat].datos.splice(+t.dataset.borrar, 1); dibujarTabla(); }
+  if (t.dataset.borrar) { const n = +t.dataset.borrar; modal("pregunta", "¿Eliminar este registro?", "Esta acción no se puede deshacer.", true).then(ok => { if (ok) { CATALOGOS[cat].datos.splice(n, 1); dibujarTabla(); modal("ok", "Listo", "Se eliminó correctamente."); } }); }
 });
 
 // ----- reportes -----
@@ -409,6 +409,166 @@ buscarTodos(".lat").forEach(nav => nav.addEventListener("click", e => {
   buscarTodos(`[id^="${nav.dataset.p}"]`, nav.parentElement).forEach(v => v.hidden = v.id !== nav.dataset.p + b.dataset.v);
   if (b.dataset.c) abrirCatalogo(b.dataset.c);
 }));
+
+// ----- ventanita (modal) para avisos y confirmaciones -----
+// tipo: "ok" (palomita), "error" (tache) o "pregunta" (?). conCancelar muestra el boton Cancelar
+// si se manda campo (aunque sea "") sale un cuadro de texto y regresa lo que se escribio
+// regresa una promesa: true o false (o el texto) segun lo que se apriete
+function modal(tipo, titulo, texto, conCancelar, campo) {
+  return new Promise(res => {
+    const m = buscar("#modal"), t = buscar("#modal-campo");
+    m.dataset.tipo = tipo;
+    buscar("#modal-icono").textContent = { ok: "✔", error: "✖", pregunta: "?" }[tipo];
+    buscar("#modal-titulo").textContent = titulo;
+    buscar("#modal-texto").textContent = texto;
+    t.hidden = campo === undefined; t.value = campo || "";
+    buscar("#modal-no").hidden = !conCancelar;
+    m.hidden = false;
+    const cerrar = v => { m.hidden = true; res(v); };
+    buscar("#modal-si").onclick = () => cerrar(campo === undefined ? true : t.value.trim() || false);
+    buscar("#modal-no").onclick = () => cerrar(false);
+  });
+}
+
+// el catalogo ahora se llama Asignaturas y cuando se guarda sale el aviso de que quedo bien
+CATALOGOS.materias.titulo = "Asignaturas";
+const guardarCat = forms.catalogo;
+forms.catalogo = (f, d) => { guardarCat(f, d); modal("ok", "Listo", "Se guardó correctamente."); };
+
+// ----- menu nuevo (administrador y docente) -----
+// cada rol tiene sus opciones: [id, nombre, icono]
+const MENUS = {
+  admin: [["inicio", "Inicio", "🏠"], ["grupos", "Grupos", "👥"], ["docentes", "Docentes", "🎓"], ["materias", "Asignaturas", "📚"], ["preguntas", "Preguntas", "❓"], ["reportes", "Reportes", "📊"]],
+  docente: [["inicio", "Inicio", "🏠"], ["resultados", "Mis resultados", "📈"], ["comentarios", "Comentarios", "💬"]]
+};
+// las de abajo son iguales para todos
+const FIJO = [["cuenta", "Cuenta", "👤"], ["config", "Configuración", "⚙️"], ["salir", "Cerrar sesión", "🚪"]];
+// estas opciones usan la misma vista (la del catalogo)
+const VISTA = { grupos: "catalogo", docentes: "catalogo", materias: "catalogo" };
+const ROLES = { admin: "Administrador", docente: "Docente" };
+
+// armo el menu de cada rol: las tres rayitas, el cristal (pill), las opciones y las de abajo
+const boton = ([id, nombre, icono]) => `<button class="it" data-id="${id}"><i>${icono}</i><span>${nombre}</span></button>`;
+buscarTodos(".menu").forEach(nav => {
+  nav.innerHTML = '<button class="hamb" data-hamb aria-label="Mostrar u ocultar el menú">☰</button><span class="pill"></span>' +
+    `<div>${MENUS[nav.dataset.rol].map(boton).join("")}</div><div class="fijo">${FIJO.map(boton).join("")}</div>`;
+  if (innerWidth < 700) nav.classList.add("cerrado"); // en el celular empieza cerrado
+});
+
+// las vistas de Cuenta y Configuracion son iguales para los dos roles, asi que se agregan aqui
+buscarTodos(".panel .cont").forEach(c => c.insertAdjacentHTML("beforeend", `
+  <div data-vista="cuenta" hidden>
+    <h2>Cuenta</h2>
+    <p class="sub" data-info></p>
+    <form class="form-cat" data-f="cuenta">
+      <label>Correo<input type="email" name="correo" required></label>
+      <label>Nueva contraseña<span class="pw"><input type="password" name="clave" minlength="6"><button type="button" class="ojo" aria-label="Mostrar u ocultar contraseña">👁</button></span></label>
+      <label>Confirmar contraseña<span class="pw"><input type="password" name="clave2" minlength="6"><button type="button" class="ojo" aria-label="Mostrar u ocultar contraseña">👁</button></span></label>
+      <div class="acciones"><button class="btn">Guardar cambios</button></div>
+    </form>
+  </div>
+  <div data-vista="config" hidden>
+    <h2>Configuración</h2>
+    <h3>Tema</h3>
+    <div class="acciones"><button class="mini" data-t="claro">Azul claro</button><button class="mini" data-t="oscuro">Azul oscuro</button><button class="mini" data-t="negro">Negro</button></div>
+    <h3>Notificaciones</h3>
+    <label class="chk"><input type="checkbox" data-notif="correo"> Recibir avisos por correo</label>
+    <label class="chk"><input type="checkbox" data-notif="pantalla"> Mostrar avisos en pantalla</label>
+  </div>`));
+
+// las notificaciones se guardan en el navegador
+const config = JSON.parse(localStorage.getItem("config") || "{}");
+buscarTodos("[data-notif]").forEach(c => {
+  c.checked = config[c.dataset.notif] ?? true;
+  c.addEventListener("change", () => { config[c.dataset.notif] = c.checked; localStorage.setItem("config", JSON.stringify(config)); });
+});
+
+// elegir: abre una vista del menu, marca la opcion y mueve el cristal (pill) hasta ella
+function elegir(nav, id) {
+  if (id === "salir") return modal("pregunta", "¿Cerrar sesión?", "Tendrás que iniciar sesión otra vez.", true).then(ok => { if (ok) { sesion = null; ir("login"); } });
+  const cont = nav.nextElementSibling, vista = VISTA[id] || id;
+  buscarTodos(":scope > [data-vista]", cont).forEach(v => v.hidden = v.dataset.vista !== vista);
+  buscarTodos(".it", nav).forEach(b => b.classList.toggle("act", b.dataset.id === id));
+  const a = buscar(".it.act", nav), p = buscar(".pill", nav);
+  p.style.top = a.offsetTop + "px"; p.style.height = a.offsetHeight + "px";
+  if (VISTA[id]) abrirCatalogo(id);
+  if (id === "cuenta") llenarCuenta(cont);
+}
+
+// llenarCuenta: pone en el formulario el correo y el nombre de quien inicio sesion
+function llenarCuenta(cont) {
+  buscar("[name=correo]", cont).value = sesion?.correo || "";
+  buscar("[data-info]", cont).textContent = `${sesion?.nombre || ""} · ${ROLES[PANEL[sesion?.rol]] || ""}`;
+}
+
+// los clics del menu: elegir opcion, las tres rayitas, el iconito de cuenta de arriba y los atajos de Inicio
+document.addEventListener("click", e => {
+  const it = e.target.closest(".menu .it"), h = e.target.closest("[data-hamb]"), at = e.target.closest("[data-ir-vista]");
+  if (it) elegir(it.closest(".menu"), it.dataset.id);
+  if (h) h.closest(".menu").classList.toggle("cerrado");
+  if (at) elegir(at.closest(".panel").querySelector(".menu"), at.dataset.irVista);
+  if (e.target.closest("[data-cuenta]")) { const nav = buscar(`#${PANEL[sesion?.rol]} .menu`); if (nav) elegir(nav, "cuenta"); }
+});
+
+// entrarPanel: cada vez que se abre un panel pone el saludo con el rol, dibuja los atajos con su animacion y vuelve a Inicio
+// tambien muestra el iconito de cuenta solo cuando se esta en un panel
+function entrarPanel() {
+  const id = location.hash.slice(1), av = buscar("#avatar"), panel = ["admin", "docente"].includes(id);
+  if (av) av.hidden = !sesion || !panel;
+  if (!sesion || !panel) return;
+  const nav = buscar(`#${id} .menu`);
+  if (!nav) return; // por si todavia no esta el index.html nuevo
+  const cont = nav.nextElementSibling, s = buscar(".saludo", cont);
+  s.innerHTML = '<h2></h2><span class="rol-chip"></span>';
+  buscar("h2", s).textContent = "¡Hola, " + sesion.nombre + "!";
+  buscar(".rol-chip", s).textContent = "Rol: " + ROLES[id];
+  buscar(".atajos", cont).innerHTML = MENUS[id].slice(1).map(([vid, nombre, icono], i) =>
+    `<button class="atajo" style="--d:${i}" data-ir-vista="${vid}"><i>${icono}</i><b>${nombre}</b></button>`).join("");
+  elegir(nav, "inicio");
+}
+addEventListener("hashchange", entrarPanel);
+entrarPanel();
+
+// ----- preguntas en tarjetas -----
+// preguntas es una copia de PREG para poder agregar, editar y eliminar (POR AHORITA SOLO SE VE EN PANTALLA)
+const preguntas = PREG.slice();
+function dibujarPreguntas() {
+  if (!buscar("#preg-lista")) return; // por si todavia no esta el index.html nuevo
+  buscar("#preg-lista").innerHTML = preguntas.map((t, i) =>
+    `<article class="preg-card"><span class="num">${i + 1}</span><p></p><div class="preg-acc"><button class="mini" data-pedit="${i}">Editar</button><button class="mini rojo" data-pdel="${i}">Eliminar</button></div></article>`).join("");
+  buscarTodos(".preg-card p").forEach((p, i) => p.textContent = preguntas[i]); // con textContent por seguridad
+}
+dibujarPreguntas();
+
+// botones de las tarjetas: cada accion pregunta con Aceptar o Cancelar y despues avisa que quedo bien
+document.addEventListener("click", async e => {
+  const nueva = e.target.closest("#preg-nueva"), ed = e.target.closest("[data-pedit]"), del = e.target.closest("[data-pdel]");
+  if (nueva) {
+    const t = await modal("pregunta", "Nueva pregunta", "Escribe el texto de la pregunta.", true, "");
+    if (t) { preguntas.push(t); dibujarPreguntas(); modal("ok", "Listo", "La pregunta se agregó."); }
+  }
+  if (ed) {
+    const i = +ed.dataset.pedit, t = await modal("pregunta", "Editar pregunta", "Cambia el texto y acepta.", true, preguntas[i]);
+    if (t) { preguntas[i] = t; dibujarPreguntas(); modal("ok", "Listo", "La pregunta se actualizó."); }
+  }
+  if (del && await modal("pregunta", "¿Eliminar esta pregunta?", "Esta acción no se puede deshacer.", true)) {
+    preguntas.splice(+del.dataset.pdel, 1); dibujarPreguntas(); modal("ok", "Listo", "La pregunta se eliminó.");
+  }
+});
+
+// ----- cuenta: cambiar correo y contraseña (primero pregunta si quiere guardar) -----
+forms.cuenta = (f, d) => {
+  if (d.clave && d.clave !== d.clave2) return modal("error", "No se pudo guardar", "Las contraseñas no coinciden.");
+  modal("pregunta", "¿Guardar cambios?", "Se va a actualizar tu cuenta.", true).then(ok => {
+    if (!ok) return;
+    const us = leer("usuarios"), u = us.find(x => x.correo === sesion?.correo);
+    if (!u) return modal("error", "No se pudo guardar", "No encontré tu cuenta.");
+    u.correo = d.correo; if (d.clave) u.clave = d.clave;
+    guardar("usuarios", us); sesion = u;
+    f.clave.value = f.clave2.value = "";
+    modal("ok", "Listo", "Tus cambios se guardaron.");
+  });
+};
 
 }
 
