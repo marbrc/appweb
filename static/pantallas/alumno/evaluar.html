@@ -1,0 +1,41 @@
+<!-- /static/pantallas/alumno/evaluar.html -->
+<div class="evaluar-alumno">
+
+  <!-- filtros en cascada -->
+  <div class="filtros">
+    <select id="f-carrera" aria-label="Carrera"></select>
+    <select id="f-cuatri"  aria-label="Cuatrimestre" disabled></select>
+    <select id="f-grupo"   aria-label="Grupo" disabled></select>
+    <select id="f-prof"    aria-label="Profesor" disabled></select>
+    <select id="f-mat"     aria-label="Materia" disabled></select>
+  </div>
+
+  <p id="aviso" class="sub">Elige tu clase para empezar.</p>
+  <p id="clase" class="sub" hidden></p>
+
+  <!-- progreso -->
+  <p id="cuenta-eval">0 de 12 respondidas</p>
+  <div class="prog"><i style="width:0%"></i></div>
+
+  <!-- formulario con las 12 preguntas (el JS las inyecta) -->
+  <form id="form-eval">
+    <fieldset id="preguntas" disabled></fieldset>
+
+    <label class="comentario">
+      Comentario (opcional)
+      <textarea name="comentario" maxlength="300" rows="3"
+                placeholder="Cuéntale a tu profesor qué te gusta y qué podría mejorar..."></textarea>
+    </label>
+
+    <div class="acciones">
+      <button class="btn" type="submit">Enviar evaluación</button>
+    </div>
+  </form>
+
+  <!-- pantalla de gracias -->
+  <div id="gracias" hidden>
+    <h2>¡Gracias por tu evaluación!</h2>
+    <p class="sub">Tus respuestas se guardaron de forma anónima.</p>
+  </div>
+
+</div>

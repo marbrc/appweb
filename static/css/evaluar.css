@@ -1,0 +1,165 @@
+/* /static/pantallas/alumno/evaluar.css */
+
+.evaluar-alumno {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* ---------- filtros en cascada ---------- */
+.evaluar-alumno .filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .6rem;
+}
+
+.evaluar-alumno .filtros select {
+  padding: .55rem .7rem;
+  border: 1px solid var(--borde, #ccc);
+  border-radius: 8px;
+  background: var(--fondo, #fff);
+  color: inherit;
+  font: inherit;
+}
+
+.evaluar-alumno .filtros select:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* ---------- avisos ---------- */
+.evaluar-alumno #aviso {
+  margin: 0;
+  font-size: .9rem;
+  opacity: .8;
+}
+
+.evaluar-alumno #clase {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ---------- progreso ---------- */
+.evaluar-alumno #cuenta-eval {
+  margin: 0;
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.evaluar-alumno .prog {
+  height: 8px;
+  background: var(--borde, #e5e5e5);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.evaluar-alumno .prog i {
+  display: block;
+  height: 100%;
+  background: var(--acento, #1f6feb);
+  border-radius: 999px;
+  transition: width .25s ease;
+}
+
+/* ---------- preguntas ---------- */
+.evaluar-alumno #preguntas {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.evaluar-alumno #preguntas fieldset {
+  border: 1px solid var(--borde, #e5e5e5);
+  border-radius: 10px;
+  padding: .9rem 1rem;
+  background: var(--tarjeta, #fafafa);
+}
+
+.evaluar-alumno #preguntas legend {
+  font-weight: 600;
+  padding: 0 .3rem;
+  line-height: 1.35;
+}
+
+.evaluar-alumno .esc {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: .6rem;
+}
+
+.evaluar-alumno .esc label {
+  position: relative;
+  cursor: pointer;
+}
+
+.evaluar-alumno .esc input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  cursor: pointer;
+}
+
+.evaluar-alumno .esc span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 2px solid var(--borde, #ccc);
+  font-weight: 600;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.evaluar-alumno .esc input:checked + span {
+  background: var(--acento, #1f6feb);
+  border-color: var(--acento, #1f6feb);
+  color: #fff;
+}
+
+.evaluar-alumno .esc input:focus-visible + span {
+  outline: 2px solid var(--acento, #1f6feb);
+  outline-offset: 2px;
+}
+
+/* ---------- comentario ---------- */
+.evaluar-alumno .comentario {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  font-weight: 600;
+}
+
+.evaluar-alumno .comentario textarea {
+  width: 100%;
+  padding: .6rem .7rem;
+  border: 1px solid var(--borde, #ccc);
+  border-radius: 8px;
+  background: var(--fondo, #fff);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+/* ---------- acciones ---------- */
+.evaluar-alumno .acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+
+/* ---------- gracias ---------- */
+.evaluar-alumno #gracias {
+  text-align: center;
+  padding: 2rem 1rem;
+  border: 1px solid var(--borde, #e5e5e5);
+  border-radius: 10px;
+  background: var(--tarjeta, #fafafa);
+}
