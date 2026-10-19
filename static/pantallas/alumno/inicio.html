@@ -1,0 +1,38 @@
+<div class="inicio-alumno">
+
+  <!-- tarjeta de bienvenida, el saludo es fijo pq el alumno es anónimo -->
+  <div class="turno">
+    <h2>¡Hola, alumno!</h2>
+    <p class="turno-grande">Es tu turno de evaluar a tu docente</p>
+    <p class="sub"><i data-icono="candado"></i>Tus respuestas son completamente anónimas.</p>
+  </div>
+
+  <!-- tarjetas que se abren al tocarlas el JS las abre y las cierra --d es el orden en que van apareciendo -->
+  <h3 class="guia-titulo">¿Cómo funciona? Toca una tarjeta</h3>
+  <div class="guia">
+
+    <article class="guia-card" style="--d:0">
+      <button class="guia-cab" aria-expanded="false"><span class="guia-num">1</span>Elige tu clase<i data-icono="abajo"></i></button>
+      <div class="guia-cuerpo"><div><p>Selecciona tu carrera, cuatrimestre, grupo, profesor y materia. Los campos se van abriendo uno por uno, así que empieza por el primero.</p></div></div>
+    </article>
+
+    <article class="guia-card" style="--d:1">
+      <button class="guia-cab" aria-expanded="false"><span class="guia-num">2</span>Responde las 12 preguntas<i data-icono="abajo"></i></button>
+      <div class="guia-cuerpo"><div><p>Califica cada pregunta del 5 al 10, donde 5 es lo más bajo y 10 es excelente. Arriba verás cuántas llevas respondidas.</p></div></div>
+    </article>
+
+    <article class="guia-card" style="--d:2">
+      <button class="guia-cab" aria-expanded="false"><span class="guia-num">3</span>Deja un comentario<i data-icono="abajo"></i></button>
+      <div class="guia-cuerpo"><div><p>Es opcional. Cuéntale a tu profesor qué te gusta de su clase y qué podría mejorar, con respeto.</p></div></div>
+    </article>
+
+    <article class="guia-card" style="--d:3">
+      <button class="guia-cab" aria-expanded="false"><span class="guia-num">4</span>Envía tu evaluación<i data-icono="abajo"></i></button>
+      <div class="guia-cuerpo"><div><p>Al enviarla se guarda sin tu nombre ni ningún dato personal. Después puedes evaluar a otro profesor o salir.</p></div></div>
+    </article>
+
+  </div>
+
+  <!-- el botón va hasta el final, después de leer cómo funciona data-ruta lo maneja marco.js -->
+  <button class="btn" data-ruta="alumno/evaluar">Evaluar profesor</button>
+</div>

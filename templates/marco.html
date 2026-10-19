@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encuesta Docente UTNG</title>
+<!-- el tema se pone antes de pintar para que no parpadee  -->
+<script>document.documentElement.dataset.tema = localStorage.getItem("tema") || "claro";</script>
+<link rel="stylesheet" href="/static/css/estilos.css">
+<link rel="stylesheet" href="/static/css/marco.css">
+</head>
+<body>
+
+<!-- el marco, esto se carga una sola vez y nunca se vuelve a crear -->
+<div class="marco" id="marco">
+
+  <!-- menú lateral, las opciones las arma marco.js dependiendo el rol -->
+  <aside class="lateral">
+    <button class="btn-hamb" id="btn-menu" aria-label="Mostrar u ocultar el menú"><i data-icono="menu"></i></button>
+    <div class="logo-lat">    <div class="logo-lat">
+      <div class="logo-caja">UTNG</div>
+      <span>Sistema de<br>Encuesta Docente</span>
+    </div>
+    <nav class="ops" id="menu-op"></nav>
+    <button class="op salir" data-salir title="Cerrar sesión"><i data-icono="salir"></i><span>Cerrar sesión</span></button>
+  </aside>
+
+  <div class="derecha">
+
+    <!-- barra de arriba, el titulo y la descripción cambian dependiendo la pantalla -->
+    <header class="superior">
+      <div class="titulos">
+        <h1 id="titulo"></h1>
+        <p class="sub" id="desc"></p>
+      </div>
+      <div class="reloj"><b id="hora"></b><small id="fecha"></small></div>
+      <div class="cuenta-caja">
+        <button class="btn-cuenta" id="btn-cuenta">Cuenta <i data-icono="abajo"></i></button>
+        <div class="menu-cuenta" id="menu-cuenta" hidden>
+          <b id="cuenta-nombre"></b>
+          <p class="sub" id="cuenta-rol"></p>
+          <button data-ruta="comun/cuenta"><i data-icono="usuario"></i>Mi cuenta</button>
+          <button data-salir><i data-icono="salir"></i>Cerrar sesión</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- AQUÍ ES LO ÚNICO QUE CAMBIA, el router mete la pantalla elegida -->
+    <div class="contenedor" id="contenido"></div>
+
+  </div>
+</div>
+
+<!-- pantallita que sale al cerrar sesión -->
+<div class="cerrando" id="cerrando" hidden>
+  <div class="cerrando-caja">
+    <div class="spinner"></div>
+    <h2>Cerrando sesión…</h2>
+    <p class="sub">¡Hasta pronto!</p>
+  </div>
+</div>
+
+<!-- type="module" nos deja usar import/export para tener cada cosa en su archivo -->
+<script type="module" src="/static/js/nucleo/marco.js"></script>
+</body>
+</html>

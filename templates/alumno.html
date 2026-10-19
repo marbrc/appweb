@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar como alumno · Encuesta Docente UTNG</title>
+<script>document.documentElement.dataset.tema = localStorage.getItem("tema") || "claro";</script>
+<link rel="stylesheet" href="/static/css/estilos.css">
+<link rel="stylesheet" href="/static/css/acceso.css">
+</head>
+<body>
+<main class="acceso">
+  <div class="acceso-caja">
+    <div class="acceso-logo">UTNG</div>
+    <h1>Encuesta Docente</h1>
+
+    <!-- 1 el códigom La validación de HTML es required, minlength, maxlength y pattern -->
+    <section id="paso-codigo">
+      <h2>¡Bienvenido, alumno!</h2>
+      <p class="sub">Escribe el código de tu grupo, viene en el enlace que te mandaron. Tus respuestas son completamente anónimas.</p>
+      <form id="form-codigo">
+        <label>Código de tu grupo
+          <input class="codigo-campo" id="codigo" name="codigo" required minlength="6" maxlength="6" pattern="[A-Za-z0-9]{6}" autocomplete="off" placeholder="ABC123">
+        </label>
+        <p class="err" id="msg" hidden></p>
+        <button class="btn">Continuar</button>
+      </form>
+    </section>
+
+    <!-- 2 confirma su grupo los datos los llena acceso.js con lo que dice el servidor -->
+    <section id="paso-grupo" hidden>
+      <h2>¡Código correcto!</h2>
+      <p class="sub">Vas a evaluar a los profesores de este grupo:</p>
+      <dl class="grupo-datos">
+        <dt>Carrera</dt><dd id="d-carrera"></dd>
+        <dt>Cuatrimestre</dt><dd id="d-cuatri"></dd>
+        <dt>Grupo</dt><dd id="d-grupo"></dd>
+      </dl>
+      <button class="btn" id="comenzar">Comenzar</button>
+      <button class="btn sec" id="otro">No es mi grupo</button>
+    </section>
+  </div>
+</main>
+<script type="module" src="/static/js/acceso.js"></script>
+</body>
+</html>

@@ -140,8 +140,8 @@ buscarTodos(".pw").forEach(p => p.insertAdjacentHTML("beforeend", '<button type=
 // f es el formulario y t el textoy si t viene vacio se esconde el mensaje
 const msg = (f, t) => { const e = buscar(".err", f); if (e) { e.textContent = t; e.hidden = !t; } };
 
-// entrar: guarda la sesión del usuario y lo manda a su pantalla segun su rol
-const entrar = u => { sesion = u; ir(PANEL[u.rol]); };
+// entrar: guarda la sesión sin la contraseña y manda al marco, ahí se arma el menú segun el rol
+const entrar = u => { localStorage.setItem("sesion", JSON.stringify({ nombre: u.nombre, correo: u.correo, rol: u.rol })); location.href = "/app"; };
 
 // aqui esta lo que hace cada formulario cuando se envia
 // cada uno recibe f de el formulario y d de los datos que escribió la persona
@@ -633,3 +633,4 @@ function confeti() {
     else c.clearRect(0, 0, lienzo.width, lienzo.height);
   })();
 }
+
