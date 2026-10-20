@@ -1,0 +1,276 @@
+/* /static/pantallas/admin/admin.css */
+
+/* ---------- contenedores ---------- */
+.admin-catalogo,
+.admin-inicio,
+.admin-reportes,
+.admin-accesos {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* ---------- cabecera con botón ---------- */
+.cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.cab h2 { margin: 0; }
+
+/* ---------- botones base ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .55rem 1rem;
+  border: 1px solid var(--acento, #1f6feb);
+  background: var(--acento, #1f6feb);
+  color: #fff;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter .15s ease;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn.sec {
+  background: transparent;
+  color: var(--acento, #1f6feb);
+}
+
+.mini {
+  padding: .3rem .6rem;
+  border-radius: 6px;
+  border: 1px solid var(--borde, #ccc);
+  background: var(--fondo, #fff);
+  color: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+  transition: filter .15s ease;
+}
+.mini:hover { filter: brightness(.95); }
+.mini.rojo {
+  border-color: #c9363f;
+  color: #c9363f;
+}
+
+/* ---------- formularios de catálogo ---------- */
+.form-cat {
+  display: grid;
+  gap: .7rem;
+  padding: 1rem;
+  border-radius: 10px;
+  background: var(--tarjeta, #fafafa);
+  border: 1px solid var(--borde, #e5e5e5);
+}
+
+/* ESTA ES LA CLAVE: cuando tiene hidden, no se ve */
+.form-cat[hidden] { display: none !important; }
+
+.form-cat label {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  font-weight: 600;
+  font-size: .9rem;
+}
+
+.form-cat input,
+.form-cat select,
+.form-cat textarea {
+  padding: .5rem .7rem;
+  border: 1px solid var(--borde, #ccc);
+  border-radius: 8px;
+  background: var(--fondo, #fff);
+  color: inherit;
+  font: inherit;
+}
+
+.form-cat .acciones {
+  display: flex;
+  gap: .5rem;
+  justify-content: flex-end;
+  margin-top: .4rem;
+}
+
+/* ---------- tablas ---------- */
+.tabla-scroll { overflow-x: auto; }
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+}
+.tabla th,
+.tabla td {
+  padding: .55rem .6rem;
+  border-bottom: 1px solid var(--borde, #e5e5e5);
+  text-align: left;
+  vertical-align: middle;
+}
+.tabla th {
+  background: var(--tarjeta, #fafafa);
+  font-weight: 600;
+}
+.tabla td b { color: var(--acento, #1f6feb); }
+.tabla td.vacio {
+  text-align: center;
+  opacity: .7;
+  font-style: italic;
+}
+
+/* botones editar/eliminar en la fila */
+.acciones-fila {
+  display: flex;
+  gap: .4rem;
+  justify-content: flex-end;
+}
+
+/* ---------- tarjetas de resumen (inicio) ---------- */
+.tarjetas-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .8rem;
+}
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--tarjeta, #fafafa);
+  border: 1px solid var(--borde, #e5e5e5);
+}
+.tarjeta .num {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--acento, #1f6feb);
+}
+.tarjeta .lbl { font-size: .85rem; opacity: .8; }
+
+/* ---------- barras ---------- */
+.barras {
+  display: flex;
+  align-items: flex-end;
+  gap: .4rem;
+  height: 160px;
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--borde, #e5e5e5);
+}
+.barras .col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: .2rem;
+}
+.barras .col i {
+  display: block;
+  width: 100%;
+  max-width: 28px;
+  background: var(--acento, #1f6feb);
+  border-radius: 6px 6px 0 0;
+  transition: height .3s ease;
+}
+.barras .col b { font-size: .7rem; opacity: .7; }
+
+/* ---------- promedio grande ---------- */
+.promedio-grande {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--tarjeta, #fafafa);
+  border: 1px solid var(--borde, #e5e5e5);
+}
+.promedio-grande span:first-child {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--acento, #1f6feb);
+}
+.promedio-grande .lbl { font-size: .9rem; opacity: .8; }
+
+/* ---------- lista de preguntas ---------- */
+.lista-preguntas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+.pregunta-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: .8rem;
+  align-items: center;
+  padding: .8rem 1rem;
+  border-radius: 10px;
+  background: var(--tarjeta, #fafafa);
+  border: 1px solid var(--borde, #e5e5e5);
+}
+.pregunta-item .num {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--acento, #1f6feb);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.pregunta-item p { margin: 0; line-height: 1.4; }
+.pregunta-item.vacio {
+  display: block;
+  text-align: center;
+  opacity: .7;
+  font-style: italic;
+}
+
+/* ---------- filtros ---------- */
+.filtros {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+.filtros select {
+  padding: .5rem .7rem;
+  border: 1px solid var(--borde, #ccc);
+  border-radius: 8px;
+  background: var(--fondo, #fff);
+  color: inherit;
+  font: inherit;
+}
+
+/* ---------- mensajes ok/err ---------- */
+#msg.ok  { color: #1f9d57; font-weight: 600; }
+#msg.err { color: #c9363f; font-weight: 600; }
+
+/* ---------- tabla de accesos (accesos.html) ---------- */
+.tabla-wrap { overflow-x: auto; }
+.tabla-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+}
+.tabla-wrap th,
+.tabla-wrap td {
+  padding: .55rem .6rem;
+  border-bottom: 1px solid var(--borde, #e5e5e5);
+  text-align: left;
+}
+.tabla-wrap th { background: var(--tarjeta, #fafafa); font-weight: 600; }
+.tabla-wrap .codigo {
+  font-family: ui-monospace, monospace;
+  color: var(--acento, #1f6feb);
+}

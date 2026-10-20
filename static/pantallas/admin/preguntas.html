@@ -1,0 +1,22 @@
+<!-- /static/pantallas/admin/preguntas.html -->
+<div class="admin-catalogo">
+  <div class="cab">
+    <h2>Preguntas de la encuesta</h2>
+    <button class="btn" id="p-nuevo" type="button">+ Nueva pregunta</button>
+  </div>
+
+  <form id="p-form" class="form-cat" hidden>
+    <label>Número
+      <input type="number" name="num" min="1" required>
+    </label>
+    <label>Texto
+      <textarea name="texto" rows="2" required></textarea>
+    </label>
+    <div class="acciones">
+      <button class="btn" type="submit">Guardar</button>
+      <button class="btn sec" type="button" id="p-cancelar">Cancelar</button>
+    </div>
+  </form>
+
+  <ul id="p-lista" class="lista-preguntas"></ul>
+</div>

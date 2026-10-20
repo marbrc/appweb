@@ -1,0 +1,37 @@
+<!-- /static/pantallas/docente/resultados.html -->
+<div class="docente-resultados">
+
+  <h2>Mis resultados</h2>
+  <p class="sub" id="res-info">Cargando…</p>
+
+  <!-- filtro por materia -->
+  <div class="filtros">
+    <select id="r-materia" aria-label="Materia"></select>
+  </div>
+
+  <!-- promedio general -->
+  <div class="promedio-grande">
+    <span id="r-promedio">0.0</span>
+    <span class="lbl">promedio general</span>
+  </div>
+
+  <!-- gráfica de barras por pregunta -->
+  <h3>Promedio por pregunta</h3>
+  <div id="r-barras" class="barras"></div>
+
+  <!-- tabla detallada -->
+  <h3>Detalle</h3>
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Pregunta</th>
+          <th>Promedio</th>
+        </tr>
+      </thead>
+      <tbody id="r-tabla"></tbody>
+    </table>
+  </div>
+
+</div>

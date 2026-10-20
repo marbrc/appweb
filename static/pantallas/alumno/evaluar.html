@@ -1,7 +1,6 @@
 <!-- /static/pantallas/alumno/evaluar.html -->
 <div class="evaluar-alumno">
 
-  <!-- filtros en cascada -->
   <div class="filtros">
     <select id="f-carrera" aria-label="Carrera"></select>
     <select id="f-cuatri"  aria-label="Cuatrimestre" disabled></select>
@@ -13,11 +12,9 @@
   <p id="aviso" class="sub">Elige tu clase para empezar.</p>
   <p id="clase" class="sub" hidden></p>
 
-  <!-- progreso -->
-  <p id="cuenta-eval">0 de 12 respondidas</p>
+  <p id="cuenta-eval">0 de 0 respondidas</p>
   <div class="prog"><i style="width:0%"></i></div>
 
-  <!-- formulario con las 12 preguntas (el JS las inyecta) -->
   <form id="form-eval">
     <fieldset id="preguntas" disabled></fieldset>
 
@@ -32,7 +29,6 @@
     </div>
   </form>
 
-  <!-- pantalla de gracias -->
   <div id="gracias" hidden>
     <h2>¡Gracias por tu evaluación!</h2>
     <p class="sub">Tus respuestas se guardaron de forma anónima.</p>

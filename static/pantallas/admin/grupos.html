@@ -1,0 +1,37 @@
+<!-- /static/pantallas/admin/grupos.html -->
+<div class="admin-catalogo">
+  <div class="cab">
+    <h2>Grupos</h2>
+    <button class="btn" id="g-nuevo" type="button">+ Nuevo grupo</button>
+  </div>
+
+  <form id="g-form" class="form-cat" hidden>
+    <label>Clave
+      <input name="clave" required placeholder="Ej. GTID321">
+    </label>
+    <label>Carrera
+      <select name="carrera" required>
+        <option value="">Selecciona</option>
+        <option>Desarrollo de Software</option>
+        <option>Entornos virtuales</option>
+        <option>Mecatrónica</option>
+      </select>
+    </label>
+    <label>Cuatrimestre
+      <input type="number" name="cuatrimestre" min="1" max="12" required>
+    </label>
+    <div class="acciones">
+      <button class="btn" type="submit">Guardar</button>
+      <button class="btn sec" type="button" id="g-cancelar">Cancelar</button>
+    </div>
+  </form>
+
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead>
+        <tr><th>Clave</th><th>Carrera</th><th>Cuatrimestre</th><th></th></tr>
+      </thead>
+      <tbody id="g-tabla"></tbody>
+    </table>
+  </div>
+</div>

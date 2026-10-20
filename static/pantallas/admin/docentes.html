@@ -1,0 +1,27 @@
+<!-- /static/pantallas/admin/docentes.html -->
+<div class="admin-catalogo">
+  <div class="cab">
+    <h2>Docentes</h2>
+    <button class="btn" id="d-nuevo" type="button">+ Nuevo docente</button>
+  </div>
+
+  <form id="d-form" class="form-cat" hidden>
+    <label>Nombre
+      <input name="nombre" required placeholder="Ej. Vazquez Juarez Erika">
+    </label>
+    <label>Correo
+      <input type="email" name="correo" required placeholder="Ej. erika@utng.edu.mx">
+    </label>
+    <div class="acciones">
+      <button class="btn" type="submit">Guardar</button>
+      <button class="btn sec" type="button" id="d-cancelar">Cancelar</button>
+    </div>
+  </form>
+
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead><tr><th>Nombre</th><th>Correo</th><th></th></tr></thead>
+      <tbody id="d-tabla"></tbody>
+    </table>
+  </div>
+</div>
