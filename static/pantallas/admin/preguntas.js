@@ -1,73 +1,118 @@
-// /static/pantallas/admin/preguntas.js
+// /static/pantallas/admin/reportes.js
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getPreguntas, setPreguntas } from "/static/js/nucleo/datos.js";
-
-const CLAVE = "admin_preguntas";
-const leer = () => { try { return JSON.parse(localStorage.getItem(CLAVE)) || []; } catch { return []; } };
-const guardar = v => localStorage.setItem(CLAVE, JSON.stringify(v));
+import {
+  getEvaluaciones, getPreguntas, promedioGeneral, promedioPorPregunta, getCarrerasConEvaluaciones
+} from "/static/js/nucleo/datos.js";
 
 let cont = null;
-let editando = -1;
+const sel = k => buscar("#r-" + k, cont);
 
 export function iniciar(contenedor) {
   cont = contenedor;
   pintarIconos(cont);
 
-  buscar("#p-nuevo", cont).onclick = () => abrirForm(-1);
-  buscar("#p-cancelar", cont).onclick = () => { buscar("#p-form", cont).hidden = true; };
+  const evals = getEvaluaciones();
+  const preguntas = getPreguntas();
 
-  buscar("#p-form", cont).onsubmit = e => {
-    e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.target));
-    const lista = leer();
-    const item = { num: Number(d.num), texto: d.texto.trim() };
-    if (editando >= 0) lista[editando] = item;
-    else lista.push(item);
-    guardar(lista);
-    e.target.reset();
-    buscar("#p-form", cont).hidden = true;
-    dibujar();
-  };
+  const unicos = (arr, key) => [...new Set(arr.map(e => e[key]))].filter(Boolean).sort();
 
-  buscar("#p-lista", cont).onclick = e => {
-    const ed = e.target.closest("[data-ed]");
-    const del = e.target.closest("[data-del]");
-    if (ed) abrirForm(+ed.dataset.ed);
-    if (del && confirm("¿Eliminar esta pregunta?")) {
-      const lista = leer();
-      lista.splice(+del.dataset.del, 1);
-      guardar(lista);
-      dibujar();
+  const OPC = {
+    carrera: () => getCarrerasConEvaluaciones(),
+    cuatri: () => {
+      const c = sel("carrera").value;
+      return unicos(evals.filter(e => !c || e.carrera === c), "cuatrimestre");
+    },
+    grupo: () => {
+      const c = sel("carrera").value;
+      const ct = sel("cuatri").value;
+      return unicos(evals.filter(e => (!c || e.carrera === c) && (!ct || e.cuatrimestre === ct)), "grupo");
+    },
+    prof: () => {
+      const c = sel("carrera").value;
+      const ct = sel("cuatri").value;
+      const g = sel("grupo").value;
+      return unicos(evals.filter(e => (!c || e.carrera === c) && (!ct || e.cuatrimestre === ct) && (!g || e.grupo === g)), "profesor");
+    },
+    mat: () => {
+      const c = sel("carrera").value;
+      const ct = sel("cuatri").value;
+      const g = sel("grupo").value;
+      const p = sel("prof").value;
+      return unicos(evals.filter(e => (!c || e.carrera === c) && (!ct || e.cuatrimestre === ct) && (!g || e.grupo === g) && (!p || e.profesor === p)), "materia");
     }
   };
 
-  dibujar();
+  const SIG = { carrera: ["cuatri"], cuatri: ["grupo"], grupo: ["prof"], prof: ["mat"] };
+
+  function poner(k, abierto) {
+    const s = sel(k);
+    const lbl = { carrera: "Todas las carreras", cuatri: "Todos los cuatrimestres", grupo: "Todos los grupos", prof: "Todos los profesores", mat: "Todas las materias" };
+    s.innerHTML = `<option value="">${lbl[k]}</option>` + (abierto ? OPC[k]() : []).map(x => `<option>${x}</option>`).join("");
+    s.disabled = !abierto && !sel("carrera").value;
+  }
+
+  function limpiar(k) {
+    const s = sel(k);
+    s.innerHTML = `<option value="">Todos</option>`;
+    s.disabled = true;
+    (SIG[k] || []).forEach(limpiar);
+  }
+
+  Object.keys(OPC).forEach(k => {
+    if (k === "carrera") poner(k, true);
+    else {
+      const s = sel(k);
+      s.innerHTML = `<option value="">Todos</option>`;
+      s.disabled = true;
+    }
+  });
+
+  Object.keys(OPC).forEach(k => {
+    sel(k).addEventListener("change", () => {
+      (SIG[k] || []).forEach(limpiar);
+      if (sel(k).value) (SIG[k] || []).forEach(n => poner(n, true));
+      pintar(evals, preguntas);
+    });
+  });
+
+  pintar(evals, preguntas);
 }
 
-function abrirForm(i) {
-  editando = i;
-  const f = buscar("#p-form", cont);
-  f.hidden = false;
-  if (i >= 0) {
-    const p = leer()[i];
-    f.num.value = p.num;
-    f.texto.value = p.texto;
-  } else f.reset();
-  f.texto.focus();
-}
+function pintar(evals, preguntas) {
+  const c = sel("carrera").value;
+  const ct = sel("cuatri").value;
+  const g = sel("grupo").value;
+  const p = sel("prof").value;
+  const m = sel("mat").value;
 
-function dibujar() {
-  const lista = leer();
-  buscar("#p-lista", cont).innerHTML = lista.length
-    ? lista.map((p, i) => `
-        <li class="pregunta-item">
-          <span class="num">${p.num}</span>
-          <p>${p.texto}</p>
-          <div class="acciones-fila">
-            <button class="mini" type="button" data-ed="${i}">Editar</button>
-            <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>
-          </div>
-        </li>`).join("")
-    : `<li class="vacio">Todavía no hay preguntas.</li>`;
+  const filtradas = evals
+    .filter(e => !c || e.carrera === c)
+    .filter(e => !ct || e.cuatrimestre === ct)
+    .filter(e => !g || e.grupo === g)
+    .filter(e => !p || e.profesor === p)
+    .filter(e => !m || e.materia === m);
+
+  buscar("#r-info", cont).textContent = `${filtradas.length} evaluación(es) encontradas`;
+  buscar("#r-promedio", cont).textContent = promedioGeneral(filtradas).toFixed(1);
+
+  const proms = promedioPorPregunta(filtradas, preguntas.length);
+  buscar("#r-barras", cont).innerHTML = proms.map((v, i) => `
+    <span class="col" title="P${i + 1}: ${v}">
+      <i style="height:${v * 10}%"></i><b>${i + 1}</b>
+    </span>`).join("");
+
+  buscar("#r-tabla", cont).innerHTML = filtradas.length
+    ? filtradas.slice().reverse().map(e => `
+        <tr>
+          <td>${e.fecha}</td>
+          <td>${e.carrera}</td>
+          <td>${e.cuatrimestre}</td>
+          <td>${e.grupo}</td>
+          <td>${e.profesor}</td>
+          <td>${e.materia}</td>
+          <td><b>${e.promedio.toFixed(1)}</b></td>
+          <td>${e.comentario || "—"}</td>
+        </tr>`).join("")
+    : `<tr><td colspan="8" class="vacio">No hay evaluaciones con esos filtros.</td></tr>`;
 }

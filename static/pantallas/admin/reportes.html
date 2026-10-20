@@ -1,13 +1,15 @@
 <!-- /static/pantallas/admin/reportes.html -->
 <div class="admin-reportes">
-  <h2>Reportes</h2>
-  <p class="sub">Resultados por carrera, grupo, profesor y materia.</p>
+  <h2>Reportes de Evaluación</h2>
+  <p class="sub">Filtra los resultados por carrera, cuatrimestre, grupo, profesor y materia.</p>
 
+  <!-- Filtros en cascada -->
   <div class="filtros">
-    <select id="f-carrera"><option value="">Todas las carreras</option></select>
-    <select id="f-grupo"><option value="">Todos los grupos</option></select>
-    <select id="f-prof"><option value="">Todos los profesores</option></select>
-    <select id="f-mat"><option value="">Todas las materias</option></select>
+    <select id="r-carrera"><option value="">Todas las carreras</option></select>
+    <select id="r-cuatri" disabled><option value="">Todos los cuatrimestres</option></select>
+    <select id="r-grupo" disabled><option value="">Todos los grupos</option></select>
+    <select id="r-prof" disabled><option value="">Todos los profesores</option></select>
+    <select id="r-mat" disabled><option value="">Todas las materias</option></select>
   </div>
 
   <p id="r-info" class="sub"></p>
@@ -23,7 +25,7 @@
     <table class="tabla">
       <thead>
         <tr>
-          <th>Fecha</th><th>Carrera</th><th>Grupo</th><th>Profesor</th><th>Materia</th><th>Promedio</th><th>Comentario</th>
+          <th>Fecha</th><th>Carrera</th><th>Cuatrimestre</th><th>Grupo</th><th>Profesor</th><th>Materia</th><th>Promedio</th><th>Comentario</th>
         </tr>
       </thead>
       <tbody id="r-tabla"></tbody>

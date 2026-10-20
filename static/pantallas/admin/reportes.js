@@ -2,78 +2,124 @@
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import {
-  CARRERAS, getEvaluaciones, getPreguntas,
-  promedioGeneral, promedioPorPregunta
+  getEvaluaciones, getPreguntas,
+  promedioGeneral, promedioPorPregunta,
+  getCarrerasConEvaluaciones
 } from "/static/js/nucleo/datos.js";
 
 let cont = null;
+const sel = k => buscar("#r-" + k, cont);
 
 export function iniciar(contenedor) {
   cont = contenedor;
   pintarIconos(cont);
 
-  // llena el select de carreras con las estáticas
-  buscar("#f-carrera", cont).innerHTML =
-    `<option value="">Todas las carreras</option>` +
-    CARRERAS.map(c => `<option>${c}</option>`).join("");
+  const evals = getEvaluaciones();
+  const preguntas = getPreguntas();
 
-  // primera vez: carga los filtros de grupo/prof/mat con datos reales
-  llenarSelects();
+  // Extrae valores únicos para los selects
+  const unicos = (arr, key) => [...new Set(arr.map(e => e[key]))].filter(Boolean).sort();
 
-  ["#f-carrera", "#f-grupo", "#f-prof", "#f-mat"].forEach(s =>
-    buscar(s, cont).addEventListener("change", pintar)
-  );
+  const OPC = {
+    carrera: () => getCarrerasConEvaluaciones(),
+    cuatri: () => {
+      const c = sel("carrera").value;
+      return unicos(evals.filter(e => !c || e.carrera === c), "cuatrimestre");
+    },
+    grupo: () => {
+      const c = sel("carrera").value;
+      const ct = sel("cuatri").value;
+      return unicos(evals.filter(e => (!c || e.carrera === c) && (!ct || e.cuatrimestre === ct)), "grupo");
+    },
+    prof: () => {
+      const c = sel("carrera").value;
+      const ct = sel("cuatri").value;
+      const g = sel("grupo").value;
+      return unicos(evals.filter(e => (!c || e.carrera === c) && (!ct || e.cuatrimestre === ct) && (!g || e.grupo === g)), "profesor");
+    },
+    mat: () => {
+      const c = sel("carrera").value;
+      const ct = sel("cuatri").value;
+      const g = sel("grupo").value;
+      const p = sel("prof").value;
+      return unicos(evals.filter(e => (!c || e.carrera === c) && (!ct || e.cuatrimestre === ct) && (!g || e.grupo === g) && (!p || e.profesor === p)), "materia");
+    }
+  };
 
-  pintar();
+  const SIG = { carrera: ["cuatri"], cuatri: ["grupo"], grupo: ["prof"], prof: ["mat"] };
 
-  function llenarSelects() {
-    const evals = getEvaluaciones();
-    const grupos = [...new Set(evals.map(e => e.grupo))].sort();
-    const profs  = [...new Set(evals.map(e => e.profesor))].sort();
-    const mats   = [...new Set(evals.map(e => e.materia))].sort();
-
-    buscar("#f-grupo", cont).innerHTML =
-      `<option value="">Todos los grupos</option>` + grupos.map(g => `<option>${g}</option>`).join("");
-    buscar("#f-prof", cont).innerHTML =
-      `<option value="">Todos los profesores</option>` + profs.map(p => `<option>${p}</option>`).join("");
-    buscar("#f-mat", cont).innerHTML =
-      `<option value="">Todas las materias</option>` + mats.map(m => `<option>${m}</option>`).join("");
+  function poner(k, abierto) {
+    const s = sel(k);
+    const lbl = { carrera: "Todas las carreras", cuatri: "Todos los cuatrimestres", grupo: "Todos los grupos", prof: "Todos los profesores", mat: "Todas las materias" };
+    s.innerHTML = `<option value="">${lbl[k]}</option>`
+                + (abierto ? OPC[k]() : []).map(x => `<option>${x}</option>`).join("");
+    s.disabled = !abierto && !sel("carrera").value; 
   }
 
-  function pintar() {
-    const c = buscar("#f-carrera", cont).value;
-    const g = buscar("#f-grupo", cont).value;
-    const p = buscar("#f-prof", cont).value;
-    const m = buscar("#f-mat", cont).value;
-
-    const filtradas = getEvaluaciones()
-      .filter(e => !c || e.carrera === c)
-      .filter(e => !g || e.grupo === g)
-      .filter(e => !p || e.profesor === p)
-      .filter(e => !m || e.materia === m);
-
-    buscar("#r-info", cont).textContent = `${filtradas.length} evaluación(es)`;
-    buscar("#r-promedio", cont).textContent = promedioGeneral(filtradas).toFixed(1);
-
-    const preguntas = getPreguntas();
-    const proms = promedioPorPregunta(filtradas, preguntas.length);
-
-    buscar("#r-barras", cont).innerHTML = proms.map((v, i) => `
-      <span class="col" title="P${i + 1}: ${v}">
-        <i style="height:${v * 10}%"></i><b>${i + 1}</b>
-      </span>`).join("");
-
-    buscar("#r-tabla", cont).innerHTML = filtradas.length
-      ? filtradas.slice().reverse().map(e => `
-          <tr>
-            <td>${e.fecha}</td>
-            <td>${e.carrera}</td>
-            <td>${e.grupo}</td>
-            <td>${e.profesor}</td>
-            <td>${e.materia}</td>
-            <td><b>${e.promedio.toFixed(1)}</b></td>
-            <td>${e.comentario || "—"}</td>
-          </tr>`).join("")
-      : `<tr><td colspan="7" class="vacio">No hay evaluaciones con esos filtros.</td></tr>`;
+  function limpiar(k) { 
+    const s = sel(k);
+    s.innerHTML = `<option value="">Todos</option>`;
+    s.disabled = true;
+    (SIG[k] || []).forEach(limpiar); 
   }
+
+  // Llenado inicial
+  Object.keys(OPC).forEach(k => {
+    if (k === "carrera") poner(k, true);
+    else {
+      const s = sel(k);
+      s.innerHTML = `<option value="">Todos</option>`;
+      s.disabled = true;
+    }
+  });
+
+  // Eventos en cascada
+  Object.keys(OPC).forEach(k => {
+    sel(k).addEventListener("change", () => {
+      (SIG[k] || []).forEach(limpiar);
+      if (sel(k).value) (SIG[k] || []).forEach(n => poner(n, true));
+      pintar(evals, preguntas);
+    });
+  });
+
+  pintar(evals, preguntas);
+}
+
+function pintar(evals, preguntas) {
+  const c = sel("carrera").value;
+  const ct = sel("cuatri").value;
+  const g = sel("grupo").value;
+  const p = sel("prof").value;
+  const m = sel("mat").value;
+
+  const filtradas = evals
+    .filter(e => !c || e.carrera === c)
+    .filter(e => !ct || e.cuatrimestre === ct)
+    .filter(e => !g || e.grupo === g)
+    .filter(e => !p || e.profesor === p)
+    .filter(e => !m || e.materia === m);
+
+  buscar("#r-info", cont).textContent = `${filtradas.length} evaluación(es) encontradas`;
+  buscar("#r-promedio", cont).textContent = promedioGeneral(filtradas).toFixed(1);
+
+  const proms = promedioPorPregunta(filtradas, preguntas.length);
+
+  buscar("#r-barras", cont).innerHTML = proms.map((v, i) => `
+    <span class="col" title="P${i + 1}: ${v}">
+      <i style="height:${v * 10}%"></i><b>${i + 1}</b>
+    </span>`).join("");
+
+  buscar("#r-tabla", cont).innerHTML = filtradas.length
+    ? filtradas.slice().reverse().map(e => `
+        <tr>
+          <td>${e.fecha}</td>
+          <td>${e.carrera}</td>
+          <td>${e.cuatrimestre}</td>
+          <td>${e.grupo}</td>
+          <td>${e.profesor}</td>
+          <td>${e.materia}</td>
+          <td><b>${e.promedio.toFixed(1)}</b></td>
+          <td>${e.comentario || "—"}</td>
+        </tr>`).join("")
+    : `<tr><td colspan="8" class="vacio">No hay evaluaciones con esos filtros.</td></tr>`;
 }
