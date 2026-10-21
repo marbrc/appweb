@@ -6,12 +6,28 @@
   </div>
 
   <form id="d-form" class="form-cat" hidden>
-    <label>Nombre
-      <input name="nombre" required placeholder="Ej. Vazquez Juarez Erika">
+    <label>Nombre(s) 
+      <input name="nombres" required placeholder="Ej. Apolinar" 
+             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
+             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
     </label>
+
+    <label>Apellido Paterno 
+      <input name="paterno" required placeholder="Ej.Trejo" 
+             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
+             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
+    </label>
+
+    <label>Apellido Materno
+      <input name="materno" placeholder="Ej. Cuevas" 
+             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
+             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
+    </label>
+
     <label>Correo
       <input type="email" name="correo" required placeholder="Ej. erika@utng.edu.mx">
     </label>
+    
     <div class="acciones">
       <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="d-cancelar">Cancelar</button>
@@ -20,7 +36,7 @@
 
   <div class="tabla-scroll">
     <table class="tabla">
-      <thead><tr><th>Nombre</th><th>Correo</th><th></th></tr></thead>
+      <thead><tr><th>Nombre Completo</th><th>Correo</th><th></th></tr></thead>
       <tbody id="d-tabla"></tbody>
     </table>
   </div>
