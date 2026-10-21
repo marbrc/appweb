@@ -16,19 +16,27 @@ export function iniciar(contenedor) {
   const tabla = buscar("#g-tabla", cont);
   const selectDocente = buscar("#g-docente", cont);
 
+  // Si falta algo en el HTML, lo avisamos en consola
   if (!btnNuevo || !form || !btnCancelar || !tabla || !selectDocente) {
-    console.error("Faltan elementos en el HTML de grupos");
+    console.error("Faltan elementos en el HTML de grupos. Revisa los IDs.");
     return;
   }
 
-  // Función para llenar el select de docentes
-  function cargarDocentes() {
-    const docentes = getDocentes();
-    selectDocente.innerHTML = `<option value="">Selecciona un docente</option>` +
-      docentes.map(d => `<option value="${d.nombre}">${d.nombre}</option>`).join("");
+  // Llenar el select de docentes (con protección por si getDocentes falla)
+  try {
+    const docentes = getDocentes() || [];
+    if (docentes.length === 0) {
+      selectDocente.innerHTML = `<option value="">No hay docentes registrados</option>`;
+    } else {
+      selectDocente.innerHTML = `<option value="">Selecciona un docente</option>` +
+        docentes.map(d => `<option value="${d.nombre}">${d.nombre}</option>`).join("");
+    }
+  } catch (error) {
+    console.error("Error al cargar docentes:", error);
+    selectDocente.innerHTML = `<option value="">Error al cargar docentes</option>`;
   }
-  cargarDocentes(); // Llenamos el select al abrir la pantalla
 
+  // Asignar eventos a los botones
   btnNuevo.onclick = () => abrirForm(-1);
   btnCancelar.onclick = () => { form.hidden = true; };
 
@@ -36,26 +44,24 @@ export function iniciar(contenedor) {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
     const claveLimpia = d.clave.trim().toUpperCase();
-    const lista = getGrupos();
+    const lista = getGrupos() || [];
     
-    // VALIDACIÓN: Buscar si la clave ya existe en la lista
+    // Validar que la clave no exista
     const existe = lista.some((g, index) => {
-      // Si estamos editando el mismo grupo, no lo marcamos como duplicado
       if (editando >= 0 && index === editando) return false;
-      // Comparamos la clave
       return g.clave === claveLimpia;
     });
 
     if (existe) {
       alert(`Error: La clave "${claveLimpia}" ya está registrada en otro grupo.`);
-      return; // Detiene el guardado
+      return;
     }
     
     const item = {
       clave: claveLimpia,
       carrera: d.carrera,
       cuatrimestre: Number(d.cuatrimestre),
-      docente: d.docente // Guardamos el docente
+      docente: d.docente || "Sin docente"
     };
 
     if (editando >= 0) {
@@ -65,7 +71,6 @@ export function iniciar(contenedor) {
     }
 
     setGrupos(lista);
-    
     e.target.reset();
     form.hidden = true;
     dibujar();
@@ -98,7 +103,7 @@ export function iniciar(contenedor) {
       form.clave.value = g.clave;
       form.carrera.value = g.carrera;
       form.cuatrimestre.value = g.cuatrimestre;
-      form.docente.value = g.docente || ""; // Selecciona el docente actual
+      form.docente.value = g.docente || "";
     } else {
       form.reset();
     }
@@ -106,7 +111,7 @@ export function iniciar(contenedor) {
   }
 
   function dibujar() {
-    const lista = getGrupos();
+    const lista = getGrupos() || [];
     tabla.innerHTML = lista.length
       ? lista.map((g, i) => `
           <tr>
