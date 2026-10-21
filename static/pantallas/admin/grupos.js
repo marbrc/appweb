@@ -35,13 +35,27 @@ export function iniciar(contenedor) {
   form.onsubmit = e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
+    const claveLimpia = d.clave.trim().toUpperCase();
     const lista = getGrupos();
     
+    // VALIDACIÓN: Buscar si la clave ya existe en la lista
+    const existe = lista.some((g, index) => {
+      // Si estamos editando el mismo grupo, no lo marcamos como duplicado
+      if (editando >= 0 && index === editando) return false;
+      // Comparamos la clave
+      return g.clave === claveLimpia;
+    });
+
+    if (existe) {
+      alert(`Error: La clave "${claveLimpia}" ya está registrada en otro grupo.`);
+      return; // Detiene el guardado
+    }
+    
     const item = {
-      clave: d.clave.trim().toUpperCase(),
+      clave: claveLimpia,
       carrera: d.carrera,
       cuatrimestre: Number(d.cuatrimestre),
-      docente: d.docente // <-- Guardamos el docente
+      docente: d.docente // Guardamos el docente
     };
 
     if (editando >= 0) {

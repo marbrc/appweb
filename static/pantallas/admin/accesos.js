@@ -1,44 +1,23 @@
 // /static/pantallas/admin/accesos.js
-// El administrador genera, copia y revoca los códigos de acceso de cada grupo.
-// Los códigos viven en Flask, pero los grupos se toman de:
-//   1) Flask (todosLosGrupos)
-//   2) localStorage (admin_grupos) — los que agregó el admin en /admin/grupos
-// Así, si el admin agrega un grupo nuevo, aquí aparece y puede generar su código.
 import { buscar } from "/static/js/nucleo/utiles.js";
-import { todosLosGrupos } from "/static/js/nucleo/catalogo.js";
+import { getGrupos } from "/static/js/nucleo/datos.js"; // <-- Solo usamos esta
 
 export async function iniciar(cont) {
   const cuerpo = buscar("#tabla-accesos", cont);
   const msg = buscar("#msg", cont);
   let codigos = [];
 
-  // ---------- grupos de Flask + grupos del admin (localStorage) ----------
-  function gruposLocales() {
-    try { return JSON.parse(localStorage.getItem("admin_grupos")) || []; }
-    catch { return []; }
-  }
-
-  function gruposCombinados() {
-    const deFlask = todosLosGrupos().map(g => ({
-      grupo: g.grupo ?? g.clave,
-      carrera: g.carrera,
-      cuatri: g.cuatri ?? g.cuatrimestre
-    }));
-    const deLocal = gruposLocales().map(g => ({
+  // ---------- Solo los grupos creados en el admin ----------
+  function gruposDelAdmin() {
+    return getGrupos().map(g => ({
       grupo: g.clave,
       carrera: g.carrera,
-      cuatri: g.cuatrimestre
+      cuatri: g.cuatrimestre,
+      docente: g.docente || "—"
     }));
-
-    // fusiona sin duplicados por clave de grupo
-    const mapa = new Map();
-    [...deFlask, ...deLocal].forEach(g => {
-      if (g.grupo && !mapa.has(g.grupo)) mapa.set(g.grupo, g);
-    });
-    return [...mapa.values()];
   }
 
-  const grupos = gruposCombinados();
+  const grupos = gruposDelAdmin();
 
   buscar("#nota-enlace", cont).textContent =
     "Los enlaces se arman con esta dirección: " + location.origin;
@@ -55,7 +34,7 @@ export async function iniciar(cont) {
 
   function dibujar() {
     if (!grupos.length) {
-      cuerpo.innerHTML = `<tr><td colspan="5" class="vacio">No hay grupos. Agrega uno en /admin/grupos.</td></tr>`;
+      cuerpo.innerHTML = `<tr><td colspan="6" class="vacio">No hay grupos. Agrega uno en /admin/grupos.</td></tr>`;
       return;
     }
     cuerpo.innerHTML = grupos.map((g, i) => {
@@ -63,7 +42,9 @@ export async function iniciar(cont) {
       return `<tr>
         <td>${g.grupo}</td>
         <td>${g.carrera}</td>
-        <td>${g.cuatri}°</td>` +
+        <td>${g.cuatri}°</td>
+        <td>${g.docente}</td>
+        ` +
         (c
           ? `<td><b class="codigo">${c.codigo}</b></td>
              <td>

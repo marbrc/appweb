@@ -28,19 +28,30 @@ export function iniciar(contenedor) {
     const datos = Object.fromEntries(new FormData(e.target));
     const preguntas = getPreguntas();
     
-    const item = { 
-      num: Number(datos.num), 
-      texto: datos.texto.trim() 
-    };
-
-    if (editando >= 0) {
-      preguntas[editando] = item;
-    } else {
-      preguntas.push(item);
+    // Limpiamos el texto y nos aseguramos de que la primera letra sea mayúscula
+    let textoLimpio = datos.texto.trim();
+    if (textoLimpio.length > 0) {
+      textoLimpio = textoLimpio.charAt(0).toUpperCase() + textoLimpio.slice(1);
     }
 
-    // Ordenar por número para que siempre salgan en orden en la encuesta
+    if (editando >= 0) {
+      // Si estamos editando, conservamos el número que ya tenía
+      preguntas[editando].texto = textoLimpio;
+    } else {
+      // Si es nueva, le asignamos el siguiente número disponible
+      // (buscamos el número más alto actual y le sumamos 1)
+      const numMax = preguntas.reduce((max, p) => Math.max(max, p.num), 0);
+      preguntas.push({ 
+        num: numMax + 1, 
+        texto: textoLimpio 
+      });
+    }
+
+    // Ordenar por número por seguridad
     preguntas.sort((a, b) => a.num - b.num);
+    
+    // Reasignar números secuenciales (1, 2, 3...) para evitar huecos
+    preguntas.forEach((p, i) => p.num = i + 1);
 
     setPreguntas(preguntas);
     e.target.reset();
@@ -60,7 +71,7 @@ export function iniciar(contenedor) {
       const preguntas = getPreguntas();
       preguntas.splice(+del.dataset.del, 1);
       
-      // Reajustar los números después de eliminar
+      // Reajustar los números después de eliminar (1, 2, 3...)
       preguntas.forEach((p, i) => p.num = i + 1);
       
       setPreguntas(preguntas);

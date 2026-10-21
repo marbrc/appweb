@@ -6,12 +6,15 @@
   </div>
 
   <form id="p-form" class="form-cat" hidden>
-    <label>Número
-      <input type="number" name="num" min="1" required>
+    <!-- Campo oculto para el número, el sistema lo asignará solo -->
+    <input type="hidden" name="num">
+    
+    <label>Texto de la pregunta
+      <textarea name="texto" rows="3" required 
+                placeholder="Ej. El profesor expone los contenidos..."
+                oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)"></textarea>
     </label>
-    <label>Texto
-      <textarea name="texto" rows="2" required></textarea>
-    </label>
+    
     <div class="acciones">
       <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="p-cancelar">Cancelar</button>
