@@ -1,24 +1,22 @@
-<!-- /static/pantallas/admin/preguntas.html -->
-<div class="admin-catalogo">
-  <div class="cab">
-    <h2>Preguntas de la encuesta</h2>
-    <button class="btn" id="p-nuevo" type="button">+ Nueva pregunta</button>
+<!-- /static/pantallas/admin/inicio.html -->
+<div class="admin-inicio">
+  <h2>Resumen general</h2>
+  <p class="sub">Todo lo que está pasando en el sistema.</p>
+
+  <div class="tarjetas-resumen" id="a-resumen"></div>
+
+  <h3>Promedio por pregunta (global)</h3>
+  <div id="a-barras" class="barras"></div>
+
+  <h3>Últimas evaluaciones</h3>
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Carrera</th><th>Grupo</th><th>Profesor</th><th>Materia</th><th>Promedio</th>
+        </tr>
+      </thead>
+      <tbody id="a-tabla"></tbody>
+    </table>
   </div>
-
-  <form id="p-form" class="form-cat" hidden>
-    <input type="hidden" name="num">
-    
-    <label>Texto de la pregunta
-      <textarea name="texto" rows="3" required 
-                placeholder="Ej. El profesor expone los contenidos..."
-                oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)"></textarea>
-    </label>
-    
-    <div class="acciones">
-      <button class="btn" type="submit">Guardar</button>
-      <button class="btn sec" type="button" id="p-cancelar">Cancelar</button>
-    </div>
-  </form>
-
-  <ul id="p-lista" class="lista-preguntas"></ul>
 </div>

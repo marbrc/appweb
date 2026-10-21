@@ -1,10 +1,4 @@
 {
-  "7F53PC": {
-    "grupo": "GTID234",
-    "carrera": "Mecatrónica",
-    "cuatri": "2",
-    "creado": "19/10/2026"
-  },
   "PBZT25": {
     "grupo": "123",
     "carrera": "Entornos virtuales",
@@ -15,6 +9,12 @@
     "grupo": "GTID234",
     "carrera": "Desarrollo de Software",
     "cuatri": "4",
+    "creado": "21/10/2026"
+  },
+  "M57B4T": {
+    "grupo": "GTID234",
+    "carrera": "Mecatrónica",
+    "cuatri": "1",
     "creado": "21/10/2026"
   }
 }

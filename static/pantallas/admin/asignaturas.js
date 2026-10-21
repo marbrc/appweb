@@ -1,20 +1,7 @@
-
+// /static/pantallas/admin/asignaturas.js
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import { getAsignaturas, setAsignaturas } from "/static/js/nucleo/datos.js";
-
-const CLAVE = "admin_asignaturas";
-
-const leer = () => {
-  try {
-    return JSON.parse(localStorage.getItem(CLAVE)) || [];
-  } catch {
-    return [];
-  }
-};
-
-const guardar = v =>
-  localStorage.setItem(CLAVE, JSON.stringify(v));
 
 let cont = null;
 let editando = -1;
@@ -23,63 +10,49 @@ export function iniciar(contenedor) {
   cont = contenedor;
   pintarIconos(cont);
 
-  buscar("#s-nuevo", cont).onclick = () => abrirForm(-1);
+  const btnNuevo = buscar("#s-nuevo", cont);
+  const form = buscar("#s-form", cont);
+  const btnCancelar = buscar("#s-cancelar", cont);
+  const tabla = buscar("#s-tabla", cont);
 
-  buscar("#s-cancelar", cont).onclick = () => {
-    buscar("#s-form", cont).hidden = true;
-  };
+  if (!btnNuevo || !form || !btnCancelar || !tabla) {
+    console.error("Faltan elementos en el HTML de asignaturas");
+    return;
+  }
 
-  buscar("#s-form", cont).onsubmit = e => {
+  btnNuevo.onclick = () => abrirForm(-1);
+  btnCancelar.onclick = () => { form.hidden = true; };
+
+  form.onsubmit = e => {
     e.preventDefault();
-
     const d = Object.fromEntries(new FormData(e.target));
 
-    const nombre = (d.nombre || "").trim();
+    let nombre = (d.nombre || "").trim();
     const carrera = (d.carrera || "").trim();
     const cuatrimestre = Number(d.cuatrimestre);
 
     // Validar nombre obligatorio
     if (!nombre) {
       alert("El nombre de la asignatura es obligatorio.");
-      e.target.elements.nombre.focus();
+      form.nombre.focus();
       return;
     }
 
-    // Validar primera letra mayúscula
-    if (!/^\p{Lu}/u.test(nombre)) {
-      alert(
-        "La asignatura debe comenzar con mayúscula. Ejemplo: Programación."
-      );
-      e.target.elements.nombre.focus();
+    // Forzar primera letra mayúscula
+    nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+
+    // VALIDACIÓN DE DUPLICADOS (ignorando mayúsculas/minúsculas)
+    const lista = getAsignaturas();
+    const existe = lista.some((a, index) => {
+      if (editando >= 0 && index === editando) return false; // Si es la misma que estamos editando, no cuenta
+      return a.nombre.toLowerCase() === nombre.toLowerCase();
+    });
+
+    if (existe) {
+      alert(`Error: La asignatura "${nombre}" ya está registrada.`);
+      form.nombre.focus();
       return;
     }
-
-    // Validar carrera obligatoria
-    const carrerasPermitidas = [
-      "Desarrollo de Software",
-      "Entornos virtuales",
-      "Mecatrónica"
-    ];
-
-    if (!carrerasPermitidas.includes(carrera)) {
-      alert("Debes seleccionar una carrera válida.");
-      e.target.elements.carrera.focus();
-      return;
-    }
-
-    // Validar cuatrimestre obligatorio, del 1 al 12
-    if (
-      !d.cuatrimestre ||
-      !Number.isInteger(cuatrimestre) ||
-      cuatrimestre < 1 ||
-      cuatrimestre > 12
-    ) {
-      alert("Debes seleccionar un cuatrimestre del 1 al 12.");
-      e.target.elements.cuatrimestre.focus();
-      return;
-    }
-
-    const lista = leer();
 
     const item = {
       nombre,
@@ -93,68 +66,57 @@ export function iniciar(contenedor) {
       lista.push(item);
     }
 
-    guardar(lista);
-
+    setAsignaturas(lista); // Guardar en datos.js
+    
     e.target.reset();
-    buscar("#s-form", cont).hidden = true;
-
+    form.hidden = true;
     dibujar();
   };
 
-  buscar("#s-tabla", cont).onclick = e => {
+  tabla.onclick = e => {
     const ed = e.target.closest("[data-ed]");
     const del = e.target.closest("[data-del]");
 
     if (ed) abrirForm(+ed.dataset.ed);
 
     if (del && confirm("¿Eliminar esta asignatura?")) {
-      const lista = leer();
+      const lista = getAsignaturas();
       lista.splice(+del.dataset.del, 1);
-      guardar(lista);
+      setAsignaturas(lista);
       dibujar();
     }
   };
 
   dibujar();
-}
 
-function abrirForm(i) {
-  editando = i;
+  function abrirForm(i) {
+    editando = i;
+    form.hidden = false;
 
-  const f = buscar("#s-form", cont);
-  f.hidden = false;
-
-  if (i >= 0) {
-    const a = leer()[i];
-
-    f.elements.nombre.value = a.nombre;
-    f.elements.carrera.value = a.carrera;
-    f.elements.cuatrimestre.value = a.cuatrimestre;
-  } else {
-    f.reset();
+    if (i >= 0) {
+      const a = getAsignaturas()[i];
+      form.nombre.value = a.nombre;
+      form.carrera.value = a.carrera;
+      form.cuatrimestre.value = a.cuatrimestre;
+    } else {
+      form.reset();
+    }
+    form.nombre.focus();
   }
 
-  f.elements.nombre.focus();
-}
-
-function dibujar() {
-  const lista = leer();
-
-  buscar("#s-tabla", cont).innerHTML = lista.length
-    ? lista.map((a, i) => `
-        <tr>
-          <td>${a.nombre}</td>
-          <td>${a.carrera}</td>
-          <td>${a.cuatrimestre}°</td>
-          <td class="acciones-fila">
-            <button class="mini" type="button" data-ed="${i}">
-              Editar
-            </button>
-            <button class="mini rojo" type="button" data-del="${i}">
-              Eliminar
-            </button>
-          </td>
-        </tr>
-      `).join("")
-    : `<tr><td colspan="4" class="vacio">Todavía no hay asignaturas.</td></tr>`;
+  function dibujar() {
+    const lista = getAsignaturas();
+    tabla.innerHTML = lista.length
+      ? lista.map((a, i) => `
+          <tr>
+            <td>${a.nombre}</td>
+            <td>${a.carrera}</td>
+            <td>${a.cuatrimestre}°</td>
+            <td class="acciones-fila">
+              <button class="mini" type="button" data-ed="${i}">Editar</button>
+              <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>
+            </td>
+          </tr>`).join("")
+      : `<tr><td colspan="4" class="vacio">Todavía no hay asignaturas.</td></tr>`;
+  }
 }

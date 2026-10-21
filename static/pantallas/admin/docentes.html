@@ -6,21 +6,24 @@
   </div>
 
   <form id="d-form" class="form-cat" hidden>
-    <label>Nombre(s) 
+    <label>Nombre(s) (Obligatorio)
       <input name="nombres" required placeholder="Ej. Apolinar" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
+             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,50}$"
+             title="El nombre debe tener entre 3 y 50 letras, solo letras y espacios."
              oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
     </label>
 
-    <label>Apellido Paterno 
-      <input name="paterno" required placeholder="Ej.Trejo" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
+    <label>Apellido Paterno (Obligatorio)
+      <input name="paterno" required placeholder="Ej. Trejo" 
+             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{5,20}$"
+             title="El apellido paterno debe tener entre 5 y 20 letras, solo letras y espacios."
              oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
     </label>
 
-    <label>Apellido Materno
+    <label>Apellido Materno (Opcional)
       <input name="materno" placeholder="Ej. Cuevas" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
+             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$"
+             title="El apellido materno solo puede contener letras y espacios."
              oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
     </label>
 
