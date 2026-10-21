@@ -7,19 +7,37 @@
 
   <form id="g-form" class="form-cat" hidden>
     <label>Clave
-      <input name="clave" required placeholder="Ej. GTID321">
+      <!-- 
+        pattern="[A-Z]{4}[0-9]{3}" exige exactamente 4 letras mayúsculas y 3 números.
+        title muestra el mensaje de error si el usuario se equivoca.
+        oninput convierte todo a mayúsculas automáticamente. 
+      -->
+      <input name="clave" required 
+             placeholder="Ej. DSW123" 
+             pattern="[A-Z]{4}[0-9]{3}" 
+             title="La clave debe tener 4 letras mayúsculas seguidas de 3 números (Ej. DSW123)"
+             oninput="this.value = this.value.toUpperCase()">
     </label>
+    
     <label>Carrera
       <select name="carrera" required>
         <option value="">Selecciona</option>
         <option>Desarrollo de Software</option>
-        <option>Entornos virtuales</option>
         <option>Mecatrónica</option>
+        <option>Contabilidad</option>
       </select>
     </label>
+    
     <label>Cuatrimestre
       <input type="number" name="cuatrimestre" min="1" max="12" required>
     </label>
+    
+    <label>Docente titular
+      <select name="docente" id="g-docente" required>
+        <option value="">Cargando docentes...</option>
+      </select>
+    </label>
+
     <div class="acciones">
       <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="g-cancelar">Cancelar</button>
@@ -29,7 +47,7 @@
   <div class="tabla-scroll">
     <table class="tabla">
       <thead>
-        <tr><th>Clave</th><th>Carrera</th><th>Cuatrimestre</th><th></th></tr>
+        <tr><th>Clave</th><th>Carrera</th><th>Cuatrimestre</th><th>Docente</th><th></th></tr>
       </thead>
       <tbody id="g-tabla"></tbody>
     </table>
