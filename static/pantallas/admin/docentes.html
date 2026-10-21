@@ -1,43 +1,135 @@
+
 <!-- /static/pantallas/admin/docentes.html -->
+
 <div class="admin-catalogo">
-  <div class="cab">
-    <h2>Docentes</h2>
-    <button class="btn" id="d-nuevo" type="button">+ Nuevo docente</button>
-  </div>
 
-  <form id="d-form" class="form-cat" hidden>
-    <label>Nombre(s) 
-      <input name="nombres" required placeholder="Ej. Apolinar" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
-             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
-    </label>
-
-    <label>Apellido Paterno 
-      <input name="paterno" required placeholder="Ej.Trejo" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
-             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
-    </label>
-
-    <label>Apellido Materno
-      <input name="materno" placeholder="Ej. Cuevas" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$"
-             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
-    </label>
-
-    <label>Correo
-      <input type="email" name="correo" required placeholder="Ej. erika@utng.edu.mx">
-    </label>
-    
-    <div class="acciones">
-      <button class="btn" type="submit">Guardar</button>
-      <button class="btn sec" type="button" id="d-cancelar">Cancelar</button>
+    <div class="cab">
+        <h2>Docentes</h2>
+        <button class="btn" id="d-nuevo" type="button">
+            + Nuevo docente
+        </button>
     </div>
-  </form>
 
-  <div class="tabla-scroll">
-    <table class="tabla">
-      <thead><tr><th>Nombre Completo</th><th>Correo</th><th></th></tr></thead>
-      <tbody id="d-tabla"></tbody>
-    </table>
-  </div>
+    <form id="d-form" class="form-cat" hidden>
+
+        <label>
+            Nombre(s)
+            <input
+                type="text"
+                name="nombres"
+                required
+                placeholder="Ej. Apolinar"
+                pattern="[A-Za-zÁÉÍÓÚÜáéíóúüñÑ]+(?:\s+[A-Za-zÁÉÍÓÚÜáéíóúüñÑ]+)*"
+                title="Escribe uno o varios nombres usando solamente letras y espacios."
+                oninput="this.value = this.value.replace(/\b\w/g, letra => letra.toUpperCase())"
+            >
+        </label>
+
+        <label>
+            Apellido Paterno
+            <input
+                type="text"
+                name="paterno"
+                required
+                placeholder="Ej. Trejo"
+                pattern="[A-Za-zÁÉÍÓÚÜáéíóúüñÑ]+(?:\s+[A-Za-zÁÉÍÓÚÜáéíóúüñÑ]+)*"
+                title="Escribe el apellido usando solamente letras y espacios."
+                oninput="this.value = this.value.replace(/\b\w/g, letra => letra.toUpperCase())"
+            >
+        </label>
+
+        <label>
+            Apellido Materno
+            <input
+                type="text"
+                name="materno"
+                placeholder="Ej. Cuevas"
+                pattern="[A-Za-zÁÉÍÓÚÜáéíóúüñÑ]+(?:\s+[A-Za-zÁÉÍÓÚÜáéíóúüñÑ]+)*"
+                title="Escribe el apellido usando solamente letras y espacios."
+                oninput="this.value = this.value.replace(/\b\w/g, letra => letra.toUpperCase())"
+            >
+        </label>
+
+        <label>
+            Correo
+            <input
+                type="email"
+                name="correo"
+                required
+                placeholder="Ej. erika@gmail.com"
+                pattern="[A-Za-z0-9._%+-]+@(gmail\.com|utng\.edu\.mx|outlook\.com)"
+                title="Solo se permiten correos de Gmail (@gmail.com), UTNG (@utng.edu.mx) u Outlook (@outlook.com)."
+            >
+        </label>
+
+        <div class="acciones">
+            <button class="btn" type="submit">Guardar</button>
+            <button class="btn sec" type="button" id="d-cancelar">
+                Cancelar
+            </button>
+        </div>
+
+    </form>
+
+    <div class="tabla-scroll">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody id="d-tabla"></tbody>
+        </table>
+    </div>
+
 </div>
+
+<script>
+(() => {
+    const formulario = document.getElementById("d-form");
+
+    if (!formulario || formulario.dataset.validacionCorreo === "activa") {
+        return;
+    }
+
+    formulario.dataset.validacionCorreo = "activa";
+
+    const campoCorreo = formulario.querySelector('[name="correo"]');
+
+    const correoPermitido =
+        /^[A-Za-z0-9._%+-]+@(gmail\.com|utng\.edu\.mx|outlook\.com)$/i;
+
+    campoCorreo.addEventListener("input", () => {
+        campoCorreo.setCustomValidity("");
+
+        if (campoCorreo.value.trim() === "") {
+            campoCorreo.setCustomValidity(
+                "El correo es obligatorio."
+            );
+        } else if (!correoPermitido.test(campoCorreo.value.trim())) {
+            campoCorreo.setCustomValidity(
+                "Usa un correo de Gmail, UTNG u Outlook."
+            );
+        }
+    });
+
+    formulario.addEventListener("submit", evento => {
+        const correo = campoCorreo.value.trim();
+
+        if (!correo || !correoPermitido.test(correo)) {
+            evento.preventDefault();
+
+            campoCorreo.setCustomValidity(
+                !correo
+                    ? "El correo es obligatorio."
+                    : "Usa un correo de Gmail (@gmail.com), UTNG (@utng.edu.mx) u Outlook (@outlook.com)."
+            );
+
+            campoCorreo.reportValidity();
+        }
+    });
+})();
+</script>
