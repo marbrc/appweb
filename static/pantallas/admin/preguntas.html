@@ -11,8 +11,11 @@
     
     <label>Texto de la pregunta
       <textarea name="texto" rows="3" required 
-                placeholder="Ej. El profesor expone los contenidos..."
+                minlength="10" 
+                maxlength="250"
+                placeholder="Ej. El profesor expone los contenidos de manera clara..."
                 oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)"></textarea>
+      <small style="font-weight: normal; opacity: 0.7;">Mínimo 10 caracteres, máximo 250. Inicia con mayúscula.</small>
     </label>
     
     <div class="acciones">
