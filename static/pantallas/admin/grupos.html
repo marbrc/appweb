@@ -6,9 +6,19 @@
   </div>
 
   <form id="g-form" class="form-cat" hidden>
-    <label>Clave
-      <input name="clave" required placeholder="Ej. GTID321">
-    </label>
+    
+<label>Clave
+  <input
+    name="clave"
+    type="text"
+    required
+    maxlength="7"
+    pattern="[A-Z]{4}[0-9]{3}"
+    title="Escribe 4 letras mayúsculas seguidas de 3 números. Ejemplo: GTID321"
+    placeholder="Ej. GTID321"
+  >
+</label>
+
     <label>Carrera
       <select name="carrera" required>
         <option value="">Selecciona</option>
