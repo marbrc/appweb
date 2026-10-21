@@ -8,7 +8,7 @@ from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
-# ---------- PAGINAS ----------
+# ---------- PAGINAS ----------flask run
 
 @app.route("/")
 def Inicio():
