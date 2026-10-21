@@ -2,150 +2,260 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Interfaz validada - versión HTML</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaz validada - versión JavaScript</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
+            margin: 0;
+            padding: 30px 15px;
             font-family: Arial, sans-serif;
-            background: #e8f0fc;
+            background: #eaf2f8;
+            color: #243447;
+        }
+
+        h1 {
+            text-align: center;
+            color: #174a70;
+            margin-bottom: 30px;
+        }
+
+        .contenedor {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 1rem;
-            padding: 1rem;
+            align-items: flex-start;
+            gap: 25px;
+            max-width: 1000px;
+            margin: auto;
         }
 
-        form {
-            background: #fff;
-            padding: 1.2rem;
+        .tarjeta {
+            background: white;
+            width: 100%;
+            max-width: 460px;
+            padding: 25px;
             border-radius: 12px;
-            width: 320px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #21618c;
+            text-align: center;
         }
 
         label {
             display: block;
-            margin-top: .6rem;
+            margin-top: 15px;
+            margin-bottom: 6px;
             font-weight: bold;
-            font-size: .9rem;
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
-            padding: .5rem;
-            margin-top: .2rem;
-            box-sizing: border-box;
+            padding: 11px;
+            border: 1px solid #bdc9d3;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #2980b9;
+            box-shadow: 0 0 3px rgba(41, 128, 185, 0.35);
+        }
+
+        input.mal,
+        select.mal {
+            border: 2px solid #d93025;
+            background: #fff5f5;
+        }
+
+        input.bien,
+        select.bien {
+            border: 2px solid #18864b;
+        }
+
+        .error {
+            display: block;
+            min-height: 0;
+            margin-top: 4px;
+            color: #d93025;
+            font-size: 13px;
+        }
+
+        .ok {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            background: #e6f4ea;
+            color: #137333;
+            font-weight: bold;
+            text-align: center;
         }
 
         button {
             width: 100%;
-            margin-top: 1rem;
-            padding: .6rem;
-            background: #1f6feb;
-            color: #fff;
-            border: 0;
-            border-radius: 8px;
+            margin-top: 22px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #21618c;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
         }
 
-        input:user-invalid, select:user-invalid {
-            border: 2px solid #c5221f;
+        button:hover {
+            background: #154360;
         }
 
-        input:user-valid, select:user-valid {
-            border: 2px solid #1f9d57;
+        .nota {
+            margin-top: 15px;
+            color: #566573;
+            font-size: 13px;
+            line-height: 1.5;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- FORMULARIO 1: REGISTRO -->
-    <form action="#" method="get">
-        <h2>Registro de usuario</h2>
+    <h1>Sistema de validación de usuarios</h1>
 
-        <label for="nombre">Nombre completo</label>
-        <input
-            type="text"
-            id="nombre"
-            name="nombre"
-            required
-            minlength="3"
-            maxlength="60"
-            pattern="[A-Za-zÁÉÍÓÚÜáéíóúüÑñ ]{3,60}"
-            title="Solo letras y espacios, de 3 a 60 caracteres"
-        >
+    <main class="contenedor">
 
-        <label for="correo">Correo institucional</label>
-        <input
-            type="email"
-            id="correo"
-            name="correo"
-            required
-            pattern=".+@utng\.edu\.mx"
-            title="Usa tu correo institucional (@utng.edu.mx)"
-        >
+        <!-- REGISTRO DE USUARIO -->
+        <section class="tarjeta">
 
-        <label for="clave">Contraseña</label>
-        <input
-            type="password"
-            id="clave"
-            name="clave"
-            required
-            minlength="8"
-            maxlength="20"
-            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}"
-            title="De 8 a 20 caracteres con mayúscula, minúscula y número"
-        >
+            <h2>Registrar usuario</h2>
 
-        <label for="clave2">Confirmar contraseña</label>
-        <input
-            type="password"
-            id="clave2"
-            name="clave2"
-            required
-            minlength="8"
-            maxlength="20"
-            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}"
-            title="Debe cumplir los requisitos de contraseña"
-        >
+            <form id="formRegistro" novalidate>
 
-        <label for="rol">Rol</label>
-        <select id="rol" name="rol" required>
-            <option value="">Selecciona un rol</option>
-            <option value="Alumno">Alumno</option>
-            <option value="Docente">Docente</option>
-            <option value="Administrador">Administrador</option>
-        </select>
+                <label for="nombre">Nombre completo:</label>
+                <input
+                    type="text"
+                    id="nombre"
+                    name="nombre"
+                    required
+                    minlength="3"
+                    maxlength="60"
+                    autocomplete="name"
+                    placeholder="Ej. Ana María López"
+                >
+                <small class="error"></small>
 
-        <button type="submit">Registrarse</button>
-    </form>
+                <label for="correo">Correo institucional:</label>
+                <input
+                    type="email"
+                    id="correo"
+                    name="correo"
+                    required
+                    autocomplete="email"
+                    placeholder="usuario@utng.edu.mx"
+                >
+                <small class="error"></small>
 
-    <!-- FORMULARIO 2: INICIO DE SESIÓN -->
-    <form action="#" method="get">
-        <h2>Iniciar sesión</h2>
+                <label for="clave">Contraseña:</label>
+                <input
+                    type="password"
+                    id="clave"
+                    name="clave"
+                    required
+                    minlength="8"
+                    maxlength="20"
+                    autocomplete="new-password"
+                    placeholder="De 8 a 20 caracteres"
+                >
+                <small class="error"></small>
 
-        <label for="correoLogin">Correo institucional</label>
-        <input
-            type="email"
-            id="correoLogin"
-            name="correo"
-            required
-            title="Escribe un correo válido"
-        >
+                <label for="clave2">Confirmar contraseña:</label>
+                <input
+                    type="password"
+                    id="clave2"
+                    name="clave2"
+                    required
+                    minlength="8"
+                    maxlength="20"
+                    autocomplete="new-password"
+                    placeholder="Repite tu contraseña"
+                >
+                <small class="error"></small>
 
-        <label for="claveLogin">Contraseña</label>
-        <input
-            type="password"
-            id="claveLogin"
-            name="clave"
-            required
-            title="Escribe tu contraseña"
-        >
+                <label for="rol">Rol:</label>
+                <select id="rol" name="rol" required>
+                    <option value="">Selecciona un rol</option>
+                    <option value="Alumno">Alumno</option>
+                    <option value="Docente">Docente</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+                <small class="error"></small>
 
-        <button type="submit">Iniciar sesión</button>
-    </form>
+                <button type="submit">Registrar usuario</button>
+
+                <p class="ok" hidden></p>
+
+                <p class="nota">
+                    El nombre debe tener de 1 a 5 palabras, cada una
+                    iniciando con mayúscula. Utiliza tu correo institucional
+                    y una contraseña que cumpla con los requisitos.
+                </p>
+
+            </form>
+        </section>
+
+
+        <!-- INICIO DE SESIÓN -->
+        <section class="tarjeta">
+
+            <h2>Iniciar sesión</h2>
+
+            <form id="formLogin" novalidate>
+
+                <label for="correoLogin">Correo electrónico:</label>
+                <input
+                    type="text"
+                    id="correoLogin"
+                    name="correo"
+                    required
+                    autocomplete="username"
+                    placeholder="Escribe tu correo"
+                >
+                <small class="error"></small>
+
+                <label for="claveLogin">Contraseña:</label>
+                <input
+                    type="password"
+                    id="claveLogin"
+                    name="clave"
+                    required
+                    autocomplete="current-password"
+                    placeholder="Escribe tu contraseña"
+                >
+                <small class="error"></small>
+
+                <button type="submit">Iniciar sesión</button>
+
+                <p class="ok" hidden></p>
+
+            </form>
+        </section>
+
+    </main>
+
+    <!-- CONECTAR EL ARCHIVO JAVASCRIPT -->
+    <script src="validacion.js"></script>
 
 </body>
 </html>
