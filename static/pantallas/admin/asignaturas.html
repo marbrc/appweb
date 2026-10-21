@@ -2,33 +2,76 @@
 <div class="admin-catalogo">
   <div class="cab">
     <h2>Asignaturas</h2>
-    <button class="btn" id="s-nuevo" type="button">+ Nueva asignatura</button>
+    <button class="btn" id="s-nuevo" type="button">
+      + Nueva asignatura
+    </button>
   </div>
 
   <form id="s-form" class="form-cat" hidden>
-    <label>Nombre
-      <input name="nombre" required placeholder="Ej. Bases de datos">
+    <label>
+      Nombre de la asignatura
+      <input
+        type="text"
+        name="nombre"
+        required
+        maxlength="60"
+        placeholder="Ej. Bases de datos"
+      >
     </label>
-    <label>Carrera
+
+    <label>
+      Carrera
       <select name="carrera" required>
-        <option value="">Selecciona</option>
-        <option>Desarrollo de Software</option>
-        <option>Entornos virtuales</option>
-        <option>Mecatrónica</option>
+        <option value="">Selecciona una carrera</option>
+        <option value="Desarrollo de Software">
+          Desarrollo de Software
+        </option>
+        <option value="Entornos virtuales">
+          Entornos virtuales
+        </option>
+        <option value="Mecatrónica">
+          Mecatrónica
+        </option>
       </select>
     </label>
-    <label>Cuatrimestre
-      <input type="number" name="cuatrimestre" min="1" max="12" required>
+
+    <label>
+      Cuatrimestre
+      <select name="cuatrimestre" required>
+        <option value="">Selecciona un cuatrimestre</option>
+        <option value="1">1° cuatrimestre</option>
+        <option value="2">2° cuatrimestre</option>
+        <option value="3">3° cuatrimestre</option>
+        <option value="4">4° cuatrimestre</option>
+        <option value="5">5° cuatrimestre</option>
+        <option value="6">6° cuatrimestre</option>
+        <option value="7">7° cuatrimestre</option>
+        <option value="8">8° cuatrimestre</option>
+        <option value="9">9° cuatrimestre</option>
+        <option value="10">10° cuatrimestre</option>
+        <option value="11">11° cuatrimestre</option>
+        <option value="12">12° cuatrimestre</option>
+      </select>
     </label>
+
     <div class="acciones">
       <button class="btn" type="submit">Guardar</button>
-      <button class="btn sec" type="button" id="s-cancelar">Cancelar</button>
+      <button class="btn sec" type="button" id="s-cancelar">
+        Cancelar
+      </button>
     </div>
   </form>
 
   <div class="tabla-scroll">
     <table class="tabla">
-      <thead><tr><th>Nombre</th><th>Carrera</th><th>Cuatrimestre</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Carrera</th>
+          <th>Cuatrimestre</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
       <tbody id="s-tabla"></tbody>
     </table>
   </div>
