@@ -1,54 +1,89 @@
+
 <!-- /static/pantallas/admin/grupos.html -->
 <div class="admin-catalogo">
   <div class="cab">
     <h2>Grupos</h2>
-    <button class="btn" id="g-nuevo" type="button">+ Nuevo grupo</button>
+    <button class="btn" id="g-nuevo" type="button">
+      + Nuevo grupo
+    </button>
   </div>
 
+  <!-- Formulario para registrar o editar un grupo -->
   <form id="g-form" class="form-cat" hidden>
+
+    <!-- Clave: 4 letras mayúsculas y 3 números -->
     <label>Clave
-      <!-- 
-        pattern="[A-Z]{4}[0-9]{3}" exige exactamente 4 letras mayúsculas y 3 números.
-        title muestra el mensaje de error si el usuario se equivoca.
-        oninput convierte todo a mayúsculas automáticamente. 
-      -->
-      <input name="clave" required 
-             placeholder="Ej. DSW123" 
-             pattern="[A-Z]{4}[0-9]{3}" 
-             title="La clave debe tener 4 letras mayúsculas seguidas de 3 números (Ej. DSW123)"
-             oninput="this.value = this.value.toUpperCase()">
+      <input
+        type="text"
+        name="clave"
+        required
+        minlength="7"
+        maxlength="7"
+        pattern="[A-Z]{4}[0-9]{3}"
+        title="Escribe exactamente 4 letras mayúsculas seguidas de 3 números. Ejemplo: GTID321"
+        placeholder="Ej. GTID321"
+        autocomplete="off"
+      >
     </label>
-    
+
+    <!-- Carrera obligatoria -->
     <label>Carrera
       <select name="carrera" required>
-        <option value="">Selecciona</option>
-        <option>Desarrollo de Software</option>
-        <option>Mecatrónica</option>
-        <option>Contabilidad</option>
-      </select>
-    </label>
-    
-    <label>Cuatrimestre
-      <input type="number" name="cuatrimestre" min="1" max="12" required>
-    </label>
-    
-    <label>Docente titular
-      <select name="docente" id="g-docente" required>
-        <option value="">Cargando docentes...</option>
+        <option value="">Selecciona una carrera</option>
+        <option value="Desarrollo de Software">
+          Desarrollo de Software
+        </option>
+        <option value="Entornos virtuales">
+          Entornos virtuales
+        </option>
+        <option value="Mecatrónica">
+          Mecatrónica
+        </option>
       </select>
     </label>
 
+    <!-- Cuatrimestre del 1 al 12 -->
+    <label>Cuatrimestre
+      <input
+        type="number"
+        name="cuatrimestre"
+        min="1"
+        max="12"
+        step="1"
+        required
+        placeholder="Ej. 1"
+      >
+    </label>
+
+    <!-- Botones del formulario -->
     <div class="acciones">
-      <button class="btn" type="submit">Guardar</button>
-      <button class="btn sec" type="button" id="g-cancelar">Cancelar</button>
+      <button class="btn" type="submit">
+        Guardar
+      </button>
+
+      <button
+        class="btn sec"
+        type="button"
+        id="g-cancelar"
+      >
+        Cancelar
+      </button>
     </div>
+
   </form>
 
+  <!-- Tabla de grupos registrados -->
   <div class="tabla-scroll">
     <table class="tabla">
       <thead>
-        <tr><th>Clave</th><th>Carrera</th><th>Cuatrimestre</th><th>Docente</th><th></th></tr>
+        <tr>
+          <th>Clave</th>
+          <th>Carrera</th>
+          <th>Cuatrimestre</th>
+          <th>Acciones</th>
+        </tr>
       </thead>
+
       <tbody id="g-tabla"></tbody>
     </table>
   </div>
