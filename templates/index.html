@@ -43,7 +43,7 @@
     <p class="sub">Para continuar, inicia sesión o crea tu cuenta.</p>
     <button class="btn" data-ir="login">Iniciar sesión</button>
     <button class="btn sec" data-ir="registro">Registrarse</button>
-    <p class="nota">Para administradores y docentes.</p>
+    <p class="nota">Solo para administradores.</p>
   </div>
 </section>
 
@@ -65,16 +65,13 @@
   <form class="tarjeta" data-f="registro">
     <h2>Registro de usuario</h2>
     <p class="sub">Completa tus datos para crear tu cuenta.</p>
-    <label>Nombre completo<input name="nombre" required></label>
+    <!-- el nombre completo ya no es un solo campo, ahora son tres: nombre(s) apellido paterno y apellido materno q es opcionalll -->
+    <label>Nombre(s)<input name="nombres" required maxlength="50" autocomplete="given-name" placeholder="Ej. Maria Guadalupe" pattern="[A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+( [A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+)*" title="Escribe tu nombre solo con letras y espacios"></label>
+    <label>Apellido paterno<input name="paterno" required maxlength="30" autocomplete="family-name" placeholder="Ej. Rodriguez" pattern="[A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+( [A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+)*" title="Escribe tu apellido solo con letras y espacios"></label>
+    <label>Apellido materno (opcional)<input name="materno" maxlength="30" placeholder="Ej. Barcenas" pattern="([A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+( [A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+)*)?" title="Escribe tu apellido solo con letras y espacios"></label>
     <label>Correo institucional<input type="email" name="correo" required></label>
     <label>Contraseña<span class="pw"><input type="password" name="clave" minlength="6" required></span></label>
-    <label>Rol
-      <select name="rol" required>
-        <option value="">Selecciona un rol</option>
-        <option value="docente">Docente</option>
-        <option value="administrador">Administrador</option>
-      </select>
-    </label>
+    <!-- aqui estaba el select de rol y ya NOOO esta, el docente ya no existe y el alumno entra anonimo con su codigo sin cuenta asi q todos los q se registran aqui son administradores -->
     <p class="err" hidden></p>
     <button class="btn">Registrarse</button>
     <p class="links"><span>¿Ya tienes cuenta?</span><a href="#login" data-ir="login">Inicia sesión</a></p>

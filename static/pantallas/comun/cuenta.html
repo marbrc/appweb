@@ -1,10 +1,24 @@
 
-<p class="sub" id="info"></p>
-<!-- la validación HTML: required, type="email" y minlength. La de JavaScript esta en cuenta.js -->
-<form class="tarjeta" id="form-cuenta">
-  <label>Correo<input type="email" name="correo" required></label>
-  <label>Nueva contraseña<input type="password" name="clave" minlength="6"></label>
-  <label>Confirmar contraseña<input type="password" name="clave2" minlength="6"></label>
-  <p id="msg" hidden></p>
-  <button class="btn">Guardar cambios</button>
-</form>
+<!-- la pantalla de cuenta, arriba el perfil con la inicial del nombre (la pone cuenta.js) y abajo el formulario -->
+<div class="pg">
+  <div class="pg-card perfil">
+    <div class="avatar" id="avatar-cuenta">?</div>
+    <div>
+      <h3 id="nombre-cuenta"></h3>
+      <p class="sub" id="info"></p>
+      <span class="rol-pill" id="rol-cuenta"></span>
+    </div>
+  </div>
+
+  <!-- la validación HTML: required, type="email" y minlength. La de JavaScript esta en cuenta.js -->
+  <form class="pg-card" id="form-cuenta">
+    <h3>Cambiar mis datos de acceso</h3>
+    <label>Correo<input type="email" name="correo" required></label>
+    <div class="dos-col">
+      <label>Nueva contraseña<input type="password" name="clave" minlength="6"></label>
+      <label>Confirmar contraseña<input type="password" name="clave2" minlength="6"></label>
+    </div>
+    <p id="msg" hidden></p>
+    <button class="btn">Guardar cambios</button>
+  </form>
+</div>

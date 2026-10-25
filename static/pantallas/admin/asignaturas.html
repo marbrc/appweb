@@ -1,13 +1,21 @@
 <!-- /static/pantallas/admin/asignaturas.html -->
-<div class="admin-catalogo">
+<div class="pg admin-catalogo">
+  <!-- el letrero de arriba, s-total lo llena asignaturas.js con cuantas asignaturas hay -->
   <div class="cab">
-    <h2>Asignaturas</h2>
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="libro"></i></span>
+      <div>
+        <h2>Asignaturas</h2>
+        <p class="sub">Las materias que se evalúan en cada carrera y cuatrimestre <span class="total" id="s-total"></span></p>
+      </div>
+    </div>
     <button class="btn" id="s-nuevo" type="button">
-      + Nueva asignatura
+      <i data-icono="mas"></i>Nueva asignatura
     </button>
   </div>
 
   <form id="s-form" class="form-cat" hidden>
+    <h3 class="form-tit">Datos de la asignatura</h3>
     <label>
       Nombre de la asignatura
       <input

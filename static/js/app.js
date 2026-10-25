@@ -141,7 +141,9 @@ buscarTodos(".pw").forEach(p => p.insertAdjacentHTML("beforeend", '<button type=
 const msg = (f, t) => { const e = buscar(".err", f); if (e) { e.textContent = t; e.hidden = !t; } };
 
 // entrar: guarda la sesión sin la contraseña y manda al marco, ahí se arma el menú segun el rol
-const entrar = u => { localStorage.setItem("sesion", JSON.stringify({ nombre: u.nombre, correo: u.correo, rol: u.rol })); location.href = "/app"; };
+const entrar = u => { // nombres (solo el nombre de pila) tambien se guarda para q el saludo del inicio diga "hola maria guadalupe" y no todo el nombre larguisimooo
+// si el usuario es de los viejos q no tienen nombres JSON.stringify lo ignora y el inicio usa el nombre completo
+  localStorage.setItem("sesion", JSON.stringify({ nombre: u.nombre, nombres: u.nombres, correo: u.correo, rol: u.rol })); location.href = "/app"; };
 
 // aqui esta lo que hace cada formulario cuando se envia
 // cada uno recibe f de el formulario y d de los datos que escribió la persona
@@ -159,7 +161,16 @@ const forms = {
   registro(f, d) {
     const us = leer("usuarios");
     if (us.some(x => x.correo === d.correo)) return msg(f, "Ese correo ya está registrado.");
-    guardar("usuarios", [...us, d]);
+    // ahora llegan 3 campos nombres paterno y materno asi q los junto en uno solo llamado nombre
+    // porq todo lo demas del sistema (menu cuenta saludo) lee u.nombre y asi nada se rompeee
+    // el materno es opcional por eso si viene vacio no se agrega ni el espacio de mas
+    const limpio = t => (t || "").trim().replace(/\s+/g, " ");
+    const nombres = limpio(d.nombres), paterno = limpio(d.paterno), materno = limpio(d.materno);
+    const nombre = [nombres, paterno, materno].filter(Boolean).join(" ");
+    // el rol ya no se elige, todo el que se registra es administrador (el docente ya no existe y el alumno no tiene cuenta)
+    // guardo tambien las 3 partes por separado por si las ocupamos despues en la base de datos
+    const usuario = { nombre, nombres, paterno, materno, correo: d.correo, clave: d.clave, rol: "administrador" };
+    guardar("usuarios", [...us, usuario]);
     flujo = "registro"; correo = d.correo; f.reset(); ir("codigo");
   },
 

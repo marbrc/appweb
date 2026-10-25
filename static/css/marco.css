@@ -39,9 +39,7 @@
 .titulos{flex:1;min-width:0}
 .titulos h1{font-size:1.3rem}
 .titulos p{margin:0}
-.reloj{display:grid;justify-items:end;line-height:1.15}
-.reloj b{font-size:1.15rem}
-.reloj small{color:var(--mut);text-transform:capitalize}
+/* aqui estaban los estilos del reloj .reloj pero ya se quito el reloj de la barra */
 .cuenta-caja{position:relative}
 .btn-cuenta{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;color:var(--tx);background:var(--in);border:1px solid var(--bd);border-radius:2rem}
 .btn-cuenta i{width:1rem;height:1rem}
@@ -89,7 +87,6 @@
 
 /* en el celular */
 @media(max-width:700px){
-  .reloj small{display:none}
   .superior{padding:.6rem .8rem}
 }
 /* si la persona no quiere animaciones en su compu, se quitan */

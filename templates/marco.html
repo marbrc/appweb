@@ -8,6 +8,8 @@
 <script>document.documentElement.dataset.tema = localStorage.getItem("tema") || "claro";</script>
 <link rel="stylesheet" href="/static/css/estilos.css">
 <link rel="stylesheet" href="/static/css/marco.css">
+<!-- el css de las pantallas del menu (grupos docentes asignaturas etc) ANTES NO ESTABA ENLAZADO por eso se veian feas y sin estilooo -->
+<link rel="stylesheet" href="/static/css/admin.css">
 </head>
 <body>
 
@@ -33,7 +35,7 @@
         <h1 id="titulo"></h1>
         <p class="sub" id="desc"></p>
       </div>
-      <div class="reloj"><b id="hora"></b><small id="fecha"></small></div>
+      <!-- aqui estaba el reloj con la hora y la fecha pero ya se quito porq era innecesarioooo -->
       <div class="cuenta-caja">
         <button class="btn-cuenta" id="btn-cuenta">Cuenta <i data-icono="abajo"></i></button>
         <div class="menu-cuenta" id="menu-cuenta" hidden>

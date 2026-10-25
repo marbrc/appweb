@@ -1,11 +1,19 @@
 <!-- /static/pantallas/admin/preguntas.html -->
-<div class="admin-catalogo">
+<div class="pg admin-catalogo">
+  <!-- el letrero de arriba, p-total lo llena preguntas.js con cuantas preguntas hay -->
   <div class="cab">
-    <h2>Preguntas de la encuesta</h2>
-    <button class="btn" id="p-nuevo" type="button">+ Nueva pregunta</button>
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="pregunta"></i></span>
+      <div>
+        <h2>Preguntas de la encuesta</h2>
+        <p class="sub">Lo que van a responder los alumnos, del 5 al 10 <span class="total" id="p-total"></span></p>
+      </div>
+    </div>
+    <button class="btn" id="p-nuevo" type="button"><i data-icono="mas"></i>Nueva pregunta</button>
   </div>
 
   <form id="p-form" class="form-cat" hidden>
+    <h3 class="form-tit">Texto de la pregunta</h3>
     <!-- Campo oculto para el número, el sistema lo asignará solo -->
     <input type="hidden" name="num">
     

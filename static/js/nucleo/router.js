@@ -2,6 +2,7 @@
 
 import { buscar } from "./utiles.js";
 import { MENUS, comunDe } from "./menus.js";
+import { pintarIconos } from "./iconos.js"; // para pintar los iconos <i data-icono> de CUALQUIER pantalla que se abra
 let carpeta = "";          // la carpeta del rol que inició sesión con admin, docente o alumno
 let alCambiar = () => {};  // función del marco para actualizar título, descripción y opción marcada
 let version = 0;           // sirve por si das clic muy rápido a varias opciones: solo gana la última
@@ -43,13 +44,17 @@ async function abrir() {
   await pausa;
   if (mia !== version) return; // ya dió clic a otra opción, esta se descarta
   cont.innerHTML = html;
+  pintarIconos(cont); // antes cada js tenia q acordarse de pintar sus iconos y los q se olvidaban se quedaban vacios, ahora lo hace el router y ya
   cont.scrollTop = 0;
 
   // 2 el JS de la pantalla es opcional,  bebe tener export function iniciar(contenedor)
   let modulo;
   try { modulo = await import(`/static/pantallas/${op.ruta}.js`); } catch { console.info("Sin JS para", op.ruta); }
   if (mia !== version) return;
-  modulo?.iniciar?.(cont);
+  // si el iniciar de la pantalla truena (por ejemplo por datos viejos en el navegador) ANTES se quedaba la pantalla
+  // en blanco para siempre porq nunca se quitaba la clase saliendo. ahora el try catch avisa en la consola
+  // y la pantalla aparece igual con lo q alcanzo a dibujar, asi nunca mas se queda en blancooo
+  try { modulo?.iniciar?.(cont); } catch (error) { console.error("Error al iniciar la pantalla", op.ruta, error); }
 
   cont.classList.remove("saliendo"); // ahora sí aparece la pantalla nueva
 }

@@ -246,10 +246,14 @@ export function iniciar(contenedor) {
     function dibujar() {
         const lista = getDocentes();
 
+        // la pastillita de arriba que dice cuantos docentes hay (el if es por si el html no la trae)
+        const total = buscar("#d-total", cont);
+        if (total) total.textContent = lista.length + (lista.length === 1 ? " registrado" : " registrados");
+
         tabla.innerHTML = lista.length
             ? lista.map((doc, indice) => `
                 <tr>
-                    <td>${escaparHTML(doc.nombre)}</td>
+                    <td><div class="persona"><span class="avatar-mini">${escaparHTML((doc.nombre || "?").trim().charAt(0).toUpperCase())}</span>${escaparHTML(doc.nombre)}</div></td>
                     <td>${escaparHTML(doc.correo)}</td>
                     <td class="acciones-fila">
                         <button

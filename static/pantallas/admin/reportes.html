@@ -1,7 +1,14 @@
 <!-- /static/pantallas/admin/reportes.html -->
-<div class="admin-reportes">
-  <h2>Reportes de Evaluación</h2>
-  <p class="sub">Filtra los resultados por carrera, cuatrimestre, grupo, profesor y materia.</p>
+<div class="pg admin-reportes">
+  <div class="cab">
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="grafica"></i></span>
+      <div>
+        <h2>Reportes de Evaluación</h2>
+        <p class="sub">Filtra los resultados por carrera, cuatrimestre, grupo, profesor y materia.</p>
+      </div>
+    </div>
+  </div>
 
   <!-- Filtros en cascada -->
   <div class="filtros">
@@ -14,8 +21,11 @@
 
   <p id="r-info" class="sub"></p>
 
-  <h3>Promedio por pregunta</h3>
-  <div id="r-barras" class="barras"></div>
+  <div class="panel-c">
+    <h3>Promedio por pregunta</h3>
+    <!-- ojo esta grafica ya NO lleva la clase barras porq tiene sus propios estilos dentro de reportes.js y se pisabann -->
+    <div id="r-barras"></div>
+  </div>
 
   <div class="tabla-scroll">
     <table class="tabla">

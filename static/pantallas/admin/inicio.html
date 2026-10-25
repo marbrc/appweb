@@ -1,14 +1,27 @@
 <!-- /static/pantallas/admin/inicio.html -->
-<div class="admin-inicio">
-  <h2>Resumen general</h2>
-  <p class="sub">Todo lo que está pasando en el sistema.</p>
+<div class="pg admin-inicio">
 
+  <!-- el letrero de bienvenida, el saludo y el nombre los pone inicio.js con la sesion de quien entro -->
+  <div class="hero">
+    <h2><span id="a-saludo">Hola</span>, <span id="a-nombre"></span> 👋</h2>
+    <p>Resumen general: todo lo que está pasando en el sistema.</p>
+    <span class="rol-chip">Rol: Administrador</span>
+  </div>
+
+  <!-- las tarjetitas con numeros las dibuja inicio.js -->
   <div class="tarjetas-resumen" id="a-resumen"></div>
 
-  <h3>Promedio por pregunta (global)</h3>
-  <div id="a-barras" class="barras"></div>
+  <!-- atajos a las demas pantallas del menu tambien los dibuja inicio.js leyendo menus.js asi no se repite nadaaa -->
+  <h3 class="titulo-sec">Accesos rápidos</h3>
+  <div class="atajos-g" id="a-atajos"></div>
 
-  <h3>Últimas evaluaciones</h3>
+  <div class="panel-c">
+    <h3>Promedio por pregunta (global)</h3>
+    <p class="sub" id="a-aviso">Aquí se ve qué tan bien califican los alumnos cada pregunta.</p>
+    <div id="a-barras" class="barras"></div>
+  </div>
+
+  <h3 class="titulo-sec">Últimas evaluaciones</h3>
   <div class="tabla-scroll">
     <table class="tabla">
       <thead>
