@@ -1,3 +1,9 @@
+/* /static/pantallas/admin/admin.css */
+
+/* OJOOO este archivo antes NO estaba enlazado en marco.html por eso las pantallas se veian feas, ahora ya esta enlazado
+   y usa las variables de colores de estilos.css (--card --bd --tx --mut --pri --ac --in --bg --hd --ok --err)
+   asi cambia solito con los tres temas azul claro azul oscuro y negro
+   todo va dentro de .pg para no cambiarle nada a las otras pantallas (alumno y demas) ssss */
 
 /* ---------- contenedores ---------- */
 /* .pg es el contenedor de toda pantalla bonita, las clases admin-algo se quedan por si las usa otro archivo */
@@ -9,9 +15,12 @@
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: .2rem .2rem 2rem;
+  /* ANTES tenia max-width 1000px y margin auto por eso se quedaba angosto y centrado, ahora ocupa todo el ancho
+     y el espacio de los bordes lo da el padding del contenedor del marco asi queda un espacio decenteee */
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 0 2rem;
   animation: pg-entra .45s ease both;
 }
 /* la pantalla sube un poquito mientras aparece */
@@ -327,7 +336,8 @@
 .pg .titulo-sec { margin: .4rem 0 -.3rem; font-size: 1.05rem; }
 .pg .atajos-g {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  /* minmax de 20rem para q en pantalla ancha queden 3 por fila y los 6 atajos se acomoden parejitos */
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   gap: .9rem;
 }
 .pg .atajo-card {
