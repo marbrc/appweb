@@ -1,11 +1,19 @@
 <!-- /static/pantallas/admin/grupos.html -->
-<div class="admin-catalogo">
+<div class="pg admin-catalogo">
+  <!-- el letrero de arriba, g-total lo llena grupos.js con cuantos grupos hay -->
   <div class="cab">
-    <h2>Grupos</h2>
-    <button class="btn" id="g-nuevo" type="button">+ Nuevo grupo</button>
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="grupos"></i></span>
+      <div>
+        <h2>Grupos</h2>
+        <p class="sub">Registra y organiza los grupos de cada carrera <span class="total" id="g-total"></span></p>
+      </div>
+    </div>
+    <button class="btn" id="g-nuevo" type="button"><i data-icono="mas"></i>Nuevo grupo</button>
   </div>
 
   <form id="g-form" class="form-cat" hidden>
+    <h3 class="form-tit">Datos del grupo</h3>
     <label>Clave
       <input name="clave" required 
              placeholder="Ej. DSW123" 

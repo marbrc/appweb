@@ -44,14 +44,8 @@ function arrancar() {
     menu.hidden = !(e.target.closest("#btn-cuenta") && menu.hidden);
   });
 
-  // 5 el reloj en formato 24 h y h23 evita que a medianoche salga 24
-  function reloj() {
-    const ahora = new Date();
-    buscar("#hora").textContent = ahora.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-    buscar("#fecha").textContent = ahora.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  }
-  reloj();
-  setInterval(reloj, 1000);
+  // 5 aqui estaba el reloj (hora y fecha de la barra de arriba) pero se quito porq era innecesario
+  //   tambien se borro su setInterval asi q ya no hay nada corriendo cada segundooo
 
   // 6 el router, cada vez que cambia la pantalla actualiza la barra y mueve el cristal del menú
   iniciarRouter(rol.carpeta, op => {

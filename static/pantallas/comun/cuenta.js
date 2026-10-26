@@ -7,6 +7,13 @@ import { leer, guardar, obtenerSesion, actualizarSesion } from "/static/js/nucle
 export function iniciar(cont) {
   const sesion = obtenerSesion(), f = buscar("#form-cuenta", cont), msg = buscar("#msg", cont);
   buscar("#info", cont).textContent = sesion.nombre;
+  // el perfil de arriba, la inicial del nombre en el circulo, el nombre grande y el rol (los if son por si el html no los trae)
+  const avatar = buscar("#avatar-cuenta", cont), nombre = buscar("#nombre-cuenta", cont), rol = buscar("#rol-cuenta", cont);
+  if (avatar) avatar.textContent = (sesion.nombre || "?").trim().charAt(0).toUpperCase();
+  if (nombre) nombre.textContent = sesion.nombre;
+  if (rol) rol.textContent = (sesion.rol || "").charAt(0).toUpperCase() + (sesion.rol || "").slice(1);
+  // como ya sale el nombre grande el texto chiquito de abajo mejor dice el correo
+  buscar("#info", cont).textContent = sesion.correo;
   f.correo.value = sesion.correo;
 
   // avisar, muestra un mensaje verde de ok o rojo de error

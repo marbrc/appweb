@@ -61,14 +61,29 @@ export const getCuatrimestres = carrera => [...new Set(getGrupos().filter(g => g
 export const getGruposDe = (carrera, cuatrimestre) => getGrupos().filter(g => g.carrera === carrera && g.cuatrimestre === cuatrimestre);
 export const getAsignaturasDe = (carrera, cuatrimestre) => getAsignaturas().filter(a => a.carrera === carrera && a.cuatrimestre === cuatrimestre);
 
+// calificacionesDe, saca las calificaciones de una evaluacion sin importar como se haya guardado
+// las nuevas (pantalla del alumno) traen e.calificaciones que es una lista y las viejas (la pagina vieja app.js)
+// traian p1 p2 p3 ... p12 sueltas. antes si llegaba una vieja tronaba y el inicio se quedaba en blancooo
+export function calificacionesDe(e) {
+  if (Array.isArray(e?.calificaciones)) return e.calificaciones.map(Number);
+  return Array.from({ length: 12 }, (_, i) => Number(e?.["p" + (i + 1)]) || 0);
+}
+
+// promedioDe, el promedio de UNA evaluacion si ya lo trae lo usa y si no lo calcula con sus calificaciones
+export function promedioDe(e) {
+  if (Number.isFinite(Number(e?.promedio)) && e?.promedio !== undefined && e?.promedio !== null) return Number(e.promedio);
+  const lista = calificacionesDe(e).filter(n => n > 0);
+  return lista.length ? +(lista.reduce((a, n) => a + n, 0) / lista.length).toFixed(1) : 0;
+}
+
 export function promedioGeneral(evals) {
   if (!evals.length) return 0;
-  return +(evals.reduce((a, e) => a + e.promedio, 0) / evals.length).toFixed(1);
+  return +(evals.reduce((a, e) => a + promedioDe(e), 0) / evals.length).toFixed(1);
 }
 
 export function promedioPorPregunta(evals, num = 12) {
   if (!evals.length) return Array(num).fill(0);
-  return Array.from({ length: num }, (_, i) => +(evals.reduce((a, e) => a + (e.calificaciones[i] || 0), 0) / evals.length).toFixed(1));
+  return Array.from({ length: num }, (_, i) => +(evals.reduce((a, e) => a + (calificacionesDe(e)[i] || 0), 0) / evals.length).toFixed(1));
 }
 
 export function evaluacionesDeDocente(nombre) {

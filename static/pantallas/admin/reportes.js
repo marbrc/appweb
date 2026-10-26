@@ -4,7 +4,7 @@ import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import {
   getEvaluaciones, getPreguntas,
   promedioGeneral, promedioPorPregunta,
-  getCarrerasConEvaluaciones
+  getCarrerasConEvaluaciones, promedioDe
 } from "/static/js/nucleo/datos.js";
 
 let cont = null;
@@ -14,45 +14,46 @@ const ESTILOS = `
 #r-barras {
   display: flex; align-items: stretch; gap: 2rem;
   margin: 1.5rem 0; padding: 1rem;
-  background: #fff; border: 1px solid #ddd; border-radius: 8px; color: #333;
+  background: var(--card); border: 1px solid var(--bd); border-radius: 1rem; color: var(--tx);
 }
 #r-barras .grafica-area { display: flex; flex: 1; position: relative; padding-left: 28px; }
 #r-barras .y-axis {
   position: absolute; left: -8px; top: 50%;
   transform: translateY(-50%) rotate(-90deg);
-  font-size: .8rem; color: #666; white-space: nowrap;
+  font-size: .8rem; color: var(--mut); white-space: nowrap;
 }
 #r-barras .ticks {
   display: flex; flex-direction: column; justify-content: space-between;
   margin-top: 30px; height: 140px; padding-right: 6px;
-  font-size: .7rem; text-align: right; color: #333;
+  font-size: .7rem; text-align: right; color: var(--mut);
 }
 #r-barras .grafica-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 #r-barras .fila-vals, #r-barras .fila-nums { display: flex; }
-#r-barras .val-cel { flex: 1; text-align: center; font-size: .75rem; color: #333; }
+#r-barras .val-cel { flex: 1; text-align: center; font-size: .75rem; color: var(--tx); }
 #r-barras .fila-vals { height: 30px; align-items: center; }
-#r-barras .val-top { border: 1px solid #999; background: #fff; padding: 1px 4px; font-weight: 700; }
+#r-barras .val-top { border: 1px solid var(--bd); background: var(--in); border-radius: .3rem; padding: 1px 4px; font-weight: 700; }
 #r-barras .cols-container {
-  display: flex; height: 140px; border: 1px solid #666;
-  background-image: linear-gradient(to top, #ddd 1px, transparent 1px);
+  display: flex; height: 140px; border: 1px solid var(--bd);
+  background-image: linear-gradient(to top, var(--bd) 1px, transparent 1px);
   background-size: 100% 20%;
 }
-#r-barras .col { flex: 1; display: flex; align-items: flex-end; justify-content: center; }
-#r-barras .col i { display: block; width: 80%; border: 1px solid #444; }
+/* flex-direction row porq si no heredaba column de estilos.css y la barra se pegaba a la derecha de su columna */
+#r-barras .col { flex: 1; display: flex; flex-direction: row; align-items: flex-end; justify-content: center; height: 100%; }
+#r-barras .col i { display: block; width: 80%; border-radius: 4px 4px 0 0; }
 #r-barras .fila-nums { margin-top: 4px; }
-#r-barras .x-axis { text-align: center; font-size: .85rem; margin-top: 4px; color: #333; }
+#r-barras .x-axis { text-align: center; font-size: .85rem; margin-top: 4px; color: var(--mut); }
 #r-barras .promedio-lateral {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; min-width: 120px; gap: .8rem;
 }
 #r-barras .promedio-lateral .lbl {
-  font-size: .85rem; color: #666; text-transform: uppercase;
+  font-size: .85rem; color: var(--mut); text-transform: uppercase;
   text-align: center; letter-spacing: 1px;
 }
 #r-barras .caja-prom {
   font-size: 2rem; font-weight: 800; padding: .5rem 1.2rem;
-  border: 2px solid #333; background: #fff; color: #333;
-  box-shadow: 3px 3px 0 #999;
+  border: 2px solid var(--pri); background: var(--in); color: var(--ac);
+  border-radius: .8rem; box-shadow: 0 6px 16px #0b2a5b33;
 }
 `;
 
@@ -154,8 +155,8 @@ function pintar(evals, preguntas) {
   const promGeneral = Number(promedioGeneral(filtradas)) || 0;
   const proms = (promedioPorPregunta(filtradas, preguntas.length) || []).map(v => Number(v) || 0);
 
-  const tonos = ["#999", "#ccc", "#fff", "#eee", "#fff", "#bbb",
-                 "#aaa", "#ddd", "#ccc", "#fff", "#bbb", "#333"];
+  // antes cada barra era de un gris distinto (tonos) y con el tema negro ni se veian, ahora todas usan el azul del tema
+  const tonos = ["var(--pri)"];
 
   const vals = proms.map(v =>
     `<div class="val-cel"><span class="val-top">${v.toFixed(1)}</span></div>`
@@ -195,7 +196,7 @@ function pintar(evals, preguntas) {
           <td>${e.grupo}</td>
           <td>${e.profesor}</td>
           <td>${e.materia}</td>
-          <td><b>${e.promedio.toFixed(1)}</b></td>
+          <td><b>${promedioDe(e).toFixed(1)}</b></td>
           <td>${e.comentario || "—"}</td>
         </tr>`).join("")
     : `<tr><td colspan="8" class="vacio">No hay evaluaciones con esos filtros.</td></tr>`;

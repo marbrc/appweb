@@ -109,6 +109,9 @@ export function iniciar(contenedor) {
 
   function dibujar() {
     const preguntas = getPreguntas();
+    // la pastillita de arriba que dice cuantas preguntas hay (el if es por si el html no la trae)
+    const total = buscar("#p-total", cont);
+    if (total) total.textContent = preguntas.length + (preguntas.length === 1 ? " pregunta" : " preguntas");
     lista.innerHTML = preguntas.length
       ? preguntas.map((p, i) => `
           <li class="pregunta-item">

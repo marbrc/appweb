@@ -1,79 +1,142 @@
 /* /static/pantallas/admin/admin.css */
 
+/* OJOOO este archivo antes NO estaba enlazado en marco.html por eso las pantallas se veian feas, ahora ya esta enlazado
+   y usa las variables de colores de estilos.css (--card --bd --tx --mut --pri --ac --in --bg --hd --ok --err)
+   asi cambia solito con los tres temas azul claro azul oscuro y negro
+   todo va dentro de .pg para no cambiarle nada a las otras pantallas (alumno y demas) ssss */
+
 /* ---------- contenedores ---------- */
+/* .pg es el contenedor de toda pantalla bonita, las clases admin-algo se quedan por si las usa otro archivo */
+.pg,
 .admin-catalogo,
 .admin-inicio,
 .admin-reportes,
 .admin-accesos {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 1rem;
+  gap: 1.2rem;
+  /* ANTES tenia max-width 1000px y margin auto por eso se quedaba angosto y centrado, ahora ocupa todo el ancho
+     y el espacio de los bordes lo da el padding del contenedor del marco asi queda un espacio decenteee */
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 0 2rem;
+  animation: pg-entra .45s ease both;
 }
+/* la pantalla sube un poquito mientras aparece */
+@keyframes pg-entra { from { opacity: 0; transform: translateY(12px); } }
 
 /* ---------- cabecera con botón ---------- */
-.cab {
+/* es el letrero azul de arriba de cada pantalla con su icono el titulo y el boton de nuevo */
+.pg .cab {
+  position: relative;
+  overflow: hidden;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  padding: 1.2rem 1.4rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pri), var(--hd));
+  border-radius: 1.2rem;
+  box-shadow: 0 10px 26px #0b2a5b33;
 }
-.cab h2 { margin: 0; }
+/* el circulo clarito de adorno que se ve atras a la derecha */
+.pg .cab::after {
+  content: "";
+  position: absolute;
+  right: -3rem;
+  top: -4.5rem;
+  width: 13rem;
+  height: 13rem;
+  border-radius: 50%;
+  background: #ffffff14;
+  pointer-events: none;
+}
+.pg .cab > * { position: relative; z-index: 1; }
+.pg .cab-txt { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.pg .cab-ico {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3.2rem;
+  height: 3.2rem;
+  background: #ffffff26;
+  border-radius: 1rem;
+}
+.pg .cab-ico i { width: 1.7rem; height: 1.7rem; }
+.pg .cab h2 { margin: 0; color: #fff; font-size: 1.35rem; }
+.pg .cab .sub { margin: .2rem 0 0; color: #dbe8ff; }
+/* total, la pastillita que dice cuantos registros hay lo llena el js de cada pantalla */
+.pg .total {
+  display: inline-block;
+  margin-left: .4rem;
+  padding: .05rem .6rem;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #fff;
+  background: #ffffff2e;
+  border-radius: 2rem;
+}
+.pg .total:empty { display: none; }
 
 /* ---------- botones base ---------- */
-.btn {
+.pg .btn {
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
-  padding: .55rem 1rem;
-  border: 1px solid var(--acento, #1f6feb);
-  background: var(--acento, #1f6feb);
-  color: #fff;
-  border-radius: 8px;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: filter .15s ease;
+  justify-content: center;
+  gap: .45rem;
+  padding: .6rem 1.1rem;
+  font-weight: 700;
+  color: var(--ptx);
+  background: var(--pri);
+  border: 1.5px solid var(--pri);
+  border-radius: .8rem;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
-.btn:hover { filter: brightness(1.08); }
-.btn.sec {
-  background: transparent;
-  color: var(--acento, #1f6feb);
-}
+.pg .btn i { width: 1.1rem; height: 1.1rem; }
+.pg .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px #0b2a5b33; filter: brightness(1.08); }
+.pg .btn:active { transform: translateY(0); }
+.pg .btn.sec { color: var(--ac); background: transparent; border-color: var(--ac); }
+/* el boton de nuevo de la cabecera es blanco para que resalte sobre el azul */
+.pg .cab .btn { color: #0b2a5b; background: #fff; border-color: #fff; }
 
-.mini {
-  padding: .3rem .6rem;
-  border-radius: 6px;
-  border: 1px solid var(--borde, #ccc);
-  background: var(--fondo, #fff);
-  color: inherit;
-  font-size: .8rem;
-  cursor: pointer;
-  transition: filter .15s ease;
+.pg .mini {
+  padding: .35rem .85rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--tx);
+  background: var(--in);
+  border: 1px solid var(--bd);
+  border-radius: 2rem;
+  transition: background .18s, color .18s, border-color .18s, transform .18s;
 }
-.mini:hover { filter: brightness(.95); }
-.mini.rojo {
-  border-color: #c9363f;
-  color: #c9363f;
-}
+.pg .mini:hover { color: #fff; background: var(--pri); border-color: var(--pri); transform: translateY(-1px); }
+.pg .mini.rojo { color: var(--err); border-color: var(--err); background: transparent; }
+.pg .mini.rojo:hover { color: #fff; background: var(--err); border-color: var(--err); }
 
 /* ---------- formularios de catálogo ---------- */
-.form-cat {
+.pg .form-cat {
   display: grid;
-  gap: .7rem;
-  padding: 1rem;
-  border-radius: 10px;
-  background: var(--tarjeta, #fafafa);
-  border: 1px solid var(--borde, #e5e5e5);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: .9rem;
+  padding: 1.2rem;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-top: 4px solid var(--pri);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px #0b2a5b1a;
+  animation: pg-entra .3s ease both;
 }
 
 /* ESTA ES LA CLAVE: cuando tiene hidden, no se ve */
-.form-cat[hidden] { display: none !important; }
+.pg .form-cat[hidden] { display: none !important; }
 
-.form-cat label {
+/* el titulito de adentro del formulario ocupa toda la fila */
+.pg .form-tit { grid-column: 1 / -1; margin: 0; font-size: 1.05rem; }
+
+.pg .form-cat label {
   display: flex;
   flex-direction: column;
   gap: .3rem;
@@ -81,18 +144,33 @@
   font-size: .9rem;
 }
 
-.form-cat input,
-.form-cat select,
-.form-cat textarea {
-  padding: .5rem .7rem;
-  border: 1px solid var(--borde, #ccc);
-  border-radius: 8px;
-  background: var(--fondo, #fff);
-  color: inherit;
+.pg .form-cat input,
+.pg .form-cat select,
+.pg .form-cat textarea {
+  padding: .6rem .8rem;
+  border: 1px solid var(--bd);
+  border-radius: .7rem;
+  background: var(--in);
+  color: var(--tx);
   font: inherit;
+  transition: border-color .18s, box-shadow .18s;
 }
+/* cuando escribes en un campo se le prende un halo azul */
+.pg .form-cat input:focus,
+.pg .form-cat select:focus,
+.pg .form-cat textarea:focus {
+  outline: none;
+  border-color: var(--pri);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 25%, transparent);
+}
+/* el campo escrito mal se pone rojito pero solo despues de q lo tocaste */
+.pg .form-cat input:user-invalid,
+.pg .form-cat textarea:user-invalid { border-color: var(--err); }
+/* textarea del form de preguntas ocupa toda la fila */
+.pg .form-cat label:has(textarea) { grid-column: 1 / -1; }
 
-.form-cat .acciones {
+.pg .form-cat .acciones {
+  grid-column: 1 / -1;
   display: flex;
   gap: .5rem;
   justify-content: flex-end;
@@ -100,177 +178,486 @@
 }
 
 /* ---------- tablas ---------- */
-.tabla-scroll { overflow-x: auto; }
+/* la tabla va dentro de una tarjeta con esquinas redondas y scroll por si se ve en el celular */
+.pg .tabla-scroll,
+.pg .tabla-wrap {
+  overflow-x: auto;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px #0b2a5b14;
+}
 
-.tabla {
+.pg .tabla,
+.pg .tabla-wrap table {
   width: 100%;
   border-collapse: collapse;
-  font-size: .9rem;
+  font-size: .92rem;
 }
-.tabla th,
-.tabla td {
-  padding: .55rem .6rem;
-  border-bottom: 1px solid var(--borde, #e5e5e5);
+.pg .tabla th,
+.pg .tabla td,
+.pg .tabla-wrap th,
+.pg .tabla-wrap td {
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--bd);
   text-align: left;
   vertical-align: middle;
 }
-.tabla th {
-  background: var(--tarjeta, #fafafa);
-  font-weight: 600;
+.pg .tabla th,
+.pg .tabla-wrap th {
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--mut);
+  background: color-mix(in srgb, var(--pri) 8%, var(--card));
+  white-space: nowrap;
 }
-.tabla td b { color: var(--acento, #1f6feb); }
-.tabla td.vacio {
+.pg .tabla tbody tr,
+.pg .tabla-wrap tbody tr { transition: background .15s; }
+.pg .tabla tbody tr:hover,
+.pg .tabla-wrap tbody tr:hover { background: color-mix(in srgb, var(--pri) 7%, transparent); }
+.pg .tabla tbody tr:last-child td,
+.pg .tabla-wrap tbody tr:last-child td { border-bottom: 0; }
+.pg .tabla td b { color: var(--ac); }
+.pg .tabla td.vacio,
+.pg .tabla-wrap td.vacio {
+  display: table-cell;
+  padding: 2.2rem 1rem;
   text-align: center;
-  opacity: .7;
+  color: var(--mut);
   font-style: italic;
 }
 
-/* botones editar/eliminar en la fila */
-.acciones-fila {
-  display: flex;
-  gap: .4rem;
-  justify-content: flex-end;
+/* botones editar/eliminar en la fila, ojo el td ya NO es flex porq si no se rompia la tabla */
+.pg td.acciones-fila { text-align: right; white-space: nowrap; }
+.pg td.acciones-fila .mini + .mini,
+.pg .tabla td .mini + .mini { margin-left: .35rem; }
+.pg div.acciones-fila { display: flex; gap: .4rem; justify-content: flex-end; }
+
+/* pastillas chicas para la clave del grupo y el cuatrimestre */
+.pg .chip {
+  display: inline-block;
+  margin: 0;
+  border: 0;
+  padding: .15rem .65rem;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--ac);
+  background: color-mix(in srgb, var(--pri) 14%, transparent);
+  border-radius: 2rem;
+}
+.pg .chip.clave { letter-spacing: .06em; }
+/* la bolita con la inicial del docente */
+.pg .persona { display: flex; align-items: center; gap: .7rem; font-weight: 600; }
+.pg .avatar-mini {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  font-size: .9rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pri), var(--hd));
+  border-radius: 50%;
 }
 
 /* ---------- tarjetas de resumen (inicio) ---------- */
-.tarjetas-resumen {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: .8rem;
+/* el letrero de bienvenida del inicio */
+.pg .hero {
+  position: relative;
+  overflow: hidden;
+  padding: 1.6rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pri), var(--hd));
+  border-radius: 1.2rem;
+  box-shadow: 0 12px 30px #0b2a5b3d;
 }
-.tarjeta {
+.pg .hero::before,
+.pg .hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: #ffffff12;
+  pointer-events: none;
+}
+.pg .hero::before { right: -2rem; top: -5rem; width: 15rem; height: 15rem; }
+.pg .hero::after { right: 7rem; bottom: -6rem; width: 11rem; height: 11rem; }
+.pg .hero > * { position: relative; z-index: 1; }
+.pg .hero h2 { margin: 0 0 .3rem; color: #fff; font-size: 1.6rem; }
+.pg .hero p { margin: 0; color: #dbe8ff; max-width: 38rem; }
+.pg .hero .rol-chip {
+  display: inline-block;
+  margin-top: .8rem;
+  padding: .2rem .8rem;
+  font-size: .8rem;
+  font-weight: 700;
+  background: #ffffff2e;
+  border-radius: 2rem;
+}
+
+.pg .tarjetas-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: .9rem;
+}
+/* cada tarjeta numerito, usa --c para su color y --d para q aparezcan una tras otra */
+.pg .stat {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: .15rem;
+  padding: 1rem 1.1rem;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 1rem;
+  box-shadow: 0 8px 22px #0b2a5b14;
+  animation: pg-entra .5s ease backwards;
+  animation-delay: calc(var(--d, 0) * 70ms);
+  transition: transform .2s, box-shadow .2s;
+}
+.pg .stat:hover { transform: translateY(-3px); box-shadow: 0 14px 28px #0b2a5b26; }
+.pg .stat-ico {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-bottom: .4rem;
+  color: var(--c, var(--pri));
+  background: color-mix(in srgb, var(--c, var(--pri)) 16%, transparent);
+  border-radius: .8rem;
+}
+.pg .stat-ico i { width: 1.3rem; height: 1.3rem; }
+.pg .stat .num { font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--tx); }
+.pg .stat .lbl { font-size: .85rem; color: var(--mut); }
+
+/* ---------- atajos del inicio ---------- */
+.pg .titulo-sec { margin: .4rem 0 -.3rem; font-size: 1.05rem; }
+.pg .atajos-g {
+  display: grid;
+  /* minmax de 20rem para q en pantalla ancha queden 3 por fila y los 6 atajos se acomoden parejitos */
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: .9rem;
+}
+.pg .atajo-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "ico nom" "ico des";
+  column-gap: .9rem;
   align-items: center;
-  padding: 1rem;
-  border-radius: 12px;
-  background: var(--tarjeta, #fafafa);
-  border: 1px solid var(--borde, #e5e5e5);
+  padding: 1rem 1.1rem;
+  text-align: left;
+  color: var(--tx);
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 1rem;
+  animation: pg-entra .5s ease backwards;
+  animation-delay: calc(var(--d, 0) * 70ms);
+  transition: transform .2s, box-shadow .2s, border-color .2s;
 }
-.tarjeta .num {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--acento, #1f6feb);
+.pg .atajo-card:hover { transform: translateY(-3px); border-color: var(--pri); box-shadow: 0 12px 26px #0b2a5b26; }
+.pg .atajo-card .ico {
+  grid-area: ico;
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pri), var(--hd));
+  border-radius: .9rem;
+  transition: transform .25s;
 }
-.tarjeta .lbl { font-size: .85rem; opacity: .8; }
+.pg .atajo-card:hover .ico { transform: rotate(-8deg) scale(1.08); }
+.pg .atajo-card .ico svg { width: 1.4rem; height: 1.4rem; }
+.pg .atajo-card b { grid-area: nom; }
+.pg .atajo-card small { grid-area: des; color: var(--mut); line-height: 1.25; }
 
 /* ---------- barras ---------- */
-.barras {
-  display: flex;
-  align-items: flex-end;
-  gap: .4rem;
-  height: 160px;
-  padding: .5rem 0;
-  border-bottom: 1px solid var(--borde, #e5e5e5);
+/* la grafica va dentro de una tarjeta, cada columna tiene el valor arriba la barra en medio y el numero abajo */
+.pg .panel-c {
+  padding: 1.1rem 1.2rem;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px #0b2a5b14;
 }
-.barras .col {
+.pg .panel-c h3 { margin: 0 0 .2rem; font-size: 1.05rem; }
+.pg .panel-c .sub { margin-bottom: .6rem; }
+.pg .barras {
+  display: flex;
+  align-items: stretch;
+  gap: .5rem;
+  height: 14rem;
+  padding: .5rem 0 0;
+  border-bottom: 1px solid var(--bd);
+}
+.pg .barras .col {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
   height: 100%;
-  gap: .2rem;
+  gap: .25rem;
+  min-width: 0;
 }
-.barras .col i {
+.pg .barras .col em { font-style: normal; font-size: .72rem; font-weight: 700; color: var(--mut); }
+.pg .barras .col .pista { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; }
+.pg .barras .col i {
   display: block;
+  flex: none;
   width: 100%;
   max-width: 28px;
-  background: var(--acento, #1f6feb);
+  background: linear-gradient(to top, var(--pri), var(--bar));
   border-radius: 6px 6px 0 0;
-  transition: height .3s ease;
+  transition: height .6s cubic-bezier(.34, 1.3, .64, 1);
 }
-.barras .col b { font-size: .7rem; opacity: .7; }
+.pg .barras .col:hover i { filter: brightness(1.2); }
+.pg .barras .col b { font-size: .75rem; color: var(--mut); }
 
 /* ---------- promedio grande ---------- */
-.promedio-grande {
+.pg .promedio-grande {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem;
-  border-radius: 12px;
-  background: var(--tarjeta, #fafafa);
-  border: 1px solid var(--borde, #e5e5e5);
+  border-radius: 1rem;
+  background: var(--card);
+  border: 1px solid var(--bd);
 }
-.promedio-grande span:first-child {
-  font-size: 2.6rem;
-  font-weight: 800;
-  color: var(--acento, #1f6feb);
-}
-.promedio-grande .lbl { font-size: .9rem; opacity: .8; }
+.pg .promedio-grande span:first-child { font-size: 2.6rem; font-weight: 800; color: var(--ac); }
+.pg .promedio-grande .lbl { font-size: .9rem; color: var(--mut); }
+
+/* la notita de color del promedio en las tablas, verde si esta bien amarillo si regular y rojo si esta mal */
+.pg .nota-prom { display: inline-block; min-width: 2.6rem; padding: .15rem .6rem; text-align: center; font-weight: 800; border-radius: 2rem; }
+.pg .nota-prom.alta { color: #0f6b3a; background: #1f9d5726; }
+.pg .nota-prom.media { color: #8a5a00; background: #f5a52430; }
+.pg .nota-prom.baja { color: var(--err); background: color-mix(in srgb, var(--err) 18%, transparent); }
+[data-tema=oscuro] .pg .nota-prom.alta, [data-tema=negro] .pg .nota-prom.alta { color: #6ee7a0; }
+[data-tema=oscuro] .pg .nota-prom.media, [data-tema=negro] .pg .nota-prom.media { color: #ffd37a; }
 
 /* ---------- lista de preguntas ---------- */
-.lista-preguntas {
+.pg .lista-preguntas {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: .6rem;
+  gap: .7rem;
 }
-.pregunta-item {
+.pg .pregunta-item {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: .8rem;
+  gap: 1rem;
   align-items: center;
-  padding: .8rem 1rem;
-  border-radius: 10px;
-  background: var(--tarjeta, #fafafa);
-  border: 1px solid var(--borde, #e5e5e5);
+  padding: .9rem 1.1rem;
+  border-radius: 1rem;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  box-shadow: 0 6px 18px #0b2a5b10;
+  transition: transform .2s, border-color .2s;
 }
-.pregunta-item .num {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--acento, #1f6feb);
-  color: #fff;
+.pg .pregunta-item:hover { transform: translateX(4px); border-color: var(--pri); }
+.pg .pregunta-item .num {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: var(--pri);
+  color: #fff;
   font-weight: 700;
 }
-.pregunta-item p { margin: 0; line-height: 1.4; }
-.pregunta-item.vacio {
+.pg .pregunta-item p { margin: 0; line-height: 1.4; }
+.pg .pregunta-item.vacio,
+.pg li.vacio {
   display: block;
+  padding: 2rem;
   text-align: center;
-  opacity: .7;
+  color: var(--mut);
   font-style: italic;
+  background: var(--card);
+  border: 1px dashed var(--bd);
+  border-radius: 1rem;
 }
 
 /* ---------- filtros ---------- */
-.filtros {
-  display: flex;
-  gap: .6rem;
-  flex-wrap: wrap;
+.pg .filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: .7rem;
+  padding: 1rem;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 1rem;
+  box-shadow: 0 6px 18px #0b2a5b10;
 }
-.filtros select {
-  padding: .5rem .7rem;
-  border: 1px solid var(--borde, #ccc);
-  border-radius: 8px;
-  background: var(--fondo, #fff);
-  color: inherit;
+.pg .filtros select {
+  padding: .6rem .8rem;
+  border: 1px solid var(--bd);
+  border-radius: .7rem;
+  background: var(--in);
+  color: var(--tx);
   font: inherit;
 }
+.pg .filtros select:focus { outline: none; border-color: var(--pri); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 25%, transparent); }
+/* el letrerito de cuantas evaluaciones encontro */
+.pg #r-info { display: inline-block; align-self: flex-start; margin: 0; padding: .25rem .8rem; font-weight: 600; background: color-mix(in srgb, var(--pri) 12%, transparent); border-radius: 2rem; }
+.pg #r-info:empty { display: none; }
 
 /* ---------- mensajes ok/err ---------- */
-#msg.ok  { color: #1f9d57; font-weight: 600; }
-#msg.err { color: #c9363f; font-weight: 600; }
+.pg #msg { margin: 0; padding: .7rem 1rem; font-weight: 600; border-radius: .8rem; }
+.pg #msg.ok { color: #0f6b3a; background: #1f9d5722; }
+.pg #msg.err { color: var(--err); background: color-mix(in srgb, var(--err) 14%, transparent); }
+[data-tema=oscuro] .pg #msg.ok, [data-tema=negro] .pg #msg.ok { color: #6ee7a0; }
 
 /* ---------- tabla de accesos (accesos.html) ---------- */
-.tabla-wrap { overflow-x: auto; }
-.tabla-wrap table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .9rem;
-}
-.tabla-wrap th,
-.tabla-wrap td {
-  padding: .55rem .6rem;
-  border-bottom: 1px solid var(--borde, #e5e5e5);
-  text-align: left;
-}
-.tabla-wrap th { background: var(--tarjeta, #fafafa); font-weight: 600; }
-.tabla-wrap .codigo {
+.pg .tabla-wrap .codigo,
+.pg b.codigo {
+  display: inline-block;
+  padding: .25rem .75rem;
   font-family: ui-monospace, monospace;
-  color: var(--acento, #1f6feb);
+  font-size: 1rem;
+  letter-spacing: .2em;
+  color: var(--ac);
+  background: color-mix(in srgb, var(--pri) 12%, transparent);
+  border: 1px dashed var(--ac);
+  border-radius: .6rem;
 }
+.pg td.sub { color: var(--mut); font-style: italic; }
+/* la notita de arriba con el enlace */
+.pg .nota-caja {
+  display: flex;
+  gap: .7rem;
+  align-items: flex-start;
+  padding: .9rem 1.1rem;
+  color: var(--tx);
+  background: color-mix(in srgb, var(--pri) 9%, var(--card));
+  border: 1px solid var(--bd);
+  border-left: 4px solid var(--pri);
+  border-radius: .8rem;
+}
+.pg .nota-caja i { margin-top: .1rem; color: var(--pri); }
+.pg .nota-caja p { margin: 0; }
+
+/* ---------- pantallas comunes (cuenta configuracion acerca y calificar) ---------- */
+.pg .pg-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.4rem;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 1.1rem;
+  box-shadow: 0 8px 24px #0b2a5b14;
+}
+.pg .pg-card h3 { margin: 0; font-size: 1.05rem; }
+.pg .pg-card label { display: grid; gap: .3rem; }
+.pg .pg-card input,
+.pg .pg-card textarea { transition: border-color .18s, box-shadow .18s; }
+.pg .pg-card input:focus,
+.pg .pg-card textarea:focus { outline: none; border-color: var(--pri); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 25%, transparent); }
+.pg .dos-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .9rem; }
+
+/* tarjeta del perfil en cuenta */
+.pg .perfil { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+.pg .avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 4.6rem;
+  height: 4.6rem;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pri), var(--hd));
+  border-radius: 50%;
+  box-shadow: 0 8px 20px #0b2a5b40;
+}
+.pg .perfil h3 { font-size: 1.2rem; }
+.pg .perfil .sub { margin: .1rem 0 0; }
+.pg .rol-pill {
+  display: inline-block;
+  margin-top: .4rem;
+  padding: .15rem .75rem;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--ac);
+  background: color-mix(in srgb, var(--pri) 14%, transparent);
+  border-radius: 2rem;
+}
+
+/* los tres temas como tarjetitas con su vista previa */
+.pg .temas-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem; }
+.pg .tema-card {
+  display: grid;
+  gap: .7rem;
+  padding: .8rem;
+  text-align: left;
+  color: var(--tx);
+  background: var(--card);
+  border: 2px solid var(--bd);
+  border-radius: 1rem;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+.pg .tema-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px #0b2a5b26; }
+.pg .tema-card.on { border-color: var(--pri); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 28%, transparent); }
+.pg .tema-card b { display: flex; justify-content: space-between; align-items: center; }
+.pg .tema-card .palomita { display: none; width: 1.3rem; height: 1.3rem; color: var(--pri); }
+.pg .tema-card.on .palomita { display: block; }
+/* la maqueta chiquita, un menu a la izquierda y un fondo con una tarjeta */
+.pg .vista { display: grid; grid-template-columns: 1.6rem 1fr; height: 5.2rem; overflow: hidden; border: 1px solid #00000022; border-radius: .6rem; }
+.pg .vista i { display: block; width: auto; height: auto; }
+.pg .vista span { display: block; margin: .8rem; background: var(--vt); border-radius: .4rem; }
+.pg .vista.claro { background: #e8f0fc; --vt: #fff; }
+.pg .vista.claro i { background: #0b2a5b; }
+.pg .vista.oscuro { background: #0a1f4a; --vt: #10306b; }
+.pg .vista.oscuro i { background: #06142f; }
+.pg .vista.negro { background: #000; --vt: #141414; }
+.pg .vista.negro i { background: #0d0d0d; }
+
+/* acerca del sistema */
+.pg .acerca-hero { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+.pg .logo-grande {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 5rem;
+  height: 5rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: var(--ac);
+  border: 2px dashed var(--ac);
+  border-radius: 1.1rem;
+}
+.pg .acerca-hero h2 { font-size: 1.25rem; }
+.pg .acerca-hero .sub { margin: .15rem 0 0; }
+.pg .acerca-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: .9rem; }
+.pg .dato-acerca { display: grid; gap: .3rem; align-content: start; padding: 1rem 1.1rem; background: var(--card); border: 1px solid var(--bd); border-radius: 1rem; }
+.pg .dato-acerca small { font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ac); }
+.pg .dato-acerca p { margin: 0; }
+.pg .equipo { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .7rem; margin: 0; padding: 0; list-style: none; }
+.pg .equipo li { display: flex; align-items: center; gap: .7rem; padding: .6rem .8rem; background: var(--in); border: 1px solid var(--bd); border-radius: .8rem; }
+
+/* calificar el sistema */
+.pg .calificar-centro { justify-items: center; text-align: center; }
+.pg .calificar-centro > label { width: 100%; text-align: left; }
+.pg .calificar-centro .estrellas { justify-content: center; }
+.pg .calificar-centro .estrella { width: 3.2rem; height: 3.2rem; }
+.pg #texto-estrellas { margin: 0; font-weight: 600; }
+
+/* ---------- en el celular ---------- */
+@media (max-width: 700px) {
+  .pg .cab, .pg .hero { padding: 1rem; }
+  .pg .cab .btn { width: 100%; }
+  .pg .pregunta-item { grid-template-columns: auto 1fr; }
+  .pg .pregunta-item .acciones-fila { grid-column: 1 / -1; }
+  .pg .barras { gap: .25rem; }
+}
+
+/* en accesos la ultima columna son los botones y van pegados a la derecha */
+.pg .tabla-wrap td:last-child { text-align: right; white-space: nowrap; }
+
+/* el boton de guardar de las tarjetas va a la derecha y no estirado de lado a lado, el de calificar va al centro */
+.pg .pg-card > .btn { justify-self: end; min-width: 11rem; }
+.pg .calificar-centro > .btn { justify-self: center; }

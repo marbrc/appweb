@@ -1,4 +1,3 @@
-// /static/pantallas/admin/asignaturas.js
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import { getAsignaturas, setAsignaturas } from "/static/js/nucleo/datos.js";
@@ -106,12 +105,15 @@ export function iniciar(contenedor) {
 
   function dibujar() {
     const lista = getAsignaturas();
+    // la pastillita de arriba que dice cuantas asignaturas hay (el if es por si el html no la trae)
+    const total = buscar("#s-total", cont);
+    if (total) total.textContent = lista.length + (lista.length === 1 ? " registrada" : " registradas");
     tabla.innerHTML = lista.length
       ? lista.map((a, i) => `
           <tr>
-            <td>${a.nombre}</td>
+            <td><b>${a.nombre}</b></td>
             <td>${a.carrera}</td>
-            <td>${a.cuatrimestre}°</td>
+            <td><span class="chip">${a.cuatrimestre}°</span></td>
             <td class="acciones-fila">
               <button class="mini" type="button" data-ed="${i}">Editar</button>
               <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>

@@ -112,12 +112,15 @@ export function iniciar(contenedor) {
 
   function dibujar() {
     const lista = getGrupos() || [];
+    // la pastillita de arriba que dice cuantos grupos hay (el if es por si el html no la trae)
+    const total = buscar("#g-total", cont);
+    if (total) total.textContent = lista.length + (lista.length === 1 ? " registrado" : " registrados");
     tabla.innerHTML = lista.length
       ? lista.map((g, i) => `
           <tr>
-            <td>${g.clave}</td>
+            <td><span class="chip clave">${g.clave}</span></td>
             <td>${g.carrera}</td>
-            <td>${g.cuatrimestre}°</td>
+            <td><span class="chip">${g.cuatrimestre}°</span></td>
             <td>${g.docente || "—"}</td>
             <td class="acciones-fila">
               <button class="mini" type="button" data-ed="${i}">Editar</button>

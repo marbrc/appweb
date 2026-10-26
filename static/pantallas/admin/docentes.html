@@ -1,11 +1,19 @@
 <!-- /static/pantallas/admin/docentes.html -->
-<div class="admin-catalogo">
+<div class="pg admin-catalogo">
+  <!-- el letrero de arriba, d-total lo llena docentes.js con cuantos docentes hay -->
   <div class="cab">
-    <h2>Docentes</h2>
-    <button class="btn" id="d-nuevo" type="button">+ Nuevo docente</button>
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="docentes"></i></span>
+      <div>
+        <h2>Docentes</h2>
+        <p class="sub">Administra a los profesores que los alumnos pueden evaluar <span class="total" id="d-total"></span></p>
+      </div>
+    </div>
+    <button class="btn" id="d-nuevo" type="button"><i data-icono="mas"></i>Nuevo docente</button>
   </div>
 
   <form id="d-form" class="form-cat" hidden>
+    <h3 class="form-tit">Datos del docente</h3>
     <label>Nombre(s) 
       <input name="nombres" required placeholder="Ej. Apolinar" 
              pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,50}$"
