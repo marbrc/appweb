@@ -5,6 +5,12 @@ import { getAsignaturas, setAsignaturas } from "/static/js/nucleo/datos.js";
 let cont = null;
 let editando = -1;
 
+// Solo letras (con tildes y ñ/ü), primera letra mayúscula,
+// y opcionalmente un número romano en mayúscula al final.
+const REGEX_NOMBRE = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñü\s]*(?:\s+[IVXLCDM]+)?$/;
+const MSG_NOMBRE =
+  "El nombre solo debe contener letras, empezar con mayúscula y puede terminar con número romano en mayúscula (ej. Inglés IV).";
+
 export function iniciar(contenedor) {
   cont = contenedor;
   pintarIconos(cont);
@@ -37,8 +43,15 @@ export function iniciar(contenedor) {
       return;
     }
 
-    // Forzar primera letra mayúscula
+    // Forzar primera letra mayúscula (por si acaso)
     nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+
+    // VALIDAR FORMATO: solo letras, primera mayúscula, romano opcional al final
+    if (!REGEX_NOMBRE.test(nombre)) {
+      alert(MSG_NOMBRE);
+      form.nombre.focus();
+      return;
+    }
 
     // VALIDACIÓN DE DUPLICADOS (ignorando mayúsculas/minúsculas)
     const lista = getAsignaturas();
@@ -66,7 +79,7 @@ export function iniciar(contenedor) {
     }
 
     setAsignaturas(lista); // Guardar en datos.js
-    
+
     e.target.reset();
     form.hidden = true;
     dibujar();

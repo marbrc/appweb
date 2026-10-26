@@ -29,10 +29,17 @@
     "cuatri": "4",
     "creado": "25/10/2026"
   },
+<<<<<<< HEAD
   "GXF9JH": {
     "grupo": "DSW-1A",
     "carrera": "Desarrollo de Software",
     "cuatri": "1",
+=======
+  "SDPZWP": {
+    "grupo": "GTID243",
+    "carrera": "Desarrollo de Software",
+    "cuatri": "5",
+>>>>>>> d357fa497e5645e10b35b5ec1aa25cb43050f67d
     "creado": "26/10/2026"
   }
 }

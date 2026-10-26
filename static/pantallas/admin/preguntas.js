@@ -28,18 +28,29 @@ export function iniciar(contenedor) {
     const datos = Object.fromEntries(new FormData(e.target));
     const preguntas = getPreguntas();
     
-    // Limpiamos el texto y nos aseguramos de que la primera letra sea mayúscula
+    // 1. Limpiamos el texto
     let textoLimpio = datos.texto.trim();
-    if (textoLimpio.length > 0) {
-      textoLimpio = textoLimpio.charAt(0).toUpperCase() + textoLimpio.slice(1);
+
+    // 2. VALIDACIÓN: Longitud mínima y máxima
+    if (textoLimpio.length < 10) {
+      alert("Error: La pregunta debe tener al menos 10 caracteres.");
+      form.texto.focus();
+      return;
     }
+    if (textoLimpio.length > 250) {
+      alert("Error: La pregunta no puede tener más de 250 caracteres.");
+      form.texto.focus();
+      return;
+    }
+
+    // 3. Forzar mayúscula inicial
+    textoLimpio = textoLimpio.charAt(0).toUpperCase() + textoLimpio.slice(1);
 
     if (editando >= 0) {
       // Si estamos editando, conservamos el número que ya tenía
       preguntas[editando].texto = textoLimpio;
     } else {
       // Si es nueva, le asignamos el siguiente número disponible
-      // (buscamos el número más alto actual y le sumamos 1)
       const numMax = preguntas.reduce((max, p) => Math.max(max, p.num), 0);
       preguntas.push({ 
         num: numMax + 1, 
