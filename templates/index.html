@@ -1,254 +1,408 @@
+
 <!DOCTYPE html>
 <html lang="es" data-tema="claro">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Encuesta Docente UTNG</title>
-<link rel="stylesheet" href="/static/css/estilos.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Encuesta Docente UTNG</title>
+    <link rel="stylesheet" href="/static/css/estilos.css">
 </head>
+
 <body>
+
 <header class="barra">
-  <b>Encuesta Docente UTNG</b>
-  <span>
-    <button id="salir" data-ir="login" hidden>Cerrar sesión</button>
-    <details class="cfg">
-      <summary>Configuración</summary>
-      <div>
-        <p>Tema</p>
-        <button data-t="claro">Azul claro</button>
-        <button data-t="oscuro">Azul oscuro</button>
-        <button data-t="negro">Negro</button>
-      </div>
-    </details>
-  </span>
+    <b>Encuesta Docente UTNG</b>
+    <span>
+        <button id="salir" data-ir="login" hidden>Cerrar sesión</button>
+        <details class="cfg">
+            <summary>Configuración</summary>
+            <div>
+                <p>Tema</p>
+                <button data-t="claro">Azul claro</button>
+                <button data-t="oscuro">Azul oscuro</button>
+                <button data-t="negro">Negro</button>
+            </div>
+        </details>
+    </span>
 </header>
 
 <main>
+
 <!-- 1. Bienvenida -->
 <section class="pantalla" id="bienvenida">
-  <div class="tarjeta">
-    <div class="logo">UTNG</div>
-    <p class="sub">Universidad Tecnológica del Norte de Guanajuato</p>
-    <h1>Encuesta de Satisfacción Docente</h1>
-    <p>Tu opinión ayuda a mejorar las clases</p>
-    <button class="btn" data-ir="acceso">Comenzar</button>
-    <p class="nota">Respuestas anónimas</p>
-  </div>
+    <div class="tarjeta">
+        <div class="logo">UTNG</div>
+        <p class="sub">Universidad Tecnológica del Norte de Guanajuato</p>
+        <h1>Encuesta de Satisfacción Docente</h1>
+        <p>Tu opinión ayuda a mejorar las clases</p>
+        <button class="btn" data-ir="acceso">Comenzar</button>
+        <p class="nota">Respuestas anónimas</p>
+    </div>
 </section>
 
-<!-- 2 Iniciar sesión o registrarse -->
+<!-- 2. Iniciar sesión o registrarse -->
 <section class="pantalla" id="acceso" hidden>
-  <div class="tarjeta">
-    <h2>Bienvenido</h2>
-    <p class="sub">Para continuar, inicia sesión o crea tu cuenta.</p>
-    <button class="btn" data-ir="login">Iniciar sesión</button>
-    <button class="btn sec" data-ir="registro">Registrarse</button>
-    <p class="nota">Solo para administradores.</p>
-  </div>
+    <div class="tarjeta">
+        <h2>Bienvenido</h2>
+        <p class="sub">Para continuar, inicia sesión o crea tu cuenta.</p>
+        <button class="btn" data-ir="login">Iniciar sesión</button>
+        <button class="btn sec" data-ir="registro">Registrarse</button>
+        <p class="nota">Solo para administradores.</p>
+    </div>
 </section>
 
-<!-- 3 Iniciar sesión -->
+<!-- 3. Iniciar sesión -->
 <section class="pantalla" id="login" hidden>
-  <form class="tarjeta" data-f="login">
-    <h2>Iniciar sesión</h2>
-    <p class="sub">Entra con tu correo institucional.</p>
-    <label>Correo institucional<input type="email" name="correo" required></label>
-    <label>Contraseña<span class="pw"><input type="password" name="clave" minlength="6" required></span></label>
-    <p class="err" hidden></p>
-    <button class="btn">Iniciar sesión</button>
-    <p class="links"><a href="#recuperar" data-ir="recuperar">¿Olvidaste tu contraseña?</a><a href="#registro" data-ir="registro">Crear cuenta</a></p>
-  </form>
+    <form class="tarjeta" data-f="login">
+        <h2>Iniciar sesión</h2>
+        <p class="sub">Entra con tu correo institucional.</p>
+
+        <label>Correo institucional
+            <input type="email" name="correo" required>
+        </label>
+
+        <label>Contraseña
+            <span class="pw">
+                <input type="password" name="clave" minlength="6" required>
+            </span>
+        </label>
+
+        <p class="err" hidden></p>
+        <button class="btn">Iniciar sesión</button>
+
+        <p class="links">
+            <a href="#recuperar" data-ir="recuperar">¿Olvidaste tu contraseña?</a>
+            <a href="#registro" data-ir="registro">Crear cuenta</a>
+        </p>
+    </form>
 </section>
 
 <!-- 4. Registro -->
 <section class="pantalla" id="registro" hidden>
-  <form class="tarjeta" data-f="registro">
-    <h2>Registro de usuario</h2>
-    <p class="sub">Completa tus datos para crear tu cuenta.</p>
-    <!-- el nombre completo ya no es un solo campo, ahora son tres: nombre(s) apellido paterno y apellido materno q es opcionalll -->
-    <label>Nombre(s)<input name="nombres" required maxlength="50" autocomplete="given-name" placeholder="Ej. Maria Guadalupe" pattern="[A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+( [A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+)*" title="Escribe tu nombre solo con letras y espacios"></label>
-    <label>Apellido paterno<input name="paterno" required maxlength="30" autocomplete="family-name" placeholder="Ej. Rodriguez" pattern="[A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+( [A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+)*" title="Escribe tu apellido solo con letras y espacios"></label>
-    <label>Apellido materno (opcional)<input name="materno" maxlength="30" placeholder="Ej. Barcenas" pattern="([A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+( [A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+)*)?" title="Escribe tu apellido solo con letras y espacios"></label>
-    <label>Correo institucional<input type="email" name="correo" required></label>
-    <label>Contraseña<span class="pw"><input type="password" name="clave" minlength="6" required></span></label>
-    <!-- aqui estaba el select de rol y ya NOOO esta, el docente ya no existe y el alumno entra anonimo con su codigo sin cuenta asi q todos los q se registran aqui son administradores -->
-    <p class="err" hidden></p>
-    <button class="btn">Registrarse</button>
-    <p class="links"><span>¿Ya tienes cuenta?</span><a href="#login" data-ir="login">Inicia sesión</a></p>
-  </form>
+    <form class="tarjeta" data-f="registro">
+        <h2>Registro de usuario</h2>
+        <p class="sub">Completa tus datos para crear tu cuenta.</p>
+
+        <!-- Nombre y apellidos con validaciones -->
+
+        <label>Nombre(s)
+            <input
+                name="nombres"
+                required
+                minlength="3"
+                maxlength="50"
+                autocomplete="given-name"
+                placeholder="Ej. Maria Guadalupe"
+                pattern="[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+( [A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*"
+                title="El nombre debe iniciar con mayúscula y tener mínimo 3 caracteres">
+        </label>
+
+        <label>Apellido paterno
+            <input
+                name="paterno"
+                required
+                minlength="3"
+                maxlength="30"
+                autocomplete="family-name"
+                placeholder="Ej. Rodriguez"
+                pattern="[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+( [A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*"
+                title="El apellido paterno debe iniciar con mayúscula y tener mínimo 3 caracteres">
+        </label>
+
+        <label>Apellido materno (opcional)
+            <input
+                name="materno"
+                minlength="3"
+                maxlength="30"
+                placeholder="Ej. Barcenas"
+                pattern="([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+( [A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*)?"
+                title="Si escribes el apellido materno, debe iniciar con mayúscula y tener mínimo 3 caracteres">
+        </label>
+
+        <label>Correo institucional
+            <input type="email" name="correo" required>
+        </label>
+
+        <label>Contraseña
+            <span class="pw">
+                <input type="password" name="clave" minlength="6" required>
+            </span>
+        </label>
+
+        <!-- Todos los usuarios registrados son administradores -->
+
+        <p class="err" hidden></p>
+        <button class="btn">Registrarse</button>
+
+        <p class="links">
+            <span>¿Ya tienes cuenta?</span>
+            <a href="#login" data-ir="login">Inicia sesión</a>
+        </p>
+    </form>
 </section>
 
-<!-- 5. Recuperar contraseña: correo -> código -> nueva contraseña -->
+<!-- 5. Recuperar contraseña -->
 <section class="pantalla" id="recuperar" hidden>
-  <form class="tarjeta" data-f="recuperar">
-    <h2>Recuperar contraseña</h2>
-    <p class="sub">Escribe tu correo  y te enviaremos un código para restablecerla.</p>
-    <label>Correo <input type="email" name="correo" required></label>
-    <p class="err" hidden></p>
-    <button class="btn">Enviar código</button>
-    <button type="button" class="btn sec" data-ir="login">Volver a iniciar sesión</button>
-  </form>
+    <form class="tarjeta" data-f="recuperar">
+        <h2>Recuperar contraseña</h2>
+        <p class="sub">Escribe tu correo y te enviaremos un código para restablecerla.</p>
+
+        <label>Correo
+            <input type="email" name="correo" required>
+        </label>
+
+        <p class="err" hidden></p>
+        <button class="btn">Enviar código</button>
+        <button type="button" class="btn sec" data-ir="login">Volver a iniciar sesión</button>
+    </form>
 </section>
 
+<!-- Verificación de código -->
 <section class="pantalla" id="codigo" hidden>
-  <form class="tarjeta" data-f="codigo">
-    <h2>Verifica tu correo</h2>
-    <p class="sub">Escribe el código de 6 dígitos que enviamos a tu correo .</p>
-    <div class="codigo"></div>
-    <p class="err" hidden></p>
-    <button class="btn">Verificar código</button>
-    <p class="nota">modo de prueba aqui sirve el código de 6 dg cualquiera.</p>
-  </form>
+    <form class="tarjeta" data-f="codigo">
+        <h2>Verifica tu correo</h2>
+        <p class="sub">Escribe el código de 6 dígitos que enviamos a tu correo.</p>
+        <div class="codigo"></div>
+        <p class="err" hidden></p>
+        <button class="btn">Verificar código</button>
+        <p class="nota">Modo de prueba: aquí sirve cualquier código de 6 dígitos.</p>
+    </form>
 </section>
 
+<!-- Crear nueva contraseña -->
 <section class="pantalla" id="nueva" hidden>
-  <form class="tarjeta" data-f="nueva">
-    <h2>Crear nueva contraseña</h2>
-    <p class="sub">Escribe tu nueva contraseña y confírmala.</p>
-    <label>Nueva contraseña<span class="pw"><input type="password" name="clave" minlength="6" required></span></label>
-    <label>Confirmar contraseña<span class="pw"><input type="password" name="clave2" minlength="6" required></span></label>
-    <p class="err" hidden></p>
-    <button class="btn">Guardar contraseña</button>
-  </form>
+    <form class="tarjeta" data-f="nueva">
+        <h2>Crear nueva contraseña</h2>
+        <p class="sub">Escribe tu nueva contraseña y confírmala.</p>
+
+        <label>Nueva contraseña
+            <span class="pw">
+                <input type="password" name="clave" minlength="6" required>
+            </span>
+        </label>
+
+        <label>Confirmar contraseña
+            <span class="pw">
+                <input type="password" name="clave2" minlength="6" required>
+            </span>
+        </label>
+
+        <p class="err" hidden></p>
+        <button class="btn">Guardar contraseña</button>
+    </form>
 </section>
 
-<!-- 6. Rol alumno: evaluación docente -->
+<!-- 6. Evaluación docente -->
 <section class="pantalla ancho" id="alumno" hidden>
-  <form class="tarjeta" data-f="eval">
-    <h2>Evaluación docente</h2>
-    <p class="sub">Tus respuestas son anónimas. Primero elige la clase y después responde.</p>
-    <h3 class="paso"><b>1</b>Elige la clase</h3>
-    <div class="fila3">
-      <label>Carrera<select name="carrera" id="f-carrera" required></select></label>
-      <label>Cuatrimestre<select name="cuatri" id="f-cuatri" required></select></label>
-      <label>Grupo<select name="grupo" id="f-grupo" required></select></label>
-      <label>Profesor<select name="profesor" id="f-prof" required></select></label>
-      <label>Materia<select name="materia" id="f-mat" required></select></label>
-    </div>
-    <p class="chip" id="clase" hidden></p>
-    <h3 class="paso"><b>2</b>Responde las 12 preguntas</h3>
-    <p class="sub" id="aviso">Elige la clase para desbloquear las preguntas.</p>
-    <p class="sub">Califica del 5 (muy mal) al 10 (excelente).</p>
-    <div class="prog"><i></i></div>
-    <p class="sub" id="cuenta">0 de 12 respondidas</p>
-    <fieldset id="preguntas" disabled></fieldset>
-    <h3 class="paso"><b>3</b>Comentarios</h3>
-    <label>Cuéntanos qué mejorar o qué te gustó (opcional)<textarea name="comentario" rows="3" placeholder="Escribe tus comentarios aquí..."></textarea></label>
-    <p class="err" hidden></p>
-    <p class="ok" id="gracias" hidden>¡Gracias! Tu evaluación se envió.</p>
-    <div class="pie"><span class="nota">Tus respuestas son anónimas</span><button class="btn">Enviar evaluación</button></div>
-  </form>
+    <form class="tarjeta" data-f="eval">
+        <h2>Evaluación docente</h2>
+        <p class="sub">Tus respuestas son anónimas. Primero elige la clase y después responde.</p>
+
+        <h3 class="paso"><b>1</b>Elige la clase</h3>
+
+        <div class="fila3">
+            <label>Carrera
+                <select name="carrera" id="f-carrera" required></select>
+            </label>
+
+            <label>Cuatrimestre
+                <select name="cuatri" id="f-cuatri" required></select>
+            </label>
+
+            <label>Grupo
+                <select name="grupo" id="f-grupo" required></select>
+            </label>
+
+            <label>Profesor
+                <select name="profesor" id="f-prof" required></select>
+            </label>
+
+            <label>Materia
+                <select name="materia" id="f-mat" required></select>
+            </label>
+        </div>
+
+        <p class="chip" id="clase" hidden></p>
+        <h3 class="paso"><b>2</b>Responde las 12 preguntas</h3>
+        <p class="sub" id="aviso">Elige la clase para desbloquear las preguntas.</p>
+        <p class="sub">Califica del 5 (muy mal) al 10 (excelente).</p>
+
+        <div class="prog"><i></i></div>
+        <p class="sub" id="cuenta">0 de 12 respondidas</p>
+        <fieldset id="preguntas" disabled></fieldset>
+
+        <h3 class="paso"><b>3</b>Comentarios</h3>
+
+        <label>Cuéntanos qué mejorar o qué te gustó (opcional)
+            <textarea name="comentario" rows="3" placeholder="Escribe tus comentarios aquí..."></textarea>
+        </label>
+
+        <p class="err" hidden></p>
+        <p class="ok" id="gracias" hidden>¡Gracias! Tu evaluación se envió.</p>
+
+        <div class="pie">
+            <span class="nota">Tus respuestas son anónimas</span>
+            <button class="btn">Enviar evaluación</button>
+        </div>
+    </form>
 </section>
+
 <!-- 7. Rol docente -->
 <section class="pantalla" id="docente" hidden>
-  <div class="panel">
-    <!-- data-p es el principio del id de las vistas de este menu -->
-    <nav class="lat" data-p="d-">
-      <b>UTNG</b>
-      <button data-v="resultados" class="act">Mis resultados</button>
-      <button data-v="comentarios">Comentarios</button>
-    </nav>
-    <div class="cont">
-      <div id="d-resultados">
-        <h2>Mis resultados</h2>
-        <p class="sub">Datos de ejemplo, después salen de la base de datos.</p>
-        <div class="stats"><div><small>Promedio general</small><b id="pg"></b></div></div>
-        <div class="tabla-wrap"><table><thead><tr><th>#</th><th>Pregunta</th><th>Promedio</th></tr></thead><tbody id="tabla-d"></tbody></table></div>
-      </div>
-      <div id="d-comentarios" hidden>
-        <h2>Comentarios</h2>
-        <ul id="coms"></ul>
-      </div>
+    <div class="panel">
+        <nav class="lat" data-p="d-">
+            <b>UTNG</b>
+            <button data-v="resultados" class="act">Mis resultados</button>
+            <button data-v="comentarios">Comentarios</button>
+        </nav>
+
+        <div class="cont">
+            <div id="d-resultados">
+                <h2>Mis resultados</h2>
+                <p class="sub">Datos de ejemplo, después salen de la base de datos.</p>
+
+                <div class="stats">
+                    <div><small>Promedio general</small><b id="pg"></b></div>
+                </div>
+
+                <div class="tabla-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>#</th><th>Pregunta</th><th>Promedio</th></tr>
+                        </thead>
+                        <tbody id="tabla-d"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="d-comentarios" hidden>
+                <h2>Comentarios</h2>
+                <ul id="coms"></ul>
+            </div>
+        </div>
     </div>
-  </div>
 </section>
 
-<!-- 8. Rol de admin -->
+<!-- 8. Rol de administrador -->
 <section class="pantalla" id="admin" hidden>
-  <div class="panel">
-    <!-- data-v = que vista abre el botón, data-c = que catálogo se llena -->
-    <nav class="lat" data-p="v-">
-      <b>UTNG</b>
-      <button data-v="inicio" class="act">Inicio</button>
-      <button data-v="catalogo" data-c="grupos">Grupos</button>
-      <button data-v="catalogo" data-c="docentes">Docentes</button>
-      <button data-v="catalogo" data-c="materias">Materias</button>
-      <button data-v="catalogo" data-c="preguntas">Preguntas</button>
-      <button data-v="reportes">Reportes</button>
-    </nav>
-    <div class="cont">
+    <div class="panel">
+        <nav class="lat" data-p="v-">
+            <b>UTNG</b>
+            <button data-v="inicio" class="act">Inicio</button>
+            <button data-v="catalogo" data-c="grupos">Grupos</button>
+            <button data-v="catalogo" data-c="docentes">Docentes</button>
+            <button data-v="catalogo" data-c="materias">Materias</button>
+            <button data-v="catalogo" data-c="preguntas">Preguntas</button>
+            <button data-v="reportes">Reportes</button>
+        </nav>
 
-      <!-- vista inicio -->
-      <div id="v-inicio">
-        <h2>Resumen general</h2>
-        <div class="stats">
-          <div><small>Grupos registrados</small><b id="n-grupos"></b></div>
-          <div><small>Docentes</small><b id="n-docentes"></b></div>
-          <div><small>Materias</small><b id="n-materias"></b></div>
-          <div><small>Encuestas respondidas</small><b>486</b></div>
+        <div class="cont">
+
+            <!-- Vista inicio -->
+            <div id="v-inicio">
+                <h2>Resumen general</h2>
+
+                <div class="stats">
+                    <div><small>Grupos registrados</small><b id="n-grupos"></b></div>
+                    <div><small>Docentes</small><b id="n-docentes"></b></div>
+                    <div><small>Materias</small><b id="n-materias"></b></div>
+                    <div><small>Encuestas respondidas</small><b>486</b></div>
+                </div>
+
+                <h3>Promedio por pregunta</h3>
+                <div class="barras" id="barras"></div>
+
+                <h3>Reportes recientes</h3>
+                <div class="tabla-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Fecha</th><th>Grupo</th><th>Profesor</th><th>Promedio</th></tr>
+                        </thead>
+                        <tbody id="rep"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vista catálogo -->
+            <div id="v-catalogo" hidden>
+                <div class="barra-acc">
+                    <h2 id="cat-titulo"></h2>
+                    <button class="btn" id="cat-nuevo">+ Nuevo</button>
+                </div>
+
+                <form id="cat-form" class="form-cat" data-f="catalogo" hidden></form>
+
+                <div class="tabla-wrap">
+                    <table>
+                        <thead id="cat-head"></thead>
+                        <tbody id="cat-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vista de reportes -->
+            <div id="v-reportes" hidden>
+                <h2>Reportes</h2>
+
+                <div class="filtros">
+                    <label>Grupo<select id="r-grupo"></select></label>
+                    <label>Profesor<select id="r-prof"></select></label>
+                    <label>Materia<select id="r-mat"></select></label>
+                </div>
+
+                <h3 id="r-titulo"></h3>
+                <p class="sub">Datos de ejemplo tomados de la hoja de reporte.</p>
+                <div class="barras" id="r-barras"></div>
+
+                <div class="tabla-wrap">
+                    <table class="rep">
+                        <thead id="r-head"></thead>
+                        <tbody id="r-tabla"></tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
-        <h3>Promedio por pregunta</h3>
-        <div class="barras" id="barras"></div>
-        <h3>Reportes recientes</h3>
-        <div class="tabla-wrap"><table><thead><tr><th>Fecha</th><th>Grupo</th><th>Profesor</th><th>Promedio</th></tr></thead><tbody id="rep"></tbody></table></div>
-      </div>
-
-      <!-- vista catálogo la misma sirve para grupos, docentes, materias y preguntas-->
-      <div id="v-catalogo" hidden>
-        <div class="barra-acc"><h2 id="cat-titulo"></h2><button class="btn" id="cat-nuevo">+ Nuevo</button></div>
-        <form id="cat-form" class="form-cat" data-f="catalogo" hidden></form>
-        <div class="tabla-wrap"><table><thead id="cat-head"></thead><tbody id="cat-body"></tbody></table></div>
-      </div>
-
-      <!-- vista de reportes -->
-      <div id="v-reportes" hidden>
-        <h2>Reportes</h2>
-        <div class="filtros">
-          <label>Grupo<select id="r-grupo"></select></label>
-          <label>Profesor<select id="r-prof"></select></label>
-          <label>Materia<select id="r-mat"></select></label>
-        </div>
-        <h3 id="r-titulo"></h3>
-        <p class="sub">Datos de ejemplo tomados de la hoja de reporte.</p>
-        <div class="barras" id="r-barras"></div>
-        <div class="tabla-wrap"><table class="rep"><thead id="r-head"></thead><tbody id="r-tabla"></tbody></table></div>
-      </div>
-
     </div>
-  </div>
 </section>
 
-<!-- 9. Evaluación enviada: gracias con confeti y luego pregunta si quiere salir -->
+<!-- 9. Evaluación enviada -->
 <section class="pantalla" id="enviado" hidden>
-  <canvas id="confeti"></canvas>
-  <div class="tarjeta grande" id="gracias-a">
-    <div class="emoji">🎉</div>
-    <h1>¡Gracias!</h1>
-    <p>Tu evaluación ha sido enviada.</p>
-    <p class="nota">Tus respuestas son anónimas y ayudan a mejorar las clases.</p>
-    <button class="btn sec" data-sigue>Continuar</button>
-  </div>
-  <div class="tarjeta grande" id="gracias-b" hidden>
-    <h2>¿Deseas salir del sitio?</h2>
-    <p class="sub">Si quieres, puedes evaluar a otro profesor.</p>
-    <div class="acciones-c">
-      <button class="btn" data-salir>Sí, salir</button>
-      <button class="btn sec" data-ir="alumno">No, evaluar a otro profesor</button>
+    <canvas id="confeti"></canvas>
+
+    <div class="tarjeta grande" id="gracias-a">
+        <div class="emoji">🎉</div>
+        <h1>¡Gracias!</h1>
+        <p>Tu evaluación ha sido enviada.</p>
+        <p class="nota">Tus respuestas son anónimas y ayudan a mejorar las clases.</p>
+        <button class="btn sec" data-sigue>Continuar</button>
     </div>
-  </div>
+
+    <div class="tarjeta grande" id="gracias-b" hidden>
+        <h2>¿Deseas salir del sitio?</h2>
+        <p class="sub">Si quieres, puedes evaluar a otro profesor.</p>
+
+        <div class="acciones-c">
+            <button class="btn" data-salir>Sí, salir</button>
+            <button class="btn sec" data-ir="alumno">No, evaluar a otro profesor</button>
+        </div>
+    </div>
 </section>
 
 <!-- 10. Hasta pronto -->
 <section class="pantalla" id="adios" hidden>
-  <div class="tarjeta grande">
-    <div class="emoji">👋</div>
-    <h1>¡Hasta pronto!</h1>
-    <p>Gracias por ayudarnos a mejorar las clases.</p>
-    <button class="btn" data-ir="bienvenida">Volver al inicio</button>
-  </div>
+    <div class="tarjeta grande">
+        <div class="emoji">👋</div>
+        <h1>¡Hasta pronto!</h1>
+        <p>Gracias por ayudarnos a mejorar las clases.</p>
+        <button class="btn" data-ir="bienvenida">Volver al inicio</button>
+    </div>
 </section>
 
 </main>
+
 <script src="/static/js/app.js"></script>
+
 </body>
 </html>

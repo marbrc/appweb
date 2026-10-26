@@ -101,3 +101,7 @@ def Codigo(codigo):
 
         d = codigos[codigo]
         return jsonify({"grupo": d["grupo"], "carrera": d["carrera"], "cuatri": d["cuatri"]})
+    
+    
+if __name__ == "__main__":
+    app.run(debug=True)

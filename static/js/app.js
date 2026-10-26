@@ -156,24 +156,64 @@ const forms = {
     f.reset(); entrar(u);
   },
 
-  // registro: si el correo ya existe marco error y Si no guardo al usuario
-  // los tres puntitos ...us copian los usuarios que ya había y pasa a la pantalla del codigo
-  registro(f, d) {
+// registro: si el correo ya existe marco error y si no guardo al usuario
+registro(f, d) {
     const us = leer("usuarios");
-    if (us.some(x => x.correo === d.correo)) return msg(f, "Ese correo ya está registrado.");
-    // ahora llegan 3 campos nombres paterno y materno asi q los junto en uno solo llamado nombre
-    // porq todo lo demas del sistema (menu cuenta saludo) lee u.nombre y asi nada se rompeee
-    // el materno es opcional por eso si viene vacio no se agrega ni el espacio de mas
-    const limpio = t => (t || "").trim().replace(/\s+/g, " ");
-    const nombres = limpio(d.nombres), paterno = limpio(d.paterno), materno = limpio(d.materno);
-    const nombre = [nombres, paterno, materno].filter(Boolean).join(" ");
-    // el rol ya no se elige, todo el que se registra es administrador (el docente ya no existe y el alumno no tiene cuenta)
-    // guardo tambien las 3 partes por separado por si las ocupamos despues en la base de datos
-    const usuario = { nombre, nombres, paterno, materno, correo: d.correo, clave: d.clave, rol: "administrador" };
-    guardar("usuarios", [...us, usuario]);
-    flujo = "registro"; correo = d.correo; f.reset(); ir("codigo");
-  },
 
+    if (us.some(x => x.correo === d.correo)) {
+        return msg(f, "Ese correo ya está registrado.");
+    }
+
+    // Limpio los espacios de los datos
+    const limpio = t => (t || "").trim().replace(/\s+/g, " ");
+
+    // Obtengo los tres campos
+    const nombres = limpio(d.nombres);
+    const paterno = limpio(d.paterno);
+    const materno = limpio(d.materno);
+
+    // Validar que comiencen con mayúscula y tengan mínimo 3 caracteres
+    const validarNombre = texto =>
+    /^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(?: [A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*$/.test(texto);
+
+    if (!validarNombre(nombres)) {
+        return msg(f, "El nombre debe iniciar con mayúscula y tener mínimo 3 caracteres.");
+    }
+
+    if (!validarNombre(paterno)) {
+        return msg(f, "El apellido paterno debe iniciar con mayúscula y tener mínimo 3 caracteres.");
+    }
+
+    if (materno && !validarNombre(materno)) {
+        return msg(f, "El apellido materno debe iniciar con mayúscula y tener mínimo 3 caracteres.");
+    }
+
+    // Junto los nombres y apellidos en un solo campo llamado nombre
+    const nombre = [nombres, paterno, materno]
+        .filter(Boolean)
+        .join(" ");
+
+    // Todo el que se registra es administrador
+    // Guardo también las tres partes por separado
+    const usuario = {
+        nombre,
+        nombres,
+        paterno,
+        materno,
+        correo: d.correo,
+        clave: d.clave,
+        rol: "administrador"
+    };
+
+    // Guardo los usuarios que ya existían junto con el nuevo usuario
+    guardar("usuarios", [...us, usuario]);
+
+    // Paso a la pantalla del código
+    flujo = "registro";
+    correo = d.correo;
+    f.reset();
+    ir("codigo");
+},
   // recuperar contraseña: solo se acuerda del correo y de que  va a recuperar y paso a pedir el codigo
   // peroooooo POR AHORITA NO SE MANDA NIGUN CORREO DE VERDADDD, SOLO ES POR PRUEBA
   recuperar(f, d) { flujo = "recuperar"; correo = d.correo; f.reset(); ir("codigo"); },
