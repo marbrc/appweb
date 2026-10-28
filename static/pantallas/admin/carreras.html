@@ -1,60 +1,43 @@
-
-<div id="v-catalogo">
-  <div class="barra-acc">
-    <div>
-      <h2>Carreras registradas</h2>
-      <p class="sub">Administra las carreras de la universidad.</p>
+<div class="pg admin-catalogo" id="v-catalogo">
+  <div class="cab">
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="carreras"></i></span>
+      <div>
+        <h2>Carreras</h2>
+        <p class="sub">Registra y administra las carreras de la universidad <span class="total" id="total-carreras"></span></p>
+      </div>
     </div>
-    <button class="primario" id="btn-nueva-carrera">
-      + Nueva carrera
-    </button>
+    <button class="btn" id="btn-nueva-carrera" type="button"><i data-icono="mas"></i>Nueva carrera</button>
   </div>
 
   <p id="mensaje-carreras" hidden></p>
 
-  <section class="tarjeta" id="formulario-carrera" hidden>
-    <h3 id="titulo-formulario">Registrar carrera</h3>
-
+  <div id="formulario-carrera" hidden>
     <form id="form-carrera" class="form-cat">
+      <h3 class="form-tit" id="titulo-formulario">Registrar carrera</h3>
       <input type="hidden" id="indice-carrera">
 
-      <label>
-        Nombre de la carrera
-        <input
-          type="text"
-          id="nombre-carrera"
-          placeholder="Ej. Desarrollo de Software"
-          required
-          maxlength="100"
-        >
+      <label>Nombre de la carrera
+        <input type="text" id="nombre-carrera" placeholder="Ej. Desarrollo de Software" required maxlength="100">
       </label>
 
       <div class="acciones">
-        <button type="submit" class="primario">Guardar</button>
-        <button type="button" class="mini" id="cancelar-carrera">
-          Cancelar
-        </button>
+        <button class="btn" type="submit">Guardar</button>
+        <button class="btn sec" type="button" id="cancelar-carrera">Cancelar</button>
       </div>
     </form>
-  </section>
+  </div>
 
-  <section class="tarjeta">
-    <div class="barra-acc">
-      <h3>Listado de carreras</h3>
-      <span class="sub" id="total-carreras">0 carreras</span>
-    </div>
-
-    <div class="tabla-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nombre de la carrera</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-carreras"></tbody>
-      </table>
-    </div>
-  </section>
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Carrera</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tabla-carreras"></tbody>
+    </table>
+  </div>
 </div>

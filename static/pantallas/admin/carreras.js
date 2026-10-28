@@ -1,150 +1,136 @@
+(function () {
+  const LLAVE = "carreras";
+  const INICIALES = ["Desarrollo de Software", "Entornos Virtuales", "Mecatrónica"];
 
-import { buscar } from "/static/js/nucleo/utiles.js";
+  const $ = (id) => document.getElementById(id);
+  const formWrap = $("formulario-carrera");
+  const form = $("form-carrera");
+  const inputIndice = $("indice-carrera");
+  const inputNombre = $("nombre-carrera");
+  const titulo = $("titulo-formulario");
+  const tabla = $("tabla-carreras");
+  const total = $("total-carreras");
+  const mensaje = $("mensaje-carreras");
 
-export function iniciar(cont) {
-  const tabla = buscar("#tabla-carreras", cont);
-  const formulario = buscar("#formulario-carrera", cont);
-  const form = buscar("#form-carrera", cont);
-  const nombre = buscar("#nombre-carrera", cont);
-  const indice = buscar("#indice-carrera", cont);
-  const mensaje = buscar("#mensaje-carreras", cont);
-  const total = buscar("#total-carreras", cont);
-  const titulo = buscar("#titulo-formulario", cont);
-
-  // Carreras de ejemplo para comenzar
-  let carreras = [
-    "Desarrollo de Software",
-    "Entornos Virtuales",
-    "Mecatrónica"
-  ];
-
-  function avisar(texto, correcto = true) {
-    mensaje.textContent = texto;
-    mensaje.className = correcto ? "ok" : "err";
-    mensaje.hidden = false;
-  }
-
-  function dibujar() {
-    total.textContent = carreras.length +
-      (carreras.length === 1 ? " carrera" : " carreras");
-
-    if (carreras.length === 0) {
-      tabla.innerHTML = `
-        <tr>
-          <td colspan="3">No hay carreras registradas.</td>
-        </tr>`;
-      return;
+  // ---- Almacenamiento (si usas API de Flask, cambia solo estas dos funciones) ----
+  function leer() {
+    try {
+      const guardado = JSON.parse(localStorage.getItem(LLAVE));
+      return Array.isArray(guardado) ? guardado : [...INICIALES];
+    } catch {
+      return [...INICIALES];
     }
-
-    tabla.innerHTML = carreras.map((carrera, i) => `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${escapar(carrera)}</td>
-        <td>
-          <button class="mini"
-            data-accion="editar" data-indice="${i}">
-            Editar
-          </button>
-          <button class="mini rojo"
-            data-accion="eliminar" data-indice="${i}">
-            Eliminar
-          </button>
-        </td>
-      </tr>
-    `).join("");
+  }
+  function guardar(lista) {
+    localStorage.setItem(LLAVE, JSON.stringify(lista));
   }
 
-  // Evita interpretar el nombre escrito como código HTML
+  let carreras = leer();
+
+  // ---- Utilidades ----
   function escapar(texto) {
-    return texto.replace(/[&<>"']/g, letra => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[letra]);
+    const d = document.createElement("div");
+    d.textContent = texto;
+    return d.innerHTML;
   }
 
-  function abrirFormulario(i = "") {
-    form.reset();
-    indice.value = i;
-    titulo.textContent = i === ""
-      ? "Registrar carrera"
-      : "Editar carrera";
+  function avisar(texto, esError = false) {
+    mensaje.textContent = texto;
+    mensaje.className = esError ? "msg error" : "msg ok";
+    mensaje.hidden = false;
+    setTimeout(() => (mensaje.hidden = true), 3000);
+  }
 
-    if (i !== "") {
-      nombre.value = carreras[Number(i)];
+  function abrirForm(indice = "") {
+    inputIndice.value = indice;
+    if (indice === "") {
+      titulo.textContent = "Registrar carrera";
+      inputNombre.value = "";
+    } else {
+      titulo.textContent = "Editar carrera";
+      inputNombre.value = carreras[indice];
+    }
+    formWrap.hidden = false;
+    inputNombre.focus();
+  }
+
+  function cerrarForm() {
+    form.reset();
+    inputIndice.value = "";
+    formWrap.hidden = true;
+  }
+
+  // ---- Pintar tabla ----
+  function pintar() {
+    total.textContent = `${carreras.length} ${carreras.length === 1 ? "registrada" : "registradas"}`;
+
+    if (!carreras.length) {
+      tabla.innerHTML = `<tr><td colspan="3">Aún no hay carreras registradas.</td></tr>`;
+      return;
     }
 
-    formulario.hidden = false;
-    mensaje.hidden = true;
-    nombre.focus();
+    tabla.innerHTML = carreras
+      .map(
+        (nombre, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${escapar(nombre)}</td>
+          <td class="acc-fila">
+            <button class="btn sec mini" type="button" data-editar="${i}">Editar</button>
+            <button class="btn peligro mini" type="button" data-eliminar="${i}">Eliminar</button>
+          </td>
+        </tr>`
+      )
+      .join("");
   }
 
-  buscar("#btn-nueva-carrera", cont).addEventListener("click", () => {
-    abrirFormulario();
-  });
+  // ---- Eventos ----
+  $("btn-nueva-carrera").addEventListener("click", () => abrirForm());
+  $("cancelar-carrera").addEventListener("click", cerrarForm);
 
-  buscar("#cancelar-carrera", cont).addEventListener("click", () => {
-    formulario.hidden = true;
-    form.reset();
-  });
-
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
+    const nombre = inputNombre.value.trim();
+    if (!nombre) return;
 
-    const texto = nombre.value.trim();
-    const i = indice.value;
-
-    if (!texto) {
-      avisar("Escribe el nombre de la carrera.", false);
-      return;
-    }
-
-    const repetida = carreras.some((c, posicion) =>
-      c.toLocaleLowerCase() === texto.toLocaleLowerCase() &&
-      posicion !== Number(i)
+    const indice = inputIndice.value;
+    const repetida = carreras.some(
+      (c, i) => c.toLowerCase() === nombre.toLowerCase() && String(i) !== indice
     );
-
     if (repetida) {
-      avisar("Esa carrera ya está registrada.", false);
+      avisar("Esa carrera ya está registrada.", true);
       return;
     }
 
-    if (i === "") {
-      carreras.push(texto);
+    if (indice === "") {
+      carreras.push(nombre);
       avisar("Carrera registrada correctamente.");
     } else {
-      carreras[Number(i)] = texto;
+      carreras[indice] = nombre;
       avisar("Carrera actualizada correctamente.");
     }
 
-    formulario.hidden = true;
-    form.reset();
-    dibujar();
+    guardar(carreras);
+    cerrarForm();
+    pintar();
   });
 
-  tabla.addEventListener("click", e => {
-    const boton = e.target.closest("[data-accion]");
+  tabla.addEventListener("click", (e) => {
+    const btnEditar = e.target.closest("[data-editar]");
+    const btnEliminar = e.target.closest("[data-eliminar]");
 
-    if (!boton) return;
-
-    const i = Number(boton.dataset.indice);
-
-    if (boton.dataset.accion === "editar") {
-      abrirFormulario(String(i));
-    }
-
-    if (boton.dataset.accion === "eliminar") {
-      const carrera = carreras[i];
-
-      if (confirm(`¿Deseas eliminar la carrera "${carrera}"?`)) {
+    if (btnEditar) {
+      abrirForm(btnEditar.dataset.editar);
+    } else if (btnEliminar) {
+      const i = Number(btnEliminar.dataset.eliminar);
+      if (confirm(`¿Eliminar la carrera "${carreras[i]}"?`)) {
         carreras.splice(i, 1);
-        dibujar();
-        avisar("Carrera eliminada correctamente.");
+        guardar(carreras);
+        pintar();
+        avisar("Carrera eliminada.");
       }
     }
   });
 
-  dibujar();
-}
+  pintar();
+})();
