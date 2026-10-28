@@ -2,7 +2,7 @@
 import { buscar, buscarTodos } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import {
-  CARRERAS,
+  getCarreras,
   getCuatrimestres, getGruposDe, getDocentes,
   getAsignaturasDe, getPreguntas, addEvaluacion
 } from "/static/js/nucleo/datos.js";
@@ -12,7 +12,7 @@ const sel = k => buscar("#f-" + k, cont);
 
 // ---------- opciones dinámicas ----------
 const OPC = {
-  carrera: () => CARRERAS, // ← carreras estáticas
+  carrera: () => getCarreras(),
   cuatri:  () => getCuatrimestres(sel("carrera").value).map(n => `${n}° cuatrimestre`),
   grupo:   () => getGruposDe(
     sel("carrera").value,

@@ -1,6 +1,6 @@
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getAsignaturas, setAsignaturas } from "/static/js/nucleo/datos.js";
+import { getAsignaturas, setAsignaturas, getCarreras } from "/static/js/nucleo/datos.js";
 
 let cont = null;
 let editando = -1;
@@ -10,6 +10,23 @@ let editando = -1;
 const REGEX_NOMBRE = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñü\s]*(?:\s+[IVXLCDM]+)?$/;
 const MSG_NOMBRE =
   "El nombre solo debe contener letras, empezar con mayúscula y puede terminar con número romano en mayúscula (ej. Inglés IV).";
+
+
+// llena el select de carreras con lo que hay guardado en Carreras (se llama cada vez que se abre el form)
+function llenarCarreras(form, seleccionada = "") {
+  const sel = form.carrera;
+  const lista = getCarreras() || [];
+  // si la asignatura trae una carrera que ya no existe, la dejamos para no perderla al editar
+  if (seleccionada && !lista.includes(seleccionada)) lista.push(seleccionada);
+  sel.innerHTML = '<option value="">Selecciona una carrera</option>';
+  lista.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c;
+    o.textContent = c;
+    sel.appendChild(o);
+  });
+  sel.value = seleccionada;
+}
 
 export function iniciar(contenedor) {
   cont = contenedor;
@@ -107,11 +124,12 @@ export function iniciar(contenedor) {
 
     if (i >= 0) {
       const a = getAsignaturas()[i];
+      llenarCarreras(form, a.carrera);
       form.nombre.value = a.nombre;
-      form.carrera.value = a.carrera;
       form.cuatrimestre.value = a.cuatrimestre;
     } else {
       form.reset();
+      llenarCarreras(form);
     }
     form.nombre.focus();
   }

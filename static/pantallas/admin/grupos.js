@@ -1,10 +1,25 @@
 // /static/pantallas/admin/grupos.js
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getGrupos, setGrupos, getDocentes } from "/static/js/nucleo/datos.js";
+import { getGrupos, setGrupos, getDocentes, getCarreras } from "/static/js/nucleo/datos.js";
 
 let cont = null;
 let editando = -1;
+
+
+// llena el select de carreras con lo que hay guardado en Carreras
+function llenarCarreras(form, seleccionada = "") {
+  const lista = getCarreras() || [];
+  if (seleccionada && !lista.includes(seleccionada)) lista.push(seleccionada);
+  form.carrera.innerHTML = '<option value="">Selecciona</option>';
+  lista.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c;
+    o.textContent = c;
+    form.carrera.appendChild(o);
+  });
+  form.carrera.value = seleccionada;
+}
 
 export function iniciar(contenedor) {
   cont = contenedor;
@@ -100,12 +115,13 @@ export function iniciar(contenedor) {
     form.hidden = false;
     if (i >= 0) {
       const g = getGrupos()[i];
+      llenarCarreras(form, g.carrera);
       form.clave.value = g.clave;
-      form.carrera.value = g.carrera;
       form.cuatrimestre.value = g.cuatrimestre;
       form.docente.value = g.docente || "";
     } else {
       form.reset();
+      llenarCarreras(form);
     }
     form.clave.focus();
   }
