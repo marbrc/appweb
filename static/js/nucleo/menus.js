@@ -1,4 +1,3 @@
-
 //se define que opciones tiene cada rol
 
 // ROOLES, el rol como se guarda en el registro y  la carpeta de sus pantallas y cómo se escribe 
@@ -16,7 +15,7 @@ export const MENUS = {
   admin: [
   o("admin/inicio", "Inicio", "inicio", "Resumen general del sistema"),
   o("admin/grupos", "Grupos", "grupos", "Administra los grupos registrados"),
-  o("admin/carreras", "Carreras", "docentes", "Administra las carreras registradas"),
+  o("admin/carreras", "Carreras", "carreras", "Administra las carreras registradas"),
   o("admin/docentes", "Docentes", "docentes", "Administra los docentes"),
   o("admin/asignaturas", "Asignaturas", "libro", "Administra las asignaturas"),
   o("admin/preguntas", "Preguntas", "pregunta", "Edita las preguntas de la encuesta"),

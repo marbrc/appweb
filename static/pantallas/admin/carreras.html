@@ -1,32 +1,28 @@
-<div class="pg admin-catalogo" id="v-catalogo">
+<!-- /static/pantallas/admin/carreras.html -->
+<div class="pg admin-catalogo">
+  <!-- el letrero de arriba, c-total lo llena carreras.js con cuantas carreras hay -->
   <div class="cab">
     <div class="cab-txt">
       <span class="cab-ico"><i data-icono="carreras"></i></span>
       <div>
         <h2>Carreras</h2>
-        <p class="sub">Registra y administra las carreras de la universidad <span class="total" id="total-carreras"></span></p>
+        <p class="sub">Registra y administra las carreras de la universidad <span class="total" id="c-total"></span></p>
       </div>
     </div>
-    <button class="btn" id="btn-nueva-carrera" type="button"><i data-icono="mas"></i>Nueva carrera</button>
+    <button class="btn" id="c-nuevo" type="button"><i data-icono="mas"></i>Nueva carrera</button>
   </div>
 
-  <p id="mensaje-carreras" hidden></p>
+  <form id="c-form" class="form-cat" hidden>
+    <h3 class="form-tit" id="c-titulo">Datos de la carrera</h3>
+    <label>Nombre de la carrera
+      <input name="nombre" required maxlength="100" placeholder="Ej. Desarrollo de Software">
+    </label>
 
-  <div id="formulario-carrera" hidden>
-    <form id="form-carrera" class="form-cat">
-      <h3 class="form-tit" id="titulo-formulario">Registrar carrera</h3>
-      <input type="hidden" id="indice-carrera">
-
-      <label>Nombre de la carrera
-        <input type="text" id="nombre-carrera" placeholder="Ej. Desarrollo de Software" required maxlength="100">
-      </label>
-
-      <div class="acciones">
-        <button class="btn" type="submit">Guardar</button>
-        <button class="btn sec" type="button" id="cancelar-carrera">Cancelar</button>
-      </div>
-    </form>
-  </div>
+    <div class="acciones">
+      <button class="btn" type="submit">Guardar</button>
+      <button class="btn sec" type="button" id="c-cancelar">Cancelar</button>
+    </div>
+  </form>
 
   <div class="tabla-scroll">
     <table class="tabla">
@@ -37,7 +33,7 @@
           <th></th>
         </tr>
       </thead>
-      <tbody id="tabla-carreras"></tbody>
+      <tbody id="c-tabla"></tbody>
     </table>
   </div>
 </div>

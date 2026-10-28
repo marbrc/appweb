@@ -11,6 +11,7 @@ export const cambiarTema = t => { document.documentElement.dataset.tema = t; loc
 export const CARRERAS = ["Mecatrónica", "Desarrollo de Software", "Contabilidad"];
 
 const K = {
+  carreras: "admin_carreras",
   grupos: "admin_grupos",
   docentes: "admin_docentes",
   asignaturas: "admin_asignaturas",
@@ -20,6 +21,9 @@ const K = {
 
 // Semilla para no arrancar vacío
 function semillar() {
+  if (!localStorage.getItem(K.carreras)) {
+    guardar(K.carreras, ["Desarrollo de Software", "Entornos Virtuales", "Mecatrónica"]);
+  }
   if (!localStorage.getItem(K.grupos)) {
     guardar(K.grupos, [
       { clave: "DSW-1A", carrera: "Desarrollo de Software", cuatrimestre: 1 },
@@ -41,6 +45,8 @@ function semillar() {
 }
 semillar();
 
+export const getCarreras = () => leer(K.carreras);
+export const setCarreras = v => guardar(K.carreras, v);
 export const getGrupos = () => leer(K.grupos);
 export const setGrupos = v => guardar(K.grupos, v);
 export const getDocentes = () => leer(K.docentes);
