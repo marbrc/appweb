@@ -1,45 +1,8 @@
 {
-  "PBZT25": {
-    "grupo": "123",
-    "carrera": "Entornos virtuales",
-    "cuatri": "1",
-    "creado": "19/10/2026"
-  },
-  "UHYRE7": {
-    "grupo": "GTID234",
-    "carrera": "Desarrollo de Software",
-    "cuatri": "4",
-    "creado": "21/10/2026"
-  },
-  "M57B4T": {
-    "grupo": "GTID234",
-    "carrera": "Mecatrónica",
-    "cuatri": "1",
-    "creado": "21/10/2026"
-  },
-  "AEMBYW": {
-    "grupo": "DSW102",
-    "carrera": "Desarrollo de Software",
-    "cuatri": "1",
-    "creado": "21/10/2026"
-  },
-  "QYUHCU": {
-    "grupo": "GTID241",
-    "carrera": "Desarrollo de Software",
-    "cuatri": "4",
-    "creado": "25/10/2026"
-  },
-<<<<<<< HEAD
-  "GXF9JH": {
-    "grupo": "DSW-1A",
-    "carrera": "Desarrollo de Software",
-    "cuatri": "1",
-=======
-  "SDPZWP": {
+  "VZRN2B": {
     "grupo": "GTID243",
-    "carrera": "Desarrollo de Software",
-    "cuatri": "5",
->>>>>>> d357fa497e5645e10b35b5ec1aa25cb43050f67d
-    "creado": "26/10/2026"
+    "carrera": "Desarollo de software",
+    "cuatri": "12",
+    "creado": "02/11/2026"
   }
 }

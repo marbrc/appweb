@@ -14,11 +14,12 @@
 
   <form id="g-form" class="form-cat" hidden>
     <h3 class="form-tit">Datos del grupo</h3>
-    <label>Clave
+    
+    <label>Clave del Grupo
       <input name="clave" required 
              placeholder="Ej. DSW123" 
-             pattern="[A-Z]{4}[0-9]{3}" 
-             title="La clave debe tener 4 letras mayúsculas seguidas de 3 números (Ej. DSW123)"
+             pattern="[A-Z]{3,4}[0-9]{3}" 
+             title="La clave debe tener 3 o 4 letras mayúsculas seguidas de 3 números (Ej. DSW123, MEC1234)"
              oninput="this.value = this.value.toUpperCase()">
     </label>
     
@@ -29,14 +30,10 @@
     </label>
     
     <label>Cuatrimestre
-      <input type="number" name="cuatrimestre" min="1" max="12" required>
+      <input type="number" name="cuatrimestre" min="1" max="12" placeholder="Ej. 1" required>
     </label>
     
-    <label>Docente titular
-      <select name="docente" id="g-docente" required>
-        <option value="">Cargando docentes...</option>
-      </select>
-    </label>
+    <!-- EL SELECT DE DOCENTE HA SIDO ELIMINADO -->
 
     <div class="acciones">
       <button class="btn" type="submit">Guardar</button>
@@ -51,8 +48,7 @@
           <th>Clave</th>
           <th>Carrera</th>
           <th>Cuatrimestre</th>
-          <th>Docente</th>
-          <th></th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody id="g-tabla"></tbody>

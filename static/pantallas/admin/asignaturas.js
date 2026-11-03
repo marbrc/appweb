@@ -1,6 +1,7 @@
+// /static/pantallas/admin/asignaturas.js
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getAsignaturas, setAsignaturas, getCarreras } from "/static/js/nucleo/datos.js";
+import { getAsignaturas, setAsignaturas } from "/static/js/nucleo/datos.js";
 
 let cont = null;
 let editando = -1;
@@ -10,23 +11,6 @@ let editando = -1;
 const REGEX_NOMBRE = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñü\s]*(?:\s+[IVXLCDM]+)?$/;
 const MSG_NOMBRE =
   "El nombre solo debe contener letras, empezar con mayúscula y puede terminar con número romano en mayúscula (ej. Inglés IV).";
-
-
-// llena el select de carreras con lo que hay guardado en Carreras (se llama cada vez que se abre el form)
-function llenarCarreras(form, seleccionada = "") {
-  const sel = form.carrera;
-  const lista = getCarreras() || [];
-  // si la asignatura trae una carrera que ya no existe, la dejamos para no perderla al editar
-  if (seleccionada && !lista.includes(seleccionada)) lista.push(seleccionada);
-  sel.innerHTML = '<option value="">Selecciona una carrera</option>';
-  lista.forEach(c => {
-    const o = document.createElement("option");
-    o.value = c;
-    o.textContent = c;
-    sel.appendChild(o);
-  });
-  sel.value = seleccionada;
-}
 
 export function iniciar(contenedor) {
   cont = contenedor;
@@ -50,8 +34,6 @@ export function iniciar(contenedor) {
     const d = Object.fromEntries(new FormData(e.target));
 
     let nombre = (d.nombre || "").trim();
-    const carrera = (d.carrera || "").trim();
-    const cuatrimestre = Number(d.cuatrimestre);
 
     // Validar nombre obligatorio
     if (!nombre) {
@@ -78,18 +60,16 @@ export function iniciar(contenedor) {
     });
 
     if (existe) {
-      alert(`Error: La asignatura "${nombre}" ya está registrada.`);
+      alert(`Error: La asignatura "${nombre}" ya está registrada en el catálogo.`);
       form.nombre.focus();
       return;
     }
 
-    const item = {
-      nombre,
-      carrera,
-      cuatrimestre
-    };
+    // Solo guardamos el nombre
+    const item = { nombre };
 
     if (editando >= 0) {
+      // Si estamos editando, conservamos la propiedad 'nombre' y actualizamos
       lista[editando] = item;
     } else {
       lista.push(item);
@@ -108,7 +88,7 @@ export function iniciar(contenedor) {
 
     if (ed) abrirForm(+ed.dataset.ed);
 
-    if (del && confirm("¿Eliminar esta asignatura?")) {
+    if (del && confirm("¿Eliminar esta asignatura del catálogo?")) {
       const lista = getAsignaturas();
       lista.splice(+del.dataset.del, 1);
       setAsignaturas(lista);
@@ -124,12 +104,9 @@ export function iniciar(contenedor) {
 
     if (i >= 0) {
       const a = getAsignaturas()[i];
-      llenarCarreras(form, a.carrera);
       form.nombre.value = a.nombre;
-      form.cuatrimestre.value = a.cuatrimestre;
     } else {
       form.reset();
-      llenarCarreras(form);
     }
     form.nombre.focus();
   }
@@ -139,17 +116,16 @@ export function iniciar(contenedor) {
     // la pastillita de arriba que dice cuantas asignaturas hay (el if es por si el html no la trae)
     const total = buscar("#s-total", cont);
     if (total) total.textContent = lista.length + (lista.length === 1 ? " registrada" : " registradas");
+    
     tabla.innerHTML = lista.length
       ? lista.map((a, i) => `
           <tr>
             <td><b>${a.nombre}</b></td>
-            <td>${a.carrera}</td>
-            <td><span class="chip">${a.cuatrimestre}°</span></td>
             <td class="acciones-fila">
               <button class="mini" type="button" data-ed="${i}">Editar</button>
               <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>
             </td>
           </tr>`).join("")
-      : `<tr><td colspan="4" class="vacio">Todavía no hay asignaturas.</td></tr>`;
+      : `<tr><td colspan="2" class="vacio">Todavía no hay asignaturas registradas.</td></tr>`;
   }
 }

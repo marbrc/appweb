@@ -1,0 +1,61 @@
+<!-- /static/pantallas/admin/clases.html -->
+<div class="pg admin-clases">
+  <div class="cab">
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="maletin"></i></span>
+      <div>
+        <h2>Carga Académica</h2>
+        <p class="sub">Asigna qué docente da qué materia en cada grupo.</p>
+      </div>
+    </div>
+    <button class="btn" id="cl-nuevo" type="button"><i data-icono="mas"></i>Nueva asignación</button>
+  </div>
+
+  <!-- FORMULARIO -->
+  <form id="cl-form" class="form-cat" hidden>
+    <h3 class="form-tit">Asignar Docente a Materia</h3>
+    
+    <div class="grid-2">
+      <label>
+        Grupo
+        <select name="grupo" id="cl-sel-grupo" required>
+          <option value="">Selecciona un grupo...</option>
+        </select>
+      </label>
+
+      <label>
+        Asignatura
+        <select name="asignatura" id="cl-sel-asignatura" required>
+          <option value="">Selecciona una materia...</option>
+        </select>
+      </label>
+
+      <label>
+        Docente
+        <select name="docente" id="cl-sel-docente" required>
+          <option value="">Selecciona un docente...</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="acciones">
+      <button class="btn" type="submit">Guardar Asignación</button>
+      <button class="btn sec" type="button" id="cl-cancelar">Cancelar</button>
+    </div>
+  </form>
+
+  <!-- TABLA -->
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Grupo</th>
+          <th>Asignatura</th>
+          <th>Docente</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cl-tabla"></tbody>
+    </table>
+  </div>
+</div>

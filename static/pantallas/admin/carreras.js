@@ -1,12 +1,12 @@
 // /static/pantallas/admin/carreras.js
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getCarreras, setCarreras } from "/static/js/nucleo/datos.js";
+import { getCarreras, setCarreras, alCambiarDatos, getGrupos, setGrupos } from "/static/js/nucleo/datos.js";
 
 let cont = null;
 let editando = -1;
+let desuscribir = null;
 
-// por si alguien escribe < o & en el nombre, que no rompa la tabla
 const limpiar = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 export function iniciar(contenedor) {
@@ -20,7 +20,6 @@ export function iniciar(contenedor) {
   const tabla = buscar("#c-tabla", cont);
   const titulo = buscar("#c-titulo", cont);
 
-  // Si falta algo en el HTML, lo avisamos en consola
   if (!btnNuevo || !form || !btnCancelar || !tabla) {
     console.error("Faltan elementos en el HTML de carreras. Revisa los IDs.");
     return;
@@ -31,22 +30,53 @@ export function iniciar(contenedor) {
 
   form.onsubmit = e => {
     e.preventDefault();
-    const nombre = form.nombre.value.trim();
+    
+    let nombre = form.nombre.value.trim();
     if (!nombre) return;
-
-    const lista = getCarreras() || [];
-
-    // Validar que no exista otra carrera igual (sin importar mayúsculas)
-    const existe = lista.some((c, i) => i !== editando && c.toLowerCase() === nombre.toLowerCase());
-    if (existe) {
-      alert(`Error: La carrera "${nombre}" ya está registrada.`);
+    if (nombre.length > 200) {
+      alert("El nombre de la carrera no puede exceder los 200 caracteres.");
       return;
     }
 
-    if (editando >= 0) lista[editando] = nombre;
-    else lista.push(nombre);
+    nombre = nombre.toLowerCase();
+    nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
 
-    setCarreras(lista);
+    if (!/^[A-ZÁÉÍÓÚÑ][a-záéíóúñü\s]*$/.test(nombre)) {
+      alert("El formato es incorrecto. Solo la primera letra debe ser mayúscula y el resto minúsculas.");
+      form.nombre.focus();
+      return;
+    }
+
+    const lista = getCarreras() || [];
+
+    const existe = lista.some((c, i) => i !== editando && c.toLowerCase() === nombre.toLowerCase());
+    if (existe) {
+      alert(`Error: La carrera "${nombre}" ya está registrada.`);
+      form.nombre.focus();
+      return;
+    }
+
+    if (editando >= 0) {
+      const nombreAnterior = lista[editando];
+      lista[editando] = nombre;
+      setCarreras(lista);
+      
+      if (nombreAnterior !== nombre) {
+        const grupos = getGrupos();
+        let actualizados = false;
+        grupos.forEach(g => {
+          if (g.carrera === nombreAnterior) {
+            g.carrera = nombre;
+            actualizados = true;
+          }
+        });
+        if (actualizados) setGrupos(grupos);
+      }
+    } else {
+      lista.push(nombre);
+      setCarreras(lista);
+    }
+
     form.reset();
     form.hidden = true;
     editando = -1;
@@ -61,12 +91,45 @@ export function iniciar(contenedor) {
 
     if (del) {
       const lista = getCarreras();
-      if (!confirm(`¿Eliminar la carrera "${lista[+del.dataset.del]}"?`)) return;
+      const nombreCarrera = lista[+del.dataset.del];
+      
+      const grupos = getGrupos();
+      const gruposConCarrera = grupos.filter(g => g.carrera === nombreCarrera);
+      
+      // NUEVA LÓGICA DE BORRADO
+      let mensaje = `¿Eliminar la carrera "${nombreCarrera}"?`;
+      if (gruposConCarrera.length > 0) {
+        mensaje += `\n\n¡ADVERTENCIA! Esta carrera tiene ${gruposConCarrera.length} grupo(s) asignado(s). Si la eliminas, también se eliminarán esos grupos.`;
+      }
+
+      if (!confirm(mensaje)) return;
+      
+      // 1. Eliminar la carrera
       lista.splice(+del.dataset.del, 1);
       setCarreras(lista);
+      
+      // 2. Si había grupos, eliminarlos también
+      if (gruposConCarrera.length > 0) {
+        const gruposRestantes = grupos.filter(g => g.carrera !== nombreCarrera);
+        setGrupos(gruposRestantes);
+      }
+      
       dibujar();
     }
   };
+
+  if (desuscribir) desuscribir();
+  desuscribir = alCambiarDatos("admin_carreras", () => {
+    const lista = getCarreras() || [];
+    if (editando >= lista.length) {
+      form.reset();
+      form.hidden = true;
+      editando = -1;
+    } else if (editando >= 0 && form.hidden === false) {
+      form.nombre.value = lista[editando];
+    }
+    dibujar();
+  });
 
   dibujar();
 
@@ -81,20 +144,26 @@ export function iniciar(contenedor) {
 
   function dibujar() {
     const lista = getCarreras() || [];
-    // la pastillita de arriba que dice cuantas carreras hay
+    const grupos = getGrupos() || [];
+    
     const total = buscar("#c-total", cont);
     if (total) total.textContent = lista.length + (lista.length === 1 ? " registrada" : " registradas");
 
     tabla.innerHTML = lista.length
-      ? lista.map((c, i) => `
+      ? lista.map((c, i) => {
+          const qtyGrupos = grupos.filter(g => g.carrera === c).length;
+          
+          return `
           <tr>
             <td><span class="chip">${i + 1}</span></td>
             <td>${limpiar(c)}</td>
+            <td><span class="chip">${qtyGrupos} grupo(s)</span></td>
             <td class="acciones-fila">
               <button class="mini" type="button" data-ed="${i}">Editar</button>
               <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>
             </td>
-          </tr>`).join("")
-      : `<tr><td colspan="3" class="vacio">Todavía no hay carreras. Toca "+ Nueva carrera".</td></tr>`;
+          </tr>`;
+        }).join("")
+      : `<tr><td colspan="4" class="vacio">Todavía no hay carreras. Toca "+ Nueva carrera".</td></tr>`;
   }
 }

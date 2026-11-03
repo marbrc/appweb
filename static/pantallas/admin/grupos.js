@@ -1,17 +1,19 @@
 // /static/pantallas/admin/grupos.js
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getGrupos, setGrupos, getDocentes, getCarreras } from "/static/js/nucleo/datos.js";
+import { getGrupos, setGrupos, getCarreras, alCambiarDatos } from "/static/js/nucleo/datos.js";
 
 let cont = null;
 let editando = -1;
-
+let desuscribir = null;
 
 // llena el select de carreras con lo que hay guardado en Carreras
 function llenarCarreras(form, seleccionada = "") {
   const lista = getCarreras() || [];
+  // si el grupo trae una carrera que ya no existe, la dejamos para no perderla al editar
   if (seleccionada && !lista.includes(seleccionada)) lista.push(seleccionada);
-  form.carrera.innerHTML = '<option value="">Selecciona</option>';
+  
+  form.carrera.innerHTML = '<option value="">Selecciona una carrera</option>';
   lista.forEach(c => {
     const o = document.createElement("option");
     o.value = c;
@@ -24,36 +26,22 @@ function llenarCarreras(form, seleccionada = "") {
 export function iniciar(contenedor) {
   cont = contenedor;
   pintarIconos(cont);
+  editando = -1;
 
   const btnNuevo = buscar("#g-nuevo", cont);
   const form = buscar("#g-form", cont);
   const btnCancelar = buscar("#g-cancelar", cont);
   const tabla = buscar("#g-tabla", cont);
-  const selectDocente = buscar("#g-docente", cont);
 
   // Si falta algo en el HTML, lo avisamos en consola
-  if (!btnNuevo || !form || !btnCancelar || !tabla || !selectDocente) {
+  if (!btnNuevo || !form || !btnCancelar || !tabla) {
     console.error("Faltan elementos en el HTML de grupos. Revisa los IDs.");
     return;
   }
 
-  // Llenar el select de docentes (con protección por si getDocentes falla)
-  try {
-    const docentes = getDocentes() || [];
-    if (docentes.length === 0) {
-      selectDocente.innerHTML = `<option value="">No hay docentes registrados</option>`;
-    } else {
-      selectDocente.innerHTML = `<option value="">Selecciona un docente</option>` +
-        docentes.map(d => `<option value="${d.nombre}">${d.nombre}</option>`).join("");
-    }
-  } catch (error) {
-    console.error("Error al cargar docentes:", error);
-    selectDocente.innerHTML = `<option value="">Error al cargar docentes</option>`;
-  }
-
   // Asignar eventos a los botones
   btnNuevo.onclick = () => abrirForm(-1);
-  btnCancelar.onclick = () => { form.hidden = true; };
+  btnCancelar.onclick = () => { form.reset(); form.hidden = true; editando = -1; };
 
   form.onsubmit = e => {
     e.preventDefault();
@@ -69,14 +57,15 @@ export function iniciar(contenedor) {
 
     if (existe) {
       alert(`Error: La clave "${claveLimpia}" ya está registrada en otro grupo.`);
+      form.clave.focus();
       return;
     }
     
+    // Objeto limpio SIN el docente
     const item = {
       clave: claveLimpia,
       carrera: d.carrera,
-      cuatrimestre: Number(d.cuatrimestre),
-      docente: d.docente || "Sin docente"
+      cuatrimestre: Number(d.cuatrimestre)
     };
 
     if (editando >= 0) {
@@ -88,6 +77,7 @@ export function iniciar(contenedor) {
     setGrupos(lista);
     e.target.reset();
     form.hidden = true;
+    editando = -1;
     dibujar();
   };
 
@@ -108,17 +98,24 @@ export function iniciar(contenedor) {
     }
   };
 
+  // 🔁 Sincronización: si agregas una carrera nueva, que aparezca en el select al instante
+  if (desuscribir) desuscribir();
+  desuscribir = alCambiarDatos("admin_carreras", () => {
+    // Solo recargamos el select si el formulario está abierto
+    if (!form.hidden) llenarCarreras(form, form.carrera.value);
+  });
+
   dibujar();
 
   function abrirForm(i) {
     editando = i;
     form.hidden = false;
+    
     if (i >= 0) {
       const g = getGrupos()[i];
       llenarCarreras(form, g.carrera);
       form.clave.value = g.clave;
       form.cuatrimestre.value = g.cuatrimestre;
-      form.docente.value = g.docente || "";
     } else {
       form.reset();
       llenarCarreras(form);
@@ -128,21 +125,21 @@ export function iniciar(contenedor) {
 
   function dibujar() {
     const lista = getGrupos() || [];
-    // la pastillita de arriba que dice cuantos grupos hay (el if es por si el html no la trae)
+    // la pastillita de arriba que dice cuantos grupos hay
     const total = buscar("#g-total", cont);
     if (total) total.textContent = lista.length + (lista.length === 1 ? " registrado" : " registrados");
+    
     tabla.innerHTML = lista.length
       ? lista.map((g, i) => `
           <tr>
             <td><span class="chip clave">${g.clave}</span></td>
             <td>${g.carrera}</td>
             <td><span class="chip">${g.cuatrimestre}°</span></td>
-            <td>${g.docente || "—"}</td>
             <td class="acciones-fila">
               <button class="mini" type="button" data-ed="${i}">Editar</button>
               <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>
             </td>
           </tr>`).join("")
-      : `<tr><td colspan="5" class="vacio">Todavía no hay grupos. Toca "+ Nuevo grupo".</td></tr>`;
+      : `<tr><td colspan="4" class="vacio">Todavía no hay grupos. Toca "+ Nuevo grupo".</td></tr>`;
   }
 }

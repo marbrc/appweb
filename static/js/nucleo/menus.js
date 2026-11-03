@@ -13,15 +13,18 @@ const o = (ruta, nombre, icono, desc) => ({ ruta, nombre, icono, desc });
 // los tres menús, es lo mismo pero cada rol tiene sus opciones
 export const MENUS = {
   admin: [
-  o("admin/inicio", "Inicio", "inicio", "Resumen general del sistema"),
-  o("admin/grupos", "Grupos", "grupos", "Administra los grupos registrados"),
-  o("admin/carreras", "Carreras", "carreras", "Administra las carreras registradas"),
-  o("admin/docentes", "Docentes", "docentes", "Administra los docentes"),
-  o("admin/asignaturas", "Asignaturas", "libro", "Administra las asignaturas"),
-  o("admin/preguntas", "Preguntas", "pregunta", "Edita las preguntas de la encuesta"),
-  o("admin/reportes", "Reportes", "grafica", "Consulta los resultados por grupo, profesor y materia"),
-  o("admin/accesos", "Códigos de acceso", "enlace", "Genera el código y el enlace para que cada grupo evalúe")
-],
+    o("admin/inicio", "Inicio", "inicio", "Resumen general del sistema"),
+    o("admin/grupos", "Grupos", "grupos", "Administra los grupos registrados"),
+    o("admin/carreras", "Carreras", "carreras", "Administra las carreras registradas"),
+    o("admin/docentes", "Docentes", "docentes", "Administra los docentes"),
+    o("admin/asignaturas", "Asignaturas", "libro", "Administra las asignaturas"),
+    // --- NUEVA OPCIÓN AGREGADA AQUÍ ---
+    o("admin/clases", "Carga Académica", "maletin", "Asigna maestros a grupos y materias"), 
+    // ----------------------------------
+    o("admin/preguntas", "Preguntas", "pregunta", "Edita las preguntas de la encuesta"),
+    o("admin/reportes", "Reportes", "grafica", "Consulta los resultados por grupo, profesor y materia"),
+    o("admin/accesos", "Códigos de acceso", "enlace", "Genera el código y el enlace para que cada grupo evalúe")
+  ],
   docente: [
     o("docente/inicio", "Inicio", "inicio", "Tu resumen como docente"),
     o("docente/resultados", "Mis resultados", "tendencia", "Cómo te evaluaron tus alumnos"),

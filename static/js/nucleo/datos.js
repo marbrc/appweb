@@ -1,6 +1,33 @@
 // /static/js/nucleo/datos.js
+
+// ---- Bus de cambios entre pantallas/pestañas ----
+// Cualquier módulo puede suscribirse con alCambiarDatos("clave", cb)
+const emitir = (clave, valor) => {
+  window.dispatchEvent(new CustomEvent("datos:cambio", { detail: { clave, valor } }));
+};
+
+// Cuando OTRA pestaña cambia localStorage (storage no dispara en la misma pestaña)
+window.addEventListener("storage", (e) => {
+  if (!e.key) return; // clear() total → ignoramos
+  let valor = [];
+  try { valor = JSON.parse(e.newValue) || []; } catch { valor = []; }
+  emitir(e.key, valor);
+});
+
 export const leer = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
-export const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+// Guarda y avisa a la MISMA pestaña (y con storage, a las demás)
+export const guardar = (k, v) => {
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
+  emitir(k, v);
+};
+
+// Suscripción a cambios de una clave. Devuelve función para desuscribirse.
+export const alCambiarDatos = (clave, cb) => {
+  const handler = (e) => { if (e.detail.clave === clave) cb(e.detail.valor); };
+  window.addEventListener("datos:cambio", handler);
+  return () => window.removeEventListener("datos:cambio", handler);
+};
 
 export const obtenerSesion = () => { try { return JSON.parse(localStorage.getItem("sesion")); } catch { return null; } };
 export const actualizarSesion = s => localStorage.setItem("sesion", JSON.stringify(s));
@@ -16,7 +43,8 @@ const K = {
   docentes: "admin_docentes",
   asignaturas: "admin_asignaturas",
   preguntas: "admin_preguntas",
-  evaluaciones: "evaluaciones"
+  evaluaciones: "evaluaciones",
+  clases: "admin_clases" // <--- NUEVA LLAVE AGREGADA
 };
 
 // Semilla para no arrancar vacío
@@ -42,6 +70,9 @@ function semillar() {
   if (!localStorage.getItem(K.preguntas)) {
     guardar(K.preguntas, [{ num: 1, texto: "¿El profesor explica bien?" }]);
   }
+  if (!localStorage.getItem(K.clases)) {
+    guardar(K.clases, []); // Inicializamos vacío para que no marque error
+  }
 }
 semillar();
 
@@ -57,6 +88,17 @@ export const getPreguntas = () => leer(K.preguntas);
 export const setPreguntas = v => guardar(K.preguntas, v);
 export const getEvaluaciones = () => leer(K.evaluaciones);
 
+// ---- CLASES (Carga Académica) ----
+export const getClases = () => leer(K.clases);
+export const setClases = v => guardar(K.clases, v);
+
+export const addClase = (clase) => {
+  const lista = getClases();
+  clase.id = Date.now(); // ID único
+  lista.push(clase);
+  guardar(K.clases, lista);
+};
+
 export const addEvaluacion = e => {
   const lista = getEvaluaciones();
   lista.push(e);
@@ -68,14 +110,12 @@ export const getGruposDe = (carrera, cuatrimestre) => getGrupos().filter(g => g.
 export const getAsignaturasDe = (carrera, cuatrimestre) => getAsignaturas().filter(a => a.carrera === carrera && a.cuatrimestre === cuatrimestre);
 
 // calificacionesDe, saca las calificaciones de una evaluacion sin importar como se haya guardado
-// las nuevas (pantalla del alumno) traen e.calificaciones que es una lista y las viejas (la pagina vieja app.js)
-// traian p1 p2 p3 ... p12 sueltas. antes si llegaba una vieja tronaba y el inicio se quedaba en blancooo
 export function calificacionesDe(e) {
   if (Array.isArray(e?.calificaciones)) return e.calificaciones.map(Number);
   return Array.from({ length: 12 }, (_, i) => Number(e?.["p" + (i + 1)]) || 0);
 }
 
-// promedioDe, el promedio de UNA evaluacion si ya lo trae lo usa y si no lo calcula con sus calificaciones
+// promedioDe, el promedio de UNA evaluacion si ya lo trae lo usa y si no lo calcula
 export function promedioDe(e) {
   if (Number.isFinite(Number(e?.promedio)) && e?.promedio !== undefined && e?.promedio !== null) return Number(e.promedio);
   const lista = calificacionesDe(e).filter(n => n > 0);
