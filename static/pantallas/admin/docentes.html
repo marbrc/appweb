@@ -1,12 +1,11 @@
 <!-- /static/pantallas/admin/docentes.html -->
 <div class="pg admin-catalogo">
-  <!-- el letrero de arriba, d-total lo llena docentes.js con cuantos docentes hay -->
   <div class="cab">
     <div class="cab-txt">
       <span class="cab-ico"><i data-icono="docentes"></i></span>
       <div>
         <h2>Docentes</h2>
-        <p class="sub">Administra a los profesores que los alumnos pueden evaluar <span class="total" id="d-total"></span></p>
+        <p class="sub">Administra a los profesores y asígnales sus materias <span class="total" id="d-total"></span></p>
       </div>
     </div>
     <button class="btn" id="d-nuevo" type="button"><i data-icono="mas"></i>Nuevo docente</button>
@@ -14,32 +13,35 @@
 
   <form id="d-form" class="form-cat" hidden>
     <h3 class="form-tit">Datos del docente</h3>
+    
     <label>Nombre(s) 
-      <input name="nombres" required placeholder="Ej. Apolinar" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,50}$"
-             title="El nombre debe tener entre 3 y 50 letras, solo letras y espacios."
-             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
+      <input name="nombres" required placeholder="Ej. Apolinar" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,50}$">
     </label>
-
     <label>Apellido Paterno 
-      <input name="paterno" required placeholder="Ej. Trejo" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,20}$"
-             title="El apellido paterno debe tener entre 3y 20 letras, solo letras y espacios."
-             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
+      <input name="paterno" required placeholder="Ej. Trejo" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,20}$">
     </label>
-
     <label>Apellido Materno
-      <input name="materno" placeholder="Ej. Cuevas" 
-             pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$"
-             title="El apellido materno solo puede contener letras y espacios."
-             oninput="this.value = this.value.replace(/\b\w/g, l => l.toUpperCase())">
+      <input name="materno" placeholder="Ej. Cuevas" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$">
     </label>
-
     <label>Correo
       <input type="email" name="correo" required placeholder="Ej. erika@utng.edu.mx">
     </label>
+
+    <!-- COMBO BOX NORMAL (ESTILO CARGA ACADÉMICA) -->
+    <div style="grid-column: 1 / -1; margin-top: 15px; border-top: 1px solid var(--bd); padding-top: 15px;">
+      <label style="font-weight: bold; margin-bottom: 8px; display: block; color: var(--tx);">
+        Asignatura que imparte
+      </label>
+      <select name="materia_asignada" id="d-sel-materia" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--bd); background: var(--in); color: var(--tx);">
+        <option value="">Selecciona una asignatura...</option>
+        <!-- JS inyecta las opciones aquí -->
+      </select>
+      <p style="font-size: 0.75rem; color: var(--mut); margin-top: 5px;">
+        Si el docente imparte más de una materia, guárdalo y luego edítalo para asignarle otra.
+      </p>
+    </div>
     
-    <div class="acciones">
+    <div class="acciones" style="margin-top: 20px; grid-column: 1 / -1; text-align: right;">
       <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="d-cancelar">Cancelar</button>
     </div>
@@ -47,7 +49,14 @@
 
   <div class="tabla-scroll">
     <table class="tabla">
-      <thead><tr><th>Nombre Completo</th><th>Correo</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>Nombre Completo</th>
+          <th>Correo</th>
+          <th>Materias que imparte</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
       <tbody id="d-tabla"></tbody>
     </table>
   </div>
