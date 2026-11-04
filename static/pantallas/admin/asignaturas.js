@@ -8,10 +8,8 @@ let editando = -1;
 
 // Solo letras (con tildes y ñ/ü), primera letra mayúscula,
 // y opcionalmente un número romano en mayúscula al final.
-const REGEX_NOMBRE = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñü\s]*(?:\s+[IVXLCDM]+)?$/;
-const MSG_NOMBRE =
-  "El nombre solo debe contener letras, empezar con mayúscula y puede terminar con número romano en mayúscula (ej. Inglés IV).";
-
+const REGEX_NOMBRE = /^[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜáéíóúüÑñ0-9 ]*$/;
+const MSG_NOMBRE = "Debe empezar con mayúscula y solo puede tener letras, números y espacios (ej. Inglés IV, Animación 2D).";
 export function iniciar(contenedor) {
   cont = contenedor;
   pintarIconos(cont);

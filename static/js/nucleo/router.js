@@ -39,7 +39,7 @@ async function abrir() {
     if (!r.ok) throw new Error("no existe");
     html = await r.text();
   } catch {
-    html = `<div class="vacio"><h2>${op.nombre}</h2><p class="sub">Esta pantalla todavía está en construcción 🚧</p></div>`;
+    html = `<div class="vacio"><h2>${op.nombre}</h2><p class="sub">pantalla pendiente</p></div>`;
   }
   await pausa;
   if (mia !== version) return; // ya dió clic a otra opción, esta se descarta
