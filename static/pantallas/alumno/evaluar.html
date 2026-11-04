@@ -9,10 +9,12 @@
   </dl>
 
   <div class="filtros">
-    <select id="f-clase" aria-label="Materia y Profesor"></select>
+    <select id="f-profesor" aria-label="Profesor"></select>
+    <!-- solo se muestra cuando el profesor da más de una materia a este grupo -->
+    <select id="f-materia" aria-label="Materia" hidden></select>
   </div>
 
-  <p id="aviso" class="sub">Elige la materia y el profesor que vas a evaluar.</p>
+  <p id="aviso" class="sub">Elige al profesor que vas a evaluar.</p>
   <p id="clase-info" class="sub" hidden></p>
 
   <p id="cuenta-eval">0 de 0 respondidas</p>
@@ -23,8 +25,9 @@
 
     <label class="comentario">
       Comentario (opcional)
-      <textarea name="comentario" maxlength="300" rows="3"
+      <textarea name="comentario" maxlength="250" rows="3"
                 placeholder="Cuéntale a tu profesor qué te gusta y qué podría mejorar..."></textarea>
+      <small id="cuenta-coment" class="sub">0 / 250</small>
     </label>
 
     <div class="acciones">
@@ -35,6 +38,7 @@
   <div id="gracias" hidden>
     <h2>¡Gracias por tu evaluación!</h2>
     <p class="sub">Tus respuestas se guardaron de forma anónima.</p>
+    <button class="btn" type="button" id="otra">Evaluar a otro profesor</button>
   </div>
 
 </div>
