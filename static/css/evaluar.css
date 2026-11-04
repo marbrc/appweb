@@ -163,3 +163,8 @@
   border-radius: 10px;
   background: var(--tarjeta, #fafafa);
 }
+/* datos del grupo (salen del código de acceso) */
+.evaluar-alumno .grupo-datos{display:grid;grid-template-columns:auto 1fr;gap:.4rem 1rem;margin:0 0 1rem;padding:1rem;background:var(--bg);border-radius:.8rem}
+.evaluar-alumno .grupo-datos dt{font-weight:700;color:var(--ac)}
+.evaluar-alumno .grupo-datos dd{margin:0}
+.evaluar-alumno #cuenta-coment{display:block;text-align:right}

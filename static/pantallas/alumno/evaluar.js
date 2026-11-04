@@ -2,89 +2,52 @@
 import { buscar, buscarTodos } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import {
-  getCarreras, getGrupos, getClases, getPreguntas, addEvaluacion
+  obtenerSesion, getClases, getPreguntas, addEvaluacion
 } from "/static/js/nucleo/datos.js";
 
 let cont = null;
+let sesion = null; // lo que guardó el código: grupo, carrera, cuatri
 const sel = k => buscar("#f-" + k, cont);
 
-// ---------- armar selects ----------
-function cargarCarreras() {
-  const s = sel("carrera");
-  if (!s) return;
-  const carreras = getCarreras() || [];
-  s.innerHTML = `<option value="">Selecciona carrera</option>` + 
-    carreras.map(c => `<option value="${c}">${c}</option>`).join("");
-  s.disabled = false;
-}
-
-function cargarGrupos() {
-  const sCarrera = sel("carrera");
-  const sGrupo = sel("grupo");
-  const sClase = sel("clase");
-  
-  if (!sCarrera || !sGrupo || !sClase) return;
-
-  const carrera = sCarrera.value;
-  
-  if (carrera) {
-    const grupos = (getGrupos() || []).filter(g => g.carrera === carrera).map(g => g.clave);
-    sGrupo.innerHTML = `<option value="">Selecciona grupo</option>` + 
-      grupos.map(x => `<option value="${x}">${x}</option>`).join("");
-    sGrupo.disabled = false;
-  } else {
-    sGrupo.innerHTML = `<option value="">Elige carrera primero</option>`;
-    sGrupo.disabled = true;
-  }
-
-  // Al cambiar la carrera, reseteamos la clase
-  sClase.innerHTML = `<option value="">Elige grupo primero</option>`;
-  sClase.disabled = true;
-  
-  verificarFormulario();
+// pintarGrupo, los datos salen del código con el que entró el alumno
+function pintarGrupo() {
+  buscar("#g-grupo", cont).textContent = sesion.grupo;
+  buscar("#g-carrera", cont).textContent = sesion.carrera;
+  buscar("#g-cuatri", cont).textContent = sesion.cuatri + "° cuatrimestre";
 }
 
 function cargarClases() {
-  const sGrupo = sel("grupo");
   const sClase = sel("clase");
-  
-  if (!sGrupo || !sClase) return;
+  if (!sClase) return;
 
-  const grupo = sGrupo.value;
+  const clases = (getClases() || []).filter(c => c.grupoId === sesion.grupo);
 
-  if (grupo) {
-    const clases = (getClases() || []).filter(c => c.grupoId === grupo);
-    
-    if (clases.length === 0) {
-      sClase.innerHTML = `<option value="">No hay clases asignadas a este grupo</option>`;
-    } else {
-      sClase.innerHTML = `<option value="">Selecciona materia y profesor</option>` + 
-        clases.map(cl => `<option value="${cl.asignaturaId}|${cl.docenteId}">${cl.asignaturaId} - ${cl.docenteId}</option>`).join("");
-    }
-    sClase.disabled = false;
-  } else {
-    sClase.innerHTML = `<option value="">Elige grupo primero</option>`;
+  if (clases.length === 0) {
+    sClase.innerHTML = `<option value="">No hay clases asignadas a este grupo</option>`;
     sClase.disabled = true;
+  } else {
+    sClase.innerHTML = `<option value="">Selecciona materia y profesor</option>` +
+      clases.map(cl => `<option value="${cl.asignaturaId}|${cl.docenteId}">${cl.asignaturaId} - ${cl.docenteId}</option>`).join("");
+    sClase.disabled = false;
   }
-
   verificarFormulario();
 }
 
 function verificarFormulario() {
-  const ok = sel("carrera")?.value && sel("grupo")?.value && sel("clase")?.value;
-  
+  const ok = sel("clase")?.value;
+
   const preguntasFieldset = buscar("#preguntas", cont);
   if (preguntasFieldset) preguntasFieldset.disabled = !ok;
-  
+
   const aviso = buscar("#aviso", cont);
   if (aviso) aviso.hidden = ok;
-  
+
   const claseInfo = buscar("#clase-info", cont);
   if (claseInfo) {
     claseInfo.hidden = !ok;
     if (ok) {
       const [materia, profe] = sel("clase").value.split("|");
-      claseInfo.textContent = `Evaluando a ${profe}, en la materia ${materia} (grupo ${sel("grupo").value})`;
+      claseInfo.textContent = `Evaluando a ${profe}, en la materia ${materia} (grupo ${sesion.grupo})`;
     }
   }
 }
@@ -128,9 +91,9 @@ function guardarEvaluacion(form) {
 
   const registro = {
     fecha: new Date().toLocaleDateString("es-MX"),
-    carrera: sel("carrera").value,
-    cuatrimestre: "", 
-    grupo: sel("grupo").value,
+    carrera: sesion.carrera,
+    cuatrimestre: Number(sesion.cuatri),
+    grupo: sesion.grupo,
     profesor: profesor, 
     materia: materia,   
     calificaciones: califs,
@@ -145,19 +108,19 @@ function guardarEvaluacion(form) {
 // ---------- arranque ----------
 export function iniciar(contenedor) {
   cont = contenedor;
+  sesion = obtenerSesion();
+
+  // sin código no se puede evaluar, regresa a la entrada del alumno
+  if (!sesion?.codigo || !sesion.grupo) { location.replace("/alumno"); return; }
+
   pintarIconos(cont);
 
+  pintarGrupo();
   pintarPreguntas();
-  cargarCarreras();
+  cargarClases();
   cuenta();
 
-  // Asignar los eventos de cambio
-  const sCarrera = sel("carrera");
-  const sGrupo = sel("grupo");
   const sClase = sel("clase");
-
-  if (sCarrera) sCarrera.onchange = cargarGrupos;
-  if (sGrupo) sGrupo.onchange = cargarClases;
   if (sClase) sClase.onchange = verificarFormulario;
 
   const preguntasEl = buscar("#preguntas", cont);
@@ -167,15 +130,14 @@ export function iniciar(contenedor) {
   if (formEl) {
     formEl.addEventListener("submit", e => {
       e.preventDefault();
-      if (!sel("carrera")?.value || !sel("grupo")?.value || !sel("clase")?.value) return;
+      if (!sel("clase")?.value) return;
 
       guardarEvaluacion(e.target);
       e.target.reset();
       pintarPreguntas();
-      cargarCarreras();
-      cargarGrupos(); // Para resetear los selects
+      cargarClases(); // para resetear el select
       cuenta();
-      
+
       formEl.hidden = true;
       const gracias = buscar("#gracias", cont);
       if (gracias) gracias.hidden = false;

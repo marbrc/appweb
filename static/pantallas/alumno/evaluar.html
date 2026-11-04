@@ -1,13 +1,18 @@
 <!-- /static/pantallas/alumno/evaluar.html -->
 <div class="evaluar-alumno">
 
+  <!-- los datos del grupo salen del código con el que entró el alumno, no se eligen -->
+  <dl class="grupo-datos" id="datos-grupo">
+    <dt>Grupo</dt><dd id="g-grupo"></dd>
+    <dt>Carrera</dt><dd id="g-carrera"></dd>
+    <dt>Cuatrimestre</dt><dd id="g-cuatri"></dd>
+  </dl>
+
   <div class="filtros">
-    <select id="f-carrera" aria-label="Carrera"></select>
-    <select id="f-grupo"   aria-label="Grupo" disabled></select>
-    <select id="f-clase"   aria-label="Materia y Profesor" disabled></select>
+    <select id="f-clase" aria-label="Materia y Profesor"></select>
   </div>
 
-  <p id="aviso" class="sub">Elige tu carrera y grupo para empezar.</p>
+  <p id="aviso" class="sub">Elige la materia y el profesor que vas a evaluar.</p>
   <p id="clase-info" class="sub" hidden></p>
 
   <p id="cuenta-eval">0 de 0 respondidas</p>
