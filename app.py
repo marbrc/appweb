@@ -77,7 +77,7 @@ def Codigos():
             return jsonify({"error": "Faltan los datos del grupo."}), 400
 
         # un grupo tiene un solo código activo, quito el que ya tenía
-        codigos = {c: d for c, d in codigos.items() if not (d["grupo"] == grupo and d["carrera"] == carrera)}
+        codigos = {c: d for c, d in codigos.items() if d["grupo"] != grupo}
         codigo = nuevo_codigo(codigos)
         codigos[codigo] = {"grupo": grupo, "carrera": carrera, "cuatri": cuatri,
                            "creado": datetime.now().strftime("%d/%m/%Y")}
