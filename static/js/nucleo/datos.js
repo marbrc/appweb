@@ -1,14 +1,12 @@
 // /static/js/nucleo/datos.js
 
 // ---- Bus de cambios entre pantallas/pestañas ----
-// Cualquier módulo puede suscribirse con alCambiarDatos("clave", cb)
 const emitir = (clave, valor) => {
   window.dispatchEvent(new CustomEvent("datos:cambio", { detail: { clave, valor } }));
 };
 
-// Cuando OTRA pestaña cambia localStorage (storage no dispara en la misma pestaña)
 window.addEventListener("storage", (e) => {
-  if (!e.key) return; // clear() total → ignoramos
+  if (!e.key) return;
   let valor = [];
   try { valor = JSON.parse(e.newValue) || []; } catch { valor = []; }
   emitir(e.key, valor);
@@ -16,11 +14,42 @@ window.addEventListener("storage", (e) => {
 
 export const leer = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
 
-// Guarda y avisa a la MISMA pestaña (y con storage, a las demás)
+// claves que viven en el servidor (la sesión y el tema se quedan locales)
+const COMPARTIDAS = ["admin_carreras", "admin_grupos", "admin_docentes", "admin_asignaturas",
+                     "admin_preguntas", "admin_clases", "evaluaciones"];
+
+// manda una lista completa al servidor (sin bloquear la pantalla)
+const subir = (k, v) => fetch("/api/datos/" + k, {
+  method: "PUT",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(v)
+}).catch(() => {});
+
+// Guarda local, avisa a la pantalla y sube al servidor. Las evaluaciones NO se suben
+// con PUT, esas entran una por una con addEvaluacion para no pisar las de otros alumnos
 export const guardar = (k, v) => {
   try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
   emitir(k, v);
+  if (COMPARTIDAS.includes(k) && k !== "evaluaciones") subir(k, v);
 };
+
+// ---- Carga inicial desde el servidor ----
+// top-level await: ninguna pantalla arranca hasta que esto termine
+try {
+  const r = await fetch("/api/datos", { cache: "no-store" });
+  if (r.ok) {
+    const store = await r.json();
+    COMPARTIDAS.forEach(k => {
+      if (Array.isArray(store[k])) {
+        localStorage.setItem(k, JSON.stringify(store[k]));   // el servidor manda
+      } else {
+        // el servidor no tiene esta lista todavía: migro la que ya había en este navegador
+        const local = localStorage.getItem(k);
+        if (local) { try { subir(k, JSON.parse(local)); } catch {} }
+      }
+    });
+  }
+} catch { /* sin servidor: se trabaja con lo local */ }
 
 // Suscripción a cambios de una clave. Devuelve función para desuscribirse.
 export const alCambiarDatos = (clave, cb) => {
@@ -44,35 +73,23 @@ const K = {
   asignaturas: "admin_asignaturas",
   preguntas: "admin_preguntas",
   evaluaciones: "evaluaciones",
-  clases: "admin_clases" // <--- NUEVA LLAVE AGREGADA
+  clases: "admin_clases"
 };
 
-// Semilla para no arrancar vacío
+// Semilla para no arrancar vacío (solo local, NO sube al servidor para que un
+// alumno nunca pise el catálogo del admin con datos de prueba)
 function semillar() {
-  if (!localStorage.getItem(K.carreras)) {
-    guardar(K.carreras, ["Desarrollo de Software", "Entornos Virtuales", "Mecatrónica"]);
-  }
-  if (!localStorage.getItem(K.grupos)) {
-    guardar(K.grupos, [
-      { clave: "DSW-1A", carrera: "Desarrollo de Software", cuatrimestre: 1 },
-      { clave: "MEC-1A", carrera: "Mecatrónica", cuatrimestre: 1 },
-      { clave: "CON-1A", carrera: "Contabilidad", cuatrimestre: 1 }
-    ]);
-  }
-  if (!localStorage.getItem(K.docentes)) {
-    guardar(K.docentes, [{ nombre: "Profesor Prueba", correo: "profe@test.com" }]);
-  }
-  if (!localStorage.getItem(K.asignaturas)) {
-    guardar(K.asignaturas, [
-      { nombre: "Programación", carrera: "Desarrollo de Software", cuatrimestre: 1 }
-    ]);
-  }
-  if (!localStorage.getItem(K.preguntas)) {
-    guardar(K.preguntas, [{ num: 1, texto: "¿El profesor explica bien?" }]);
-  }
-  if (!localStorage.getItem(K.clases)) {
-    guardar(K.clases, []); // Inicializamos vacío para que no marque error
-  }
+  const poner = (k, v) => { if (!localStorage.getItem(k)) localStorage.setItem(k, JSON.stringify(v)); };
+  poner(K.carreras, ["Desarrollo de Software", "Entornos Virtuales", "Mecatrónica"]);
+  poner(K.grupos, [
+    { clave: "DSW-1A", carrera: "Desarrollo de Software", cuatrimestre: 1 },
+    { clave: "MEC-1A", carrera: "Mecatrónica", cuatrimestre: 1 },
+    { clave: "CON-1A", carrera: "Contabilidad", cuatrimestre: 1 }
+  ]);
+  poner(K.docentes, [{ nombre: "Profesor Prueba", correo: "profe@test.com" }]);
+  poner(K.asignaturas, [{ nombre: "Programación", carrera: "Desarrollo de Software", cuatrimestre: 1 }]);
+  poner(K.preguntas, [{ num: 1, texto: "¿El profesor explica bien?" }]);
+  poner(K.clases, []);
 }
 semillar();
 
@@ -102,7 +119,12 @@ export const addClase = (clase) => {
 export const addEvaluacion = e => {
   const lista = getEvaluaciones();
   lista.push(e);
-  guardar(K.evaluaciones, lista);
+  guardar(K.evaluaciones, lista);   // local
+  fetch("/api/evaluaciones", {      // servidor
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(e)
+  }).catch(() => {});
 };
 
 export const getCuatrimestres = carrera => [...new Set(getGrupos().filter(g => g.carrera === carrera).map(g => g.cuatrimestre))].sort((a, b) => a - b);

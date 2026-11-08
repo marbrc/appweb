@@ -1,21 +1,13 @@
 <!-- /static/pantallas/alumno/evaluar.html -->
 <div class="evaluar-alumno">
 
-  <!-- los datos del grupo salen del código con el que entró el alumno, no se eligen -->
-  <dl class="grupo-datos" id="datos-grupo">
-    <dt>Grupo</dt><dd id="g-grupo"></dd>
-    <dt>Carrera</dt><dd id="g-carrera"></dd>
-    <dt>Cuatrimestre</dt><dd id="g-cuatri"></dd>
-  </dl>
-
   <div class="filtros">
-    <select id="f-profesor" aria-label="Profesor"></select>
-    <!-- solo se muestra cuando el profesor da más de una materia a este grupo -->
-    <select id="f-materia" aria-label="Materia" hidden></select>
+    <select id="f-carrera" aria-label="Carrera" disabled></select>
+    <select id="f-grupo" aria-label="Grupo" disabled></select>
+    <select id="f-clase" aria-label="Materia y Profesor" disabled></select>
   </div>
 
-  <p id="aviso" class="sub">Elige al profesor que vas a evaluar.</p>
-  <p id="clase-info" class="sub" hidden></p>
+  <p id="clase-info" class="sub"></p>
 
   <p id="cuenta-eval">0 de 0 respondidas</p>
   <div class="prog"><i style="width:0%"></i></div>
@@ -25,9 +17,8 @@
 
     <label class="comentario">
       Comentario (opcional)
-      <textarea name="comentario" maxlength="250" rows="3"
+      <textarea name="comentario" maxlength="300" rows="3"
                 placeholder="Cuéntale a tu profesor qué te gusta y qué podría mejorar..."></textarea>
-      <small id="cuenta-coment" class="sub">0 / 250</small>
     </label>
 
     <div class="acciones">
@@ -35,10 +26,10 @@
     </div>
   </form>
 
-  <div id="gracias" hidden>
+  <div id="gracias" class="turno" hidden>
     <h2>¡Gracias por tu evaluación!</h2>
-    <p class="sub">Tus respuestas se guardaron de forma anónima.</p>
-    <button class="btn" type="button" id="otra">Evaluar a otro profesor</button>
+    <p class="turno-grande" id="turno-num"></p>
+    <p class="sub">Tus respuestas se guardaron de forma anónima. Te regresamos a la pantalla de entrada…</p>
   </div>
 
 </div>

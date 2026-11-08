@@ -1,7 +1,7 @@
 // /static/pantallas/admin/clases.js
 import { buscar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getGrupos, getAsignaturas, getDocentes, getClases, addClase, setClases, alCambiarDatos } from "/static/js/nucleo/datos.js";
+import { getGrupos, getDocentes, getClases, addClase, setClases, alCambiarDatos } from "/static/js/nucleo/datos.js";
 
 let cont = null;
 
@@ -20,36 +20,31 @@ export function iniciar(contenedor) {
 
   if (!btnNuevo || !form || !tabla) return;
 
-  // --- CARGAR DATOS INICIALES ---
+  const vaciarAsignatura = () => {
+    selAsignatura.innerHTML = '<option value="">Elige grupo y docente primero...</option>';
+    selAsignatura.disabled = true;
+  };
+
+  // --- CARGAR GRUPOS ---
   function cargarGruposYDocentes() {
     const grupos = getGrupos() || [];
-    const docentes = getDocentes() || [];
 
-    selGrupo.innerHTML = '<option value="">Selecciona un grupo...</option>';
-    grupos.forEach(g => {
-      selGrupo.innerHTML += `<option value="${g.clave}">${g.clave} (${g.carrera})</option>`;
-    });
+    selGrupo.innerHTML = '<option value="">Selecciona un grupo...</option>' +
+      grupos.map(g => `<option value="${g.clave}">${g.clave} (${g.carrera})</option>`).join("");
 
     selDocente.innerHTML = '<option value="">Elige grupo primero...</option>';
     selDocente.disabled = true;
-
-    selAsignatura.innerHTML = '<option value="">Elige grupo y docente primero...</option>';
-    selAsignatura.disabled = true;
+    vaciarAsignatura();
   }
 
-  // --- EVENTOS EN CASCADA ---
+  // --- GRUPO -> DOCENTES ---
   selGrupo.onchange = () => {
-    const grupo = selGrupo.value;
-    selAsignatura.innerHTML = '<option value="">Elige grupo y docente primero...</option>';
-    selAsignatura.disabled = true;
+    vaciarAsignatura();
 
-    if (grupo) {
+    if (selGrupo.value) {
       const docentes = getDocentes() || [];
-      selDocente.innerHTML = '<option value="">Selecciona un docente...</option>';
-      docentes.forEach(d => {
-        const valor = d.correo || d.nombre;
-        selDocente.innerHTML += `<option value="${valor}">${d.nombre}</option>`;
-      });
+      selDocente.innerHTML = '<option value="">Selecciona un docente...</option>' +
+        docentes.map(d => `<option value="${d.correo || d.nombre}">${d.nombre}</option>`).join("");
       selDocente.disabled = false;
     } else {
       selDocente.innerHTML = '<option value="">Elige grupo primero...</option>';
@@ -57,43 +52,38 @@ export function iniciar(contenedor) {
     }
   };
 
+  // --- DOCENTE -> SOLO SUS MATERIAS NO CUBIERTAS EN ESE GRUPO ---
   selDocente.onchange = () => {
     const grupo = selGrupo.value;
-    const docente = selDocente.value;
-    
-    if (grupo && docente) {
-      const asignaturas = getAsignaturas() || [];
-      const clases = getClases() || [];
-      
-      // Buscamos qué materias YA TIENEN MAESTRO en este grupo
-      const materiasOcupadas = clases.filter(c => c.grupoId === grupo).map(c => c.asignaturaId);
-      
-      // Filtramos el catálogo para dejar SOLO las que no tienen maestro
-      const materiasDisponibles = asignaturas.filter(a => !materiasOcupadas.includes(a.nombre));
+    const valor = selDocente.value;
 
-      if (materiasDisponibles.length === 0) {
-        selAsignatura.innerHTML = '<option value="">Este grupo ya tiene todas las materias asignadas</option>';
-        selAsignatura.disabled = true;
-      } else {
-        selAsignatura.innerHTML = '<option value="">Selecciona la materia que imparte...</option>';
-        materiasDisponibles.forEach(a => {
-          selAsignatura.innerHTML += `<option value="${a.nombre}">${a.nombre}</option>`;
-        });
-        selAsignatura.disabled = false;
-      }
-    } else {
-      selAsignatura.innerHTML = '<option value="">Elige grupo y docente primero...</option>';
+    if (!(grupo && valor)) return vaciarAsignatura();
+
+    const doc = (getDocentes() || []).find(d => (d.correo || d.nombre) === valor);
+    const suyas = doc?.materias || [];
+    const ocupadas = (getClases() || []).filter(c => c.grupoId === grupo).map(c => c.asignaturaId);
+    const disponibles = suyas.filter(m => !ocupadas.includes(m));
+
+    if (suyas.length === 0) {
+      selAsignatura.innerHTML = '<option value="">Este docente no tiene materias (asígnalas en Docentes)</option>';
       selAsignatura.disabled = true;
+    } else if (disponibles.length === 0) {
+      selAsignatura.innerHTML = '<option value="">Ya cubriste sus materias en este grupo</option>';
+      selAsignatura.disabled = true;
+    } else {
+      selAsignatura.innerHTML = '<option value="">Selecciona la materia...</option>' +
+        disponibles.map(m => `<option value="${m}">${m}</option>`).join("");
+      selAsignatura.disabled = false;
     }
   };
 
-  // --- ABRIR Y CERRAR FORMULARIO ---
+  // --- ABRIR / CERRAR ---
   btnNuevo.onclick = () => {
     form.hidden = false;
     form.reset();
     cargarGruposYDocentes();
   };
-  
+
   btnCancelar.onclick = () => { form.hidden = true; };
 
   // --- GUARDAR ---
@@ -106,23 +96,19 @@ export function iniciar(contenedor) {
       return;
     }
 
-    // DOBLE VALIDACIÓN: Evitar que una materia tenga 2 maestros en el mismo grupo
-    const clases = getClases() || [];
-    const existe = clases.some(c => c.grupoId === d.grupo && c.asignaturaId === d.asignatura);
-    
+    const existe = (getClases() || []).some(c => c.grupoId === d.grupo && c.asignaturaId === d.asignatura);
     if (existe) {
       alert("Error: Esta materia ya tiene un docente asignado en este grupo. Elimina la asignación anterior primero.");
       return;
     }
 
-    const nuevaClase = {
+    addClase({
       grupoId: d.grupo,
       asignaturaId: d.asignatura,
       docenteId: d.docente,
       id: Date.now()
-    };
+    });
 
-    addClase(nuevaClase);
     form.reset();
     form.hidden = true;
     dibujar();
@@ -144,16 +130,14 @@ export function iniciar(contenedor) {
   function dibujar() {
     const clases = getClases() || [];
     const docentes = getDocentes() || [];
-    
+
     tabla.innerHTML = clases.length
       ? clases.map((c, i) => {
-          const docenteInfo = docentes.find(d => d.correo === c.docenteId || d.nombre === c.docenteId);
-          const nombreDocente = docenteInfo ? docenteInfo.nombre : c.docenteId;
-
+          const info = docentes.find(d => d.correo === c.docenteId || d.nombre === c.docenteId);
           return `
           <tr>
             <td><b>${c.grupoId}</b></td>
-            <td>${nombreDocente}</td>
+            <td>${info ? info.nombre : c.docenteId}</td>
             <td>${c.asignaturaId}</td>
             <td class="acciones-fila">
               <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>

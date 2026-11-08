@@ -163,8 +163,34 @@
   border-radius: 10px;
   background: var(--tarjeta, #fafafa);
 }
+<<<<<<< HEAD
 /* datos del grupo (salen del código de acceso) */
 .evaluar-alumno .grupo-datos{display:grid;grid-template-columns:auto 1fr;gap:.4rem 1rem;margin:0 0 1rem;padding:1rem;background:var(--bg);border-radius:.8rem}
 .evaluar-alumno .grupo-datos dt{font-weight:700;color:var(--ac)}
 .evaluar-alumno .grupo-datos dd{margin:0}
 .evaluar-alumno #cuenta-coment{display:block;text-align:right}
+=======
+/* ===== ALUMNO: INICIO ===== */
+.inicio-alumno { display:grid; gap:1rem; max-width:48rem; }
+.turno { padding:1.4rem 1.6rem; color:#fff; background:linear-gradient(135deg,var(--pri),var(--hd)); border-radius:1rem; display:grid; gap:.4rem; }
+.turno h2 { color:#fff; }
+.turno-grande { margin:0; font-size:1.4rem; font-weight:800; }
+.turno .sub { color:#fffc; display:flex; align-items:center; gap:.4rem; }
+.turno svg { width:1rem; height:1rem; }
+.guia-titulo { margin-top:.4rem; }
+.guia { display:grid; gap:.6rem; }
+.guia-card { background:var(--card); border:1px solid var(--bd); border-radius:.8rem; overflow:hidden; animation:sube .4s both; animation-delay:calc(var(--d,0) * 60ms); }
+.guia-cab { display:flex; align-items:center; gap:.7rem; width:100%; padding:.8rem 1rem; font-weight:700; text-align:left; color:var(--tx); background:none; border:0; }
+.guia-cab > i { margin-left:auto; width:1.2rem; height:1.2rem; transition:transform .2s; }
+.guia-cab > i svg { width:100%; height:100%; }
+.guia-card.abierta .guia-cab > i { transform:rotate(180deg); }
+.guia-num { display:grid; place-items:center; width:1.8rem; height:1.8rem; flex-shrink:0; font-size:.9rem; color:#fff; background:var(--pri); border-radius:50%; }
+.guia-cuerpo { display:grid; grid-template-rows:0fr; transition:grid-template-rows .25s; }
+.guia-cuerpo > div { overflow:hidden; }
+.guia-cuerpo p { margin:0; padding:0 1rem 1rem 3.5rem; color:var(--mut); }
+.guia-card.abierta .guia-cuerpo { grid-template-rows:1fr; }
+.inicio-alumno > .btn { justify-self:start; }
+
+/* ===== ALUMNO: EVALUAR ===== */
+.evaluar-alumno { display:grid; gap:1rem; max-width:48rem; }
+>>>>>>> f49411b (v final 1.0)

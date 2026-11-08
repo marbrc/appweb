@@ -1,0 +1,209 @@
+{
+  "admin_carreras": [
+    "Desarrollo de Software",
+    "Entornos Virtuales",
+    "Mecatrónica",
+    "Mulplataforma"
+  ],
+  "admin_grupos": [
+    {
+      "clave": "MECA123",
+      "carrera": "Mecatrónica",
+      "cuatrimestre": 1,
+      "alumnos": 1
+    },
+    {
+      "alumnos": 2,
+      "carrera": "Contabilidad",
+      "clave": "CONT345",
+      "cuatrimestre": 1
+    },
+    {
+      "carrera": "Entornos Virtuales",
+      "clave": "GTID234",
+      "cuatrimestre": 1
+    },
+    {
+      "carrera": "Desarrollo de Software",
+      "clave": "GTID211",
+      "cuatrimestre": 12
+    }
+  ],
+  "admin_docentes": [
+    {
+      "nombre": "Profesor Trejo",
+      "nombres": "Profesor",
+      "paterno": "Trejo",
+      "materno": "",
+      "correo": "profe@gmail.com"
+    },
+    {
+      "nombre": "Apolinar Poilo",
+      "nombres": "Apolinar",
+      "paterno": "Poilo",
+      "materno": "",
+      "correo": "emma7@utng.edu.mx"
+    },
+    {
+      "nombre": "Aplito Esoo",
+      "nombres": "Aplito",
+      "paterno": "Esoo",
+      "materno": "",
+      "correo": "dos@gmail.com",
+      "materias": [
+        "Programación",
+        "EMMA12",
+        "Ingles o",
+        "Ingles IV",
+        "PROGRAMACION",
+        "PROGRAMACIO",
+        "Industrial"
+      ]
+    }
+  ],
+  "admin_asignaturas": [
+    {
+      "nombre": "Programación",
+      "carrera": "Desarrollo de Software",
+      "cuatrimestre": 1
+    },
+    {
+      "nombre": "EMMA12"
+    },
+    {
+      "nombre": "Ingles o"
+    },
+    {
+      "nombre": "Ingles IV"
+    },
+    {
+      "nombre": "PROGRAMACION"
+    },
+    {
+      "nombre": "PROGRAMACIO"
+    },
+    {
+      "nombre": "Industrial"
+    }
+  ],
+  "admin_preguntas": [
+    {
+      "num": 1,
+      "texto": "23U54Y569Y{0WE5KRGT9MHDÑBTILDKMG9O"
+    },
+    {
+      "num": 2,
+      "texto": "WE2Q3RWT4E5TI78YIOPO"
+    },
+    {
+      "num": 3,
+      "texto": "¿El profesor explica bien?"
+    },
+    {
+      "num": 4,
+      "texto": "Fwehgtr4i3r2ño 5mht432k"
+    }
+  ],
+  "admin_clases": [
+    {
+      "asignaturaId": "Ingles IV",
+      "docenteId": "dos@gmail.com",
+      "grupoId": "GTID211",
+      "id": 1794085797474
+    },
+    {
+      "asignaturaId": "Programación",
+      "docenteId": "dos@gmail.com",
+      "grupoId": "GTID234",
+      "id": 1794085836593
+    },
+    {
+      "asignaturaId": "PROGRAMACION",
+      "docenteId": "dos@gmail.com",
+      "grupoId": "CONT345",
+      "id": 1794086628489
+    },
+    {
+      "asignaturaId": "Industrial",
+      "docenteId": "dos@gmail.com",
+      "grupoId": "GTID234",
+      "id": 1794087305767
+    }
+  ],
+  "evaluaciones": [
+    {
+      "fecha": "7/11/2026",
+      "carrera": "Entornos Virtuales",
+      "cuatrimestre": "",
+      "grupo": "GTID234",
+      "profesor": "dos@gmail.com",
+      "materia": "Programación",
+      "calificaciones": [
+        10
+      ],
+      "promedio": 10,
+      "comentario": "w}e"
+    },
+    {
+      "fecha": "7/11/2026",
+      "carrera": "Mecatrónica",
+      "cuatrimestre": "",
+      "grupo": "MECA123",
+      "profesor": "dos@gmail.com",
+      "materia": "Ingles IV",
+      "calificaciones": [
+        10,
+        7,
+        10
+      ],
+      "promedio": 9,
+      "comentario": "213R54YI678O7P90IṔ"
+    },
+    {
+      "fecha": "8/11/2026",
+      "carrera": "Contabilidad",
+      "cuatrimestre": "1",
+      "grupo": "CONT345",
+      "profesor": "Aplito Esoo",
+      "materia": "PROGRAMACION",
+      "calificaciones": [
+        10,
+        9,
+        8
+      ],
+      "promedio": 9,
+      "comentario": "q3r54y6"
+    },
+    {
+      "fecha": "8/11/2026",
+      "carrera": "Contabilidad",
+      "cuatrimestre": "1",
+      "grupo": "CONT345",
+      "profesor": "Aplito Esoo",
+      "materia": "PROGRAMACION",
+      "calificaciones": [
+        10,
+        8,
+        10
+      ],
+      "promedio": 9.3,
+      "comentario": "bjhkjlk."
+    },
+    {
+      "fecha": "8/11/2026",
+      "carrera": "Contabilidad",
+      "cuatrimestre": "1",
+      "grupo": "CONT345",
+      "profesor": "Aplito Esoo",
+      "materia": "PROGRAMACION",
+      "calificaciones": [
+        9,
+        8,
+        9,
+        9
+      ],
+      "promedio": 8.8,
+      "comentario": "egwthryjtuy"
+    }
+  ]
+}

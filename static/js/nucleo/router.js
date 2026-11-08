@@ -1,9 +1,10 @@
+// router.js
 // cambia solo lo que hay dentro de #contenido, el menú y la barra ni se tocan
 
 import { buscar } from "./utiles.js";
 import { MENUS, comunDe } from "./menus.js";
 import { pintarIconos } from "./iconos.js"; // para pintar los iconos <i data-icono> de CUALQUIER pantalla que se abra
-let carpeta = "";          // la carpeta del rol que inició sesión con admin, docente o alumno
+let carpeta = "";          // la carpeta del rol que inició sesión con admin o alumno
 let alCambiar = () => {};  // función del marco para actualizar título, descripción y opción marcada
 let version = 0;           // sirve por si das clic muy rápido a varias opciones: solo gana la última
 
@@ -19,7 +20,7 @@ export function iniciarRouter(carpetaRol, callback) {
 
 // abrir: busca la pantalla, trae su HTML, lo mete en #contenido y arranca su JS
 async function abrir() {
-  // solo se pueden abrir las pantallas de  rol que es admin o docente y las comunes 
+  // solo se pueden abrir las pantallas del rol que es admin o alumno y las comunes 
   const permitidas = [...MENUS[carpeta], ...comunDe(carpeta)];
   
   let op = permitidas.find(x => x.ruta === location.hash.slice(1));
@@ -32,14 +33,17 @@ async function abrir() {
   cont.classList.add("saliendo");
   const pausa = esperar(180);
 
-  // 1 el HTML de la pantalla, si el archivo todavía no existe (pero pronto se hace) sale el aviso de "en construcción"
+  // 1 el HTML de la pantalla. Si el archivo no existe, se redirige al inicio del rol.
   let html;
   try {
     const r = await fetch(`/static/pantallas/${op.ruta}.html`);
     if (!r.ok) throw new Error("no existe");
     html = await r.text();
   } catch {
-    html = `<div class="vacio"><h2>${op.nombre}</h2><p class="sub">pantalla pendiente</p></div>`;
+    // --- LÓGICA DE REDIRECCIÓN ---
+    console.warn(`La pantalla "${op.ruta}" no existe. Redirigiendo al inicio.`);
+    location.hash = MENUS[carpeta][0].ruta; // Vuelve a intentar abrir la pantalla de inicio
+    return; // Detiene la ejecución para esta llamada
   }
   await pausa;
   if (mia !== version) return; // ya dió clic a otra opción, esta se descarta
@@ -47,7 +51,7 @@ async function abrir() {
   pintarIconos(cont); // antes cada js tenia q acordarse de pintar sus iconos y los q se olvidaban se quedaban vacios, ahora lo hace el router y ya
   cont.scrollTop = 0;
 
-  // 2 el JS de la pantalla es opcional,  bebe tener export function iniciar(contenedor)
+  // 2 el JS de la pantalla es opcional, debe tener export function iniciar(contenedor)
   let modulo;
   try { modulo = await import(`/static/pantallas/${op.ruta}.js`); } catch { console.info("Sin JS para", op.ruta); }
   if (mia !== version) return;

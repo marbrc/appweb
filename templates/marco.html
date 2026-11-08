@@ -1,68 +1,52 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-tema="claro">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Encuesta Docente UTNG</title>
-<!-- el tema se pone antes de pintar para que no parpadee  -->
-<script>document.documentElement.dataset.tema = localStorage.getItem("tema") || "claro";</script>
-<link rel="stylesheet" href="/static/css/estilos.css">
-<link rel="stylesheet" href="/static/css/marco.css">
-<!-- el css de las pantallas del menu (grupos docentes asignaturas etc) ANTES NO ESTABA ENLAZADO por eso se veian feas y sin estilooo -->
-<link rel="stylesheet" href="/static/css/admin.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Panel de Administrador</title>
+    <link rel="stylesheet" href="/static/css/estilos.css">
+    <style>
+        .marco { display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: var(--tx); }
+        .barra-app { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--hd); color: #fff; }
+        .cuerpo { display: flex; flex: 1; overflow: hidden; padding: 0; }
+
+        .opciones { width: 260px; background: var(--card); border-right: 1px solid var(--bd); display: flex; flex-direction: column; padding: 1rem 0; overflow-y: auto; flex-shrink: 0; }
+        .opciones .op { display: flex; align-items: center; gap: 15px; width: 100%; padding: 12px 20px; background: none; border: none; text-align: left; cursor: pointer; font-size: 15px; color: var(--tx); transition: background .2s; }
+        .opciones .op:hover { background: var(--bg); }
+        .opciones .op.activa { background: var(--bg); color: var(--ac); font-weight: bold; border-right: 4px solid var(--pri); }
+
+        .area { flex: 1; padding: 2rem; overflow-y: auto; min-width: 0; }
+        .cabecera h1 { margin: 0; color: var(--ac); }
+        .cabecera p { margin: 5px 0 0; color: var(--mut); }
+    </style>
 </head>
 <body>
 
-<!-- el marco, esto se carga una sola vez y nunca se vuelve a crear -->
-<div class="marco" id="marco">
-
-  <!-- menú lateral, las opciones las arma marco.js dependiendo el rol -->
-  <aside class="lateral">
-    <button class="btn-hamb" id="btn-menu" aria-label="Mostrar u ocultar el menú"><i data-icono="menu"></i></button>
-    <div class="logo-lat">
-      <div class="logo-caja">UTNG</div>
-      <span>Sistema de<br>Encuesta Docente</span>
-    </div>
-    <nav class="ops" id="menu-op"></nav>
-    <button class="op salir" data-salir title="Cerrar sesión"><i data-icono="salir"></i><span>Cerrar sesión</span></button>
-  </aside>
-
-  <div class="derecha">
-
-    <!-- barra de arriba, el titulo y la descripción cambian dependiendo la pantalla -->
-    <header class="superior">
-      <div class="titulos">
-        <h1 id="titulo"></h1>
-        <p class="sub" id="desc"></p>
-      </div>
-      <!-- aqui estaba el reloj con la hora y la fecha pero ya se quito porq era innecesarioooo -->
-      <div class="cuenta-caja">
-        <button class="btn-cuenta" id="btn-cuenta">Cuenta <i data-icono="abajo"></i></button>
-        <div class="menu-cuenta" id="menu-cuenta" hidden>
-          <b id="cuenta-nombre"></b>
-          <p class="sub" id="cuenta-rol"></p>
-          <button data-ruta="comun/cuenta"><i data-icono="usuario"></i>Mi cuenta</button>
-          <button data-salir><i data-icono="salir"></i>Cerrar sesión</button>
-        </div>
-      </div>
+<div id="marco" class="marco">
+    <header class="barra-app">
+        <b>Encuesta Docente UTNG</b>
+        <button id="salir" style="background:#d32f2f;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;">Cerrar sesión</button>
     </header>
 
-    <!-- AQUÍ ES LO ÚNICO QUE CAMBIA, el router mete la pantalla elegida -->
-    <div class="contenedor" id="contenido"></div>
+    <main class="cuerpo">
+        <nav id="menu-op" class="opciones"></nav>
 
-  </div>
+        <div class="area">
+            <header class="cabecera">
+                <h1 id="titulo">Cargando...</h1>
+                <p id="desc"></p>
+            </header>
+            <div id="contenido" class="contenido"></div>
+        </div>
+    </main>
 </div>
 
-<!-- pantallita que sale al cerrar sesión -->
-<div class="cerrando" id="cerrando" hidden>
-  <div class="cerrando-caja">
-    <div class="spinner"></div>
-    <h2>Cerrando sesión…</h2>
-    <p class="sub">¡Hasta pronto!</p>
-  </div>
-</div>
-
-<!-- type="module" nos deja usar import/export para tener cada cosa en su archivo -->
-<script type="module" src="/static/js/nucleo/marco.js"></script>
+<script type="module" src="/static/js/app.js"></script>
+<script>
+    document.getElementById("salir").addEventListener("click", () => {
+        localStorage.removeItem("sesion");
+        window.location.href = "/";
+    });
+</script>
 </body>
 </html>

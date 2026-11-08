@@ -13,35 +13,32 @@
 
   <form id="d-form" class="form-cat" hidden>
     <h3 class="form-tit">Datos del docente</h3>
-    
-    <label>Nombre(s) 
-      <input name="nombres" required placeholder="Ej. Apolinar" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,50}$">
+
+    <label>Nombre(s)
+      <input name="nombres" required placeholder="Ej. Apolinar"
+        pattern="[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*"
+        title="Cada nombre debe empezar con mayúscula. Ej. Juan Carlos">
     </label>
-    <label>Apellido Paterno 
-      <input name="paterno" required placeholder="Ej. Trejo" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,20}$">
+    <label>Apellido Paterno
+      <input name="paterno" required placeholder="Ej. Trejo"
+        pattern="[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*"
+        title="Debe empezar con mayúscula. Ej. Trejo">
     </label>
     <label>Apellido Materno
-      <input name="materno" placeholder="Ej. Cuevas" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$">
+      <input name="materno" placeholder="Ej. Cuevas"
+        pattern="([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)?"
+        title="Debe empezar con mayúscula. Ej. Cuevas">
     </label>
     <label>Correo
       <input type="email" name="correo" required placeholder="Ej. erika@utng.edu.mx">
     </label>
 
-    <!-- COMBO BOX NORMAL (ESTILO CARGA ACADÉMICA) -->
-    <div style="grid-column: 1 / -1; margin-top: 15px; border-top: 1px solid var(--bd); padding-top: 15px;">
-      <label style="font-weight: bold; margin-bottom: 8px; display: block; color: var(--tx);">
-        Asignatura que imparte
-      </label>
-      <select name="materia_asignada" id="d-sel-materia" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--bd); background: var(--in); color: var(--tx);">
-        <option value="">Selecciona una asignatura...</option>
-        <!-- JS inyecta las opciones aquí -->
-      </select>
-      <p style="font-size: 0.75rem; color: var(--mut); margin-top: 5px;">
-        Si el docente imparte más de una materia, guárdalo y luego edítalo para asignarle otra.
-      </p>
+    <div style="grid-column:1/-1;margin-top:15px;border-top:1px solid var(--bd);padding-top:15px;">
+      <b>Asignaturas que imparte</b>
+      <div id="d-materias" class="checks"></div>
     </div>
-    
-    <div class="acciones" style="margin-top: 20px; grid-column: 1 / -1; text-align: right;">
+
+    <div class="acciones" style="margin-top:20px;grid-column:1/-1;justify-content:flex-end;">
       <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="d-cancelar">Cancelar</button>
     </div>

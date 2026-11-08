@@ -1,6 +1,5 @@
 <!-- /static/pantallas/admin/preguntas.html -->
 <div class="pg admin-catalogo">
-  <!-- el letrero de arriba, p-total lo llena preguntas.js con cuantas preguntas hay -->
   <div class="cab">
     <div class="cab-txt">
       <span class="cab-ico"><i data-icono="pregunta"></i></span>
@@ -13,19 +12,16 @@
   </div>
 
   <form id="p-form" class="form-cat" hidden>
-    <h3 class="form-tit">Texto de la pregunta</h3>
-    <!-- Campo oculto para el número, el sistema lo asignará solo -->
-    <input type="hidden" name="num">
-    
-    <label>Texto de la pregunta
-      <textarea name="texto" rows="3" required 
-                minlength="10" 
-                maxlength="250"
-                placeholder="Ej. El profesor expone los contenidos de manera clara..."
-                oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)"></textarea>
-      <small style="font-weight: normal; opacity: 0.7;">Mínimo 10 caracteres, máximo 250. Inicia con mayúscula.</small>
+    <h3 class="form-tit" id="p-titulo">Nueva pregunta</h3>
+
+    <label style="grid-column:1/-1">Texto de la pregunta
+      <textarea name="texto" id="p-texto" rows="3" required minlength="10" maxlength="250"
+        placeholder="Ej. El profesor expone los contenidos de manera clara..."></textarea>
+      <small style="font-weight:400;color:var(--mut)">
+        Mínimo 10 caracteres. <span id="p-cont">0/250</span>
+      </small>
     </label>
-    
+
     <div class="acciones">
       <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="p-cancelar">Cancelar</button>

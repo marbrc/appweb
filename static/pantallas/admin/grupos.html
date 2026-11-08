@@ -1,6 +1,5 @@
 <!-- /static/pantallas/admin/grupos.html -->
 <div class="pg admin-catalogo">
-  <!-- el letrero de arriba, g-total lo llena grupos.js con cuantos grupos hay -->
   <div class="cab">
     <div class="cab-txt">
       <span class="cab-ico"><i data-icono="grupos"></i></span>
@@ -14,26 +13,26 @@
 
   <form id="g-form" class="form-cat" hidden>
     <h3 class="form-tit">Datos del grupo</h3>
-    
+
     <label>Clave del Grupo
-      <input name="clave" required 
-             placeholder="Ej. DSW123" 
-             pattern="[A-Z]{3,4}[0-9]{3}" 
-             title="La clave debe tener 3 o 4 letras mayúsculas seguidas de 3 números (Ej. DSW123, MEC1234)"
+      <input name="clave" required placeholder="Ej. DSW123" pattern="[A-Z]{3,4}[0-9]{3}"
+             title="3 o 4 letras mayúsculas seguidas de 3 números (Ej. DSW123, MEC1234)"
              oninput="this.value = this.value.toUpperCase()">
     </label>
-    
+
     <label>Carrera
       <select name="carrera" required>
         <option value="">Selecciona</option>
       </select>
     </label>
-    
+
     <label>Cuatrimestre
       <input type="number" name="cuatrimestre" min="1" max="12" placeholder="Ej. 1" required>
     </label>
-    
-    <!-- EL SELECT DE DOCENTE HA SIDO ELIMINADO -->
+
+    <label>Alumnos en el grupo
+      <input type="number" name="alumnos" min="1" max="100" step="1" placeholder="Ej. 30" required>
+    </label>
 
     <div class="acciones">
       <button class="btn" type="submit">Guardar</button>
@@ -48,6 +47,9 @@
           <th>Clave</th>
           <th>Carrera</th>
           <th>Cuatrimestre</th>
+          <th>Alumnos</th>
+          <th>Respondieron</th>
+          <th>Participación</th>
           <th>Acciones</th>
         </tr>
       </thead>

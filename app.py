@@ -8,7 +8,7 @@ from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
-# ---------- PAGINAS ----------flask run.venv\Scripts\activate
+# ---------- PAGINAS ----------
 
 @app.route("/")
 def Inicio():
@@ -29,11 +29,13 @@ def Alumno():
     return render_template("alumno.html")
 
 
-# ---------- CÓDIGOS DE ACCESO POR GRUPO ----------
-# SOLO POR AHORA se guardan en un archivo (datos/codigos.json). Y ya cuando haya base de datos
-# solo hay que cambiar las funciones leer_codigos y guardar_codigos
+# ---------- ARCHIVOS JSON ----------
+# SOLO POR AHORA todo se guarda en archivos dentro de /datos. Cuando haya base de datos
+# solo hay que cambiar leer_json y guardar_json
 
-RUTA_CODIGOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "datos", "codigos.json")
+BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "datos")
+RUTA_CODIGOS = os.path.join(BASE, "codigos.json")
+RUTA_STORE = os.path.join(BASE, "store.json")
 
 # letras y números sin las que se confunden no hay 0, O, 1, I ni L
 ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -41,18 +43,20 @@ ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 # el candado evita que dos personas escriban el archivo al mismo tiempo
 candado = threading.Lock()
 
-# leer_codigos, regresa un diccionario { "K7M2QP": {grupo, carrera, cuatri, creado} }
-def leer_codigos():
+def leer_json(ruta):
     try:
-        with open(RUTA_CODIGOS, encoding="utf-8") as f:
+        with open(ruta, encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, ValueError):
         return {}
 
-def guardar_codigos(codigos):
-    os.makedirs(os.path.dirname(RUTA_CODIGOS), exist_ok=True)
-    with open(RUTA_CODIGOS, "w", encoding="utf-8") as f:
-        json.dump(codigos, f, ensure_ascii=False, indent=2)
+def guardar_json(ruta, datos):
+    os.makedirs(BASE, exist_ok=True)
+    with open(ruta, "w", encoding="utf-8") as f:
+        json.dump(datos, f, ensure_ascii=False, indent=2)
+
+leer_codigos = lambda: leer_json(RUTA_CODIGOS)
+guardar_codigos = lambda c: guardar_json(RUTA_CODIGOS, c)
 
 # nuevo_codigo, 6 caracteres al azar secrets es el azar "seguro" que no se repita con otro
 def nuevo_codigo(existentes):
@@ -61,8 +65,48 @@ def nuevo_codigo(existentes):
         if codigo not in existentes:
             return codigo
 
-# GET  /api/codigos  la lista de todos los códigos la usa el administrador
-# POST /api/codigos   genera el código de un grupo si ya tenía, el anterior deja de servir
+
+# ---------- CATÁLOGO Y EVALUACIONES (lo que antes vivía en localStorage) ----------
+# claves permitidas, las mismas que usa datos.js
+CLAVES = {"admin_carreras", "admin_grupos", "admin_docentes", "admin_asignaturas",
+          "admin_preguntas", "admin_clases", "evaluaciones"}
+
+# GET /api/datos  todo el catálogo (lo cargan admin y alumno al abrir)
+@app.route("/api/datos")
+def Datos():
+    with candado:
+        return jsonify(leer_json(RUTA_STORE))
+
+# PUT /api/datos/<clave>  el admin reemplaza una lista completa
+@app.route("/api/datos/<clave>", methods=["PUT"])
+def GuardarDatos(clave):
+    if clave not in CLAVES:
+        return jsonify({"error": "Clave no válida."}), 400
+    valor = request.get_json(silent=True)
+    if not isinstance(valor, list):
+        return jsonify({"error": "Se esperaba una lista."}), 400
+    with candado:
+        store = leer_json(RUTA_STORE)
+        store[clave] = valor
+        guardar_json(RUTA_STORE, store)
+    return jsonify({"ok": True})
+
+# POST /api/evaluaciones  el alumno agrega UNA evaluación (no pisa las de los demás)
+@app.route("/api/evaluaciones", methods=["POST"])
+def NuevaEvaluacion():
+    e = request.get_json(silent=True)
+    if not isinstance(e, dict) or not e.get("grupo") or not e.get("profesor"):
+        return jsonify({"error": "Evaluación incompleta."}), 400
+    with candado:
+        store = leer_json(RUTA_STORE)
+        store.setdefault("evaluaciones", []).append(e)
+        guardar_json(RUTA_STORE, store)
+    return jsonify({"ok": True}), 201
+
+
+# ---------- CÓDIGOS DE ACCESO ----------
+# GET  /api/codigos  la lista de todos los códigos, la usa el administrador
+# POST /api/codigos  genera el código de una asignación, si ya tenía, el anterior deja de servir
 @app.route("/api/codigos", methods=["GET", "POST"])
 def Codigos():
     with candado:
@@ -72,20 +116,22 @@ def Codigos():
             return jsonify([{"codigo": c, **d} for c, d in codigos.items()])
 
         datos = request.get_json(silent=True) or {}
-        grupo, carrera, cuatri = (str(datos.get(k, "")).strip()[:60] for k in ("grupo", "carrera", "cuatri"))
-        if not (grupo and carrera and cuatri):
-            return jsonify({"error": "Faltan los datos del grupo."}), 400
+        campos = ("grupo", "carrera", "cuatri", "docente", "docenteNombre", "materia")
+        v = {k: str(datos.get(k, "")).strip()[:80] for k in campos}
+        if not all(v[k] for k in ("grupo", "carrera", "cuatri", "docente", "materia")):
+            return jsonify({"error": "Faltan los datos de la asignación."}), 400
 
-        # un grupo tiene un solo código activo, quito el que ya tenía
-        codigos = {c: d for c, d in codigos.items() if d["grupo"] != grupo}
+        codigos = {c: d for c, d in codigos.items() if not (
+            d.get("grupo") == v["grupo"] and d.get("carrera") == v["carrera"] and
+            d.get("docente") == v["docente"] and d.get("materia") == v["materia"])}
         codigo = nuevo_codigo(codigos)
-        codigos[codigo] = {"grupo": grupo, "carrera": carrera, "cuatri": cuatri,
-                           "creado": datetime.now().strftime("%d/%m/%Y")}
+        codigos[codigo] = {**v, "creado": datetime.now().strftime("%d/%m/%Y")}
         guardar_codigos(codigos)
         return jsonify({"codigo": codigo, **codigos[codigo]}), 201
 
-# GET    /api/codigos/K7M2QP valida el código y regresa SOLO el grupo lo usa el alumno
-# DELETE /api/codigos/K7M2QP  revoca el código lo usa el administrador
+
+# GET    /api/codigos/K7M2QP  valida el código y regresa la clase, lo usa el alumno
+# DELETE /api/codigos/K7M2QP  revoca el código, lo usa el administrador
 @app.route("/api/codigos/<codigo>", methods=["GET", "DELETE"])
 def Codigo(codigo):
     codigo = codigo.strip().upper()
@@ -100,8 +146,9 @@ def Codigo(codigo):
             return jsonify({"ok": True})
 
         d = codigos[codigo]
-        return jsonify({"grupo": d["grupo"], "carrera": d["carrera"], "cuatri": d["cuatri"]})
-    
-    
+        return jsonify({k: d.get(k, "") for k in
+                        ("grupo", "carrera", "cuatri", "docente", "docenteNombre", "materia")})
+
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,3 +1,4 @@
+// iconos.js
 // todos los iconos del sistema aquiii, estilo línea, sin color
 // usan stroke="currentColor" o sea que toman el color del texto donde estén puestos
 // para agregar uno nuevo, pegar el dibujo aquí abajo con un nombre
@@ -22,9 +23,10 @@ const ICONOS = {
   candado: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   enlace: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   salir: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
-  // los dos de abajo son nuevos, mas es el + de los botones de nuevo y check es la palomita del tema elegido
   mas: '<path d="M5 12h14"/><path d="M12 5v14"/>',
-  check: '<path d="M20 6 9 17l-5-5"/>'
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  // --- NUEVO ICONO ---
+  maletin: '<rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'
 };
 
 // icono: regresa el dibujo  para meterlo en el HTML, ej. icono"inicio"

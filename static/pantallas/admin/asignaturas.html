@@ -18,15 +18,16 @@
     <h3 class="form-tit">Datos de la asignatura</h3>
     <label>
       Nombre de la asignatura
-      <input
-        type="text"
-        name="nombre"
-        required
-        maxlength="60"
-        placeholder="Ej. Bases de datos, Inglés IV"
-        pattern="^[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜáéíóúüÑñ0-9 ]*$"
-        title="Solo letras. La primera debe ser mayúscula. Puede terminar con número romano en mayúscula (ej. Inglés IV)."
-      >
+<input
+  type="text"
+  name="nombre"
+  required
+  maxlength="60"
+  placeholder="Ej. Bases de datos, Inglés IV"
+  pattern="[A-ZÁÉÍÓÚÑ][a-záéíóúüñ0-9]*( [a-záéíóúüñ0-9]+)*( (I|II|III|IV|V|VI|VII|VIII|IX|X))?"
+  title="Solo la primera letra en mayúscula. Puede terminar en número romano (ej. Inglés IV)."
+>
+      
     </label>
 
     <div class="acciones">
