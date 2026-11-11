@@ -5,7 +5,7 @@
       <span class="cab-ico"><i data-icono="maletin"></i></span>
       <div>
         <h2>Carga Académica</h2>
-        <p class="sub">Asigna qué docente da qué materia en cada grupo.</p>
+        <p class="sub">Asigna qué docente da qué materia en cada grupo <span class="total" id="cl-total"></span></p>
       </div>
     </div>
     <button class="btn" id="cl-nuevo" type="button"><i data-icono="mas"></i>Nueva asignación</button>
@@ -13,7 +13,7 @@
 
   <!-- FORMULARIO -->
   <form id="cl-form" class="form-cat" hidden>
-    <h3 class="form-tit">Asignar Docente a Materia</h3>
+    <h3 class="form-tit">Asignar docente a una materia</h3>
     
     <div class="grid-2">
       <!-- PRIMERO EL GRUPO -->
@@ -32,7 +32,7 @@
         </select>
       </label>
 
-      <!-- TERCERO LA ASIGNATURA (Se llena dependiendo del docente y grupo) -->
+      <!-- TERCERO LA ASIGNATURA (salen las del grupo, con ★ las que el docente tiene marcadas) -->
       <label>
         Asignatura
         <select name="asignatura" id="cl-sel-asignatura" required disabled>
@@ -42,8 +42,8 @@
     </div>
 
     <div class="acciones">
-      <button class="btn" type="submit">Guardar Asignación</button>
       <button class="btn sec" type="button" id="cl-cancelar">Cancelar</button>
+      <button class="btn" type="submit">Guardar asignación</button>
     </div>
   </form>
 

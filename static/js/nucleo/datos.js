@@ -1,4 +1,7 @@
 // /static/js/nucleo/datos.js
+// el puente entre las pantallas y el servidor: al abrir trae todo de SQL Server y lo deja en localStorage
+// para que las pantallas lo lean rapidito, y cuando guardan algo lo sube al servidor
+import { avisar } from "./utiles.js";
 
 // ---- Bus de cambios entre pantallas/pestañas ----
 const emitir = (clave, valor) => {
@@ -17,39 +20,58 @@ export const leer = k => { try { return JSON.parse(localStorage.getItem(k)) || [
 // claves que viven en el servidor (la sesión y el tema se quedan locales)
 const COMPARTIDAS = ["admin_carreras", "admin_grupos", "admin_docentes", "admin_asignaturas",
                      "admin_preguntas", "admin_clases", "evaluaciones"];
+// estas NO se suben con PUT: las preguntas tienen su propia ruta (/api/preguntas) y las evaluaciones
+// solo las manda el alumno una por una
+const NO_SUBIR = ["admin_preguntas", "evaluaciones"];
 
-// manda una lista completa al servidor (sin bloquear la pantalla)
-const subir = (k, v) => fetch("/api/datos/" + k, {
-  method: "PUT",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(v)
-}).catch(() => {});
+const ponerLocal = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-// Guarda local, avisa a la pantalla y sube al servidor. Las evaluaciones NO se suben
-// con PUT, esas entran una por una con addEvaluacion para no pisar las de otros alumnos
+// refrescarDatos, vuelve a traer TODO del servidor y avisa a las pantallas
+export async function refrescarDatos() {
+  try {
+    const r = await fetch("/api/datos", { cache: "no-store" });
+    if (!r.ok) return false;
+    const store = await r.json();
+    COMPARTIDAS.forEach(k => {
+      if (Array.isArray(store[k])) { ponerLocal(k, store[k]); emitir(k, store[k]); }
+    });
+    return true;
+  } catch { return false; }
+}
+
+// manda una lista completa al servidor
+// ANTES si el servidor decia que no (por ejemplo borrar un grupo que ya tiene clases) no avisaba nada
+// y en la pantalla se veia como si si se hubiera guardado, ahora sale el aviso rojo y se regresa a lo de la BD
+const subir = async (k, v) => {
+  try {
+    const r = await fetch("/api/datos/" + k, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(v)
+    });
+    const json = await r.json().catch(() => ({}));
+    if (r.status === 401) { localStorage.removeItem("sesion"); location.replace("/#login"); return; }
+    if (!r.ok) throw new Error(json.error || "No se pudo guardar.");
+    if (Array.isArray(json.lista)) { ponerLocal(k, json.lista); emitir(k, json.lista); } // asi queda igualito a la BD
+    if (json.omitidas?.length) avisar("No se guardaron: " + json.omitidas.join(", ") + " (no hay grupos de esa carrera y cuatrimestre).", "err");
+  } catch (e) {
+    avisar(e.message.includes("fetch") ? "No se pudo conectar con el servidor." : e.message, "err");
+    // regreso los datos a como estan en la BD y vuelvo a abrir la pantalla para que se vea lo real
+    if (await refrescarDatos()) window.dispatchEvent(new HashChangeEvent("hashchange"));
+  }
+};
+
+// Guarda local, avisa a la pantalla y sube al servidor
 export const guardar = (k, v) => {
-  try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
+  ponerLocal(k, v);
   emitir(k, v);
-  if (COMPARTIDAS.includes(k) && k !== "evaluaciones") subir(k, v);
+  if (COMPARTIDAS.includes(k) && !NO_SUBIR.includes(k)) return subir(k, v);
 };
 
 // ---- Carga inicial desde el servidor ----
 // top-level await: ninguna pantalla arranca hasta que esto termine
-try {
-  const r = await fetch("/api/datos", { cache: "no-store" });
-  if (r.ok) {
-    const store = await r.json();
-    COMPARTIDAS.forEach(k => {
-      if (Array.isArray(store[k])) {
-        localStorage.setItem(k, JSON.stringify(store[k]));   // el servidor manda
-      } else {
-        // el servidor no tiene esta lista todavía: migro la que ya había en este navegador
-        const local = localStorage.getItem(k);
-        if (local) { try { subir(k, JSON.parse(local)); } catch {} }
-      }
-    });
-  }
-} catch { /* sin servidor: se trabaja con lo local */ }
+// (ya no hay "semilla" con datos de prueba, todo sale de la base de datos)
+if (location.pathname === "/app") await refrescarDatos();
 
 // Suscripción a cambios de una clave. Devuelve función para desuscribirse.
 export const alCambiarDatos = (clave, cb) => {
@@ -59,12 +81,13 @@ export const alCambiarDatos = (clave, cb) => {
 };
 
 export const obtenerSesion = () => { try { return JSON.parse(localStorage.getItem("sesion")); } catch { return null; } };
-export const actualizarSesion = s => localStorage.setItem("sesion", JSON.stringify(s));
+export const actualizarSesion = s => {
+  localStorage.setItem("sesion", JSON.stringify(s));
+  window.dispatchEvent(new CustomEvent("sesion:cambio")); // para que la barra de arriba cambie la foto y el nombre
+};
 export const cerrarSesion = () => localStorage.removeItem("sesion");
 export const preferencia = (k, v) => v === undefined ? localStorage.getItem(k) : localStorage.setItem(k, v);
 export const cambiarTema = t => { document.documentElement.dataset.tema = t; localStorage.setItem("tema", t); };
-
-export const CARRERAS = ["Mecatrónica", "Desarrollo de Software", "Contabilidad"];
 
 const K = {
   carreras: "admin_carreras",
@@ -76,23 +99,6 @@ const K = {
   clases: "admin_clases"
 };
 
-// Semilla para no arrancar vacío (solo local, NO sube al servidor para que un
-// alumno nunca pise el catálogo del admin con datos de prueba)
-function semillar() {
-  const poner = (k, v) => { if (!localStorage.getItem(k)) localStorage.setItem(k, JSON.stringify(v)); };
-  poner(K.carreras, ["Desarrollo de Software", "Entornos Virtuales", "Mecatrónica"]);
-  poner(K.grupos, [
-    { clave: "DSW-1A", carrera: "Desarrollo de Software", cuatrimestre: 1 },
-    { clave: "MEC-1A", carrera: "Mecatrónica", cuatrimestre: 1 },
-    { clave: "CON-1A", carrera: "Contabilidad", cuatrimestre: 1 }
-  ]);
-  poner(K.docentes, [{ nombre: "Profesor Prueba", correo: "profe@test.com" }]);
-  poner(K.asignaturas, [{ nombre: "Programación", carrera: "Desarrollo de Software", cuatrimestre: 1 }]);
-  poner(K.preguntas, [{ num: 1, texto: "¿El profesor explica bien?" }]);
-  poner(K.clases, []);
-}
-semillar();
-
 export const getCarreras = () => leer(K.carreras);
 export const setCarreras = v => guardar(K.carreras, v);
 export const getGrupos = () => leer(K.grupos);
@@ -101,8 +107,10 @@ export const getDocentes = () => leer(K.docentes);
 export const setDocentes = v => guardar(K.docentes, v);
 export const getAsignaturas = () => leer(K.asignaturas);
 export const setAsignaturas = v => guardar(K.asignaturas, v);
+// todas las preguntas (con las desactivadas) y solo las activas, que son las que contesta el alumno
 export const getPreguntas = () => leer(K.preguntas);
-export const setPreguntas = v => guardar(K.preguntas, v);
+export const getPreguntasActivas = () => getPreguntas().filter(p => p.activa !== false);
+export const setPreguntas = v => guardar(K.preguntas, v);   // solo local, las guarda preguntas.js con /api/preguntas
 export const getEvaluaciones = () => leer(K.evaluaciones);
 
 // ---- CLASES (Carga Académica) ----
@@ -113,18 +121,7 @@ export const addClase = (clase) => {
   const lista = getClases();
   clase.id = Date.now(); // ID único
   lista.push(clase);
-  guardar(K.clases, lista);
-};
-
-export const addEvaluacion = e => {
-  const lista = getEvaluaciones();
-  lista.push(e);
-  guardar(K.evaluaciones, lista);   // local
-  fetch("/api/evaluaciones", {      // servidor
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(e)
-  }).catch(() => {});
+  return guardar(K.clases, lista);
 };
 
 export const getCuatrimestres = carrera => [...new Set(getGrupos().filter(g => g.carrera === carrera).map(g => g.cuatrimestre))].sort((a, b) => a - b);
@@ -149,9 +146,16 @@ export function promedioGeneral(evals) {
   return +(evals.reduce((a, e) => a + promedioDe(e), 0) / evals.length).toFixed(1);
 }
 
-export function promedioPorPregunta(evals, num = 12) {
-  if (!evals.length) return Array(num).fill(0);
-  return Array.from({ length: num }, (_, i) => +(evals.reduce((a, e) => a + (calificacionesDe(e)[i] || 0), 0) / evals.length).toFixed(1));
+// promedioPorPregunta, el promedio de cada pregunta
+// ahora se busca por el id de la pregunta (e.respuestas) y no por la posicion, asi si mueven
+// el orden de las preguntas o desactivan una los reportes no se revuelven
+export function promedioPorPregunta(evals, preguntas = getPreguntasActivas()) {
+  const lista = Array.isArray(preguntas) ? preguntas : Array.from({ length: preguntas }, (_, i) => ({ num: i + 1 }));
+  return lista.map((p, i) => {
+    const vals = evals.map(e => p.id !== undefined && e.respuestas ? Number(e.respuestas[p.id]) : calificacionesDe(e)[i])
+                      .filter(v => v > 0);
+    return vals.length ? +(vals.reduce((a, v) => a + v, 0) / vals.length).toFixed(1) : 0;
+  });
 }
 
 export function evaluacionesDeDocente(nombre) {

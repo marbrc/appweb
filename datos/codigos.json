@@ -10,5 +10,14 @@
     "carrera": "Desarrollo de Software",
     "cuatri": "1",
     "creado": "04/11/2026"
+  },
+  "A85GDN": {
+    "grupo": "GTID211",
+    "carrera": "Desarrollo de Software",
+    "cuatri": "12",
+    "docente": "dos@gmail.com",
+    "docenteNombre": "Aplito Esoo",
+    "materia": "Ingles IV",
+    "creado": "08/11/2026"
   }
 }

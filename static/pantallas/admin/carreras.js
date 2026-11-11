@@ -1,7 +1,7 @@
 // /static/pantallas/admin/carreras.js
-import { buscar } from "/static/js/nucleo/utiles.js";
+import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getCarreras, setCarreras, alCambiarDatos, getGrupos, setGrupos } from "/static/js/nucleo/datos.js";
+import { getCarreras, setCarreras, alCambiarDatos, getGrupos, setGrupos, refrescarDatos } from "/static/js/nucleo/datos.js";
 
 let cont = null;
 let editando = -1;
@@ -28,62 +28,47 @@ export function iniciar(contenedor) {
   btnNuevo.onclick = () => abrirForm(-1);
   btnCancelar.onclick = () => { form.reset(); form.hidden = true; editando = -1; };
 
-  form.onsubmit = e => {
+  // limpia lo que escriben: quita lo que no sea letra y pone la primera en mayuscula
+  // (esto antes estaba en un <script> dentro de carreras.html pero ahi NUNCA se ejecutaba porque el router mete el html con innerHTML)
+  form.nombre.addEventListener("input", function () {
+    let valor = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, "").replace(/\s{2,}/g, " ").slice(0, 60);
+    if (valor) valor = valor.charAt(0).toUpperCase() + valor.slice(1);
+    this.value = valor;
+  });
+
+  form.onsubmit = async e => {
     e.preventDefault();
-    
-    let nombre = form.nombre.value.trim();
+
+    // ANTES se ponia todo en minusculas y al editar "Desarrollo de Software Multiplataforma" quedaba diferente a la BD
+    const nombre = form.nombre.value.trim().replace(/\s+/g, " ");
     if (!nombre) return;
-    if (nombre.length > 200) {
-      alert("El nombre de la carrera no puede exceder los 200 caracteres.");
-      return;
-    }
-
-    nombre = nombre.toLowerCase();
-    nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-
-    if (!/^[A-ZÁÉÍÓÚÑ][a-záéíóúñü\s]*$/.test(nombre)) {
-      alert("El formato es incorrecto. Solo la primera letra debe ser mayúscula y el resto minúsculas.");
+    if (nombre.length > 60) return avisar("El nombre de la carrera no puede pasar de 60 caracteres.", "err");
+    if (!/^[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]*$/.test(nombre)) {
       form.nombre.focus();
-      return;
+      return avisar("Debe empezar con mayúscula y solo llevar letras.", "err");
     }
 
     const lista = getCarreras() || [];
-
-    const existe = lista.some((c, i) => i !== editando && c.toLowerCase() === nombre.toLowerCase());
-    if (existe) {
-      alert(`Error: La carrera "${nombre}" ya está registrada.`);
+    if (lista.some((c, i) => i !== editando && c.toLowerCase() === nombre.toLowerCase())) {
       form.nombre.focus();
-      return;
+      return avisar(`La carrera "${nombre}" ya está registrada.`, "err");
     }
 
-    if (editando >= 0) {
-      const nombreAnterior = lista[editando];
-      lista[editando] = nombre;
-      setCarreras(lista);
-      
-      if (nombreAnterior !== nombre) {
-        const grupos = getGrupos();
-        let actualizados = false;
-        grupos.forEach(g => {
-          if (g.carrera === nombreAnterior) {
-            g.carrera = nombre;
-            actualizados = true;
-          }
-        });
-        if (actualizados) setGrupos(grupos);
-      }
-    } else {
-      lista.push(nombre);
-      setCarreras(lista);
-    }
-
+    if (editando >= 0) lista[editando] = nombre;
+    else lista.push(nombre);
+    const eraEdicion = editando >= 0;
     form.reset();
     form.hidden = true;
     editando = -1;
+    // en la BD los grupos estan ligados por id, asi que al renombrar no hay que tocar los grupos,
+    // solo espero a que se guarde y vuelvo a traer todo para que los grupos ya salgan con el nombre nuevo
+    await setCarreras(lista);
+    await refrescarDatos();
+    avisar(eraEdicion ? "Carrera actualizada." : "Carrera registrada.");
     dibujar();
   };
 
-  tabla.onclick = e => {
+  tabla.onclick = async e => {
     const ed = e.target.closest("[data-ed]");
     const del = e.target.closest("[data-del]");
 
@@ -92,28 +77,17 @@ export function iniciar(contenedor) {
     if (del) {
       const lista = getCarreras();
       const nombreCarrera = lista[+del.dataset.del];
-      
-      const grupos = getGrupos();
-      const gruposConCarrera = grupos.filter(g => g.carrera === nombreCarrera);
-      
-      // NUEVA LÓGICA DE BORRADO
-      let mensaje = `¿Eliminar la carrera "${nombreCarrera}"?`;
-      if (gruposConCarrera.length > 0) {
-        mensaje += `\n\n¡ADVERTENCIA! Esta carrera tiene ${gruposConCarrera.length} grupo(s) asignado(s). Si la eliminas, también se eliminarán esos grupos.`;
-      }
+      const gruposConCarrera = (getGrupos() || []).filter(g => g.carrera === nombreCarrera);
 
-      if (!confirm(mensaje)) return;
-      
-      // 1. Eliminar la carrera
+      let mensaje = "Esta acción no se puede deshacer.";
+      if (gruposConCarrera.length > 0)
+        mensaje = `Esta carrera tiene ${gruposConCarrera.length} grupo(s). Si la eliminas, también se eliminarán esos grupos y sus asignaturas.`;
+      if (!await confirmar(mensaje, { titulo: `¿Eliminar "${nombreCarrera}"?`, si: "Eliminar", peligro: true })) return;
+
+      // primero los grupos y DESPUES la carrera, al reves la BD no deja (los grupos apuntan a la carrera)
+      if (gruposConCarrera.length > 0) await setGrupos((getGrupos() || []).filter(g => g.carrera !== nombreCarrera));
       lista.splice(+del.dataset.del, 1);
-      setCarreras(lista);
-      
-      // 2. Si había grupos, eliminarlos también
-      if (gruposConCarrera.length > 0) {
-        const gruposRestantes = grupos.filter(g => g.carrera !== nombreCarrera);
-        setGrupos(gruposRestantes);
-      }
-      
+      await setCarreras(lista);
       dibujar();
     }
   };
@@ -137,7 +111,7 @@ export function iniciar(contenedor) {
     editando = i;
     form.hidden = false;
     form.reset();
-    titulo.textContent = i >= 0 ? "Editar carrera" : "Datos de la carrera";
+    titulo.textContent = i >= 0 ? "Editar carrera" : "Nueva carrera";
     if (i >= 0) form.nombre.value = getCarreras()[i];
     form.nombre.focus();
   }
@@ -155,9 +129,9 @@ export function iniciar(contenedor) {
           
           return `
           <tr>
-            <td><span class="chip">${i + 1}</span></td>
-            <td>${limpiar(c)}</td>
-            <td><span class="chip">${qtyGrupos} grupo(s)</span></td>
+            <td class="sub">${i + 1}</td>
+            <td><b>${limpiar(c)}</b></td>
+            <td>${qtyGrupos ? `<span class="chip">${qtyGrupos} ${qtyGrupos === 1 ? "grupo" : "grupos"}</span>` : '<span class="sub">Sin grupos</span>'}</td>
             <td class="acciones-fila">
               <button class="mini" type="button" data-ed="${i}">Editar</button>
               <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>

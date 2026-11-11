@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Encuesta Docente UTNG">
+  <!-- logo de Encuesta Docente UTNG: la palomita es la evaluacion y las barras que suben son los resultados -->
+  <rect width="64" height="64" rx="15" fill="#0B2A5B"/>
+  <rect x="14" y="38" width="8" height="13" rx="2.5" fill="#fff" opacity=".45"/>
+  <rect x="28" y="30" width="8" height="21" rx="2.5" fill="#fff" opacity=".75"/>
+  <rect x="42" y="22" width="8" height="29" rx="2.5" fill="#fff"/>
+  <path d="M15 22.5l5 5 11-12" fill="none" stroke="#5B9BFF" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

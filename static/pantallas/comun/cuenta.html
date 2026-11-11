@@ -1,24 +1,101 @@
-
-<!-- la pantalla de cuenta, arriba el perfil con la inicial del nombre (la pone cuenta.js) y abajo el formulario -->
+<!-- la pantalla de cuenta: a la izquierda tu foto y tus datos, a la derecha los formularios para cambiar cosas -->
 <div class="pg">
-  <div class="pg-card perfil">
-    <div class="avatar" id="avatar-cuenta">?</div>
-    <div>
-      <h3 id="nombre-cuenta"></h3>
-      <p class="sub" id="info"></p>
-      <span class="rol-pill" id="rol-cuenta"></span>
+  <div class="cab">
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="usuario"></i></span>
+      <div>
+        <h2>Mi cuenta</h2>
+        <p class="sub">Tu foto, tus datos, tu correo y tu contraseña</p>
+      </div>
     </div>
   </div>
 
-  <!-- la validación HTML: required, type="email" y minlength. La de JavaScript esta en cuenta.js -->
-  <form class="pg-card" id="form-cuenta">
-    <h3>Cambiar mis datos de acceso</h3>
-    <label>Correo<input type="email" name="correo" required></label>
-    <div class="dos-col">
-      <label>Nueva contraseña<input type="password" name="clave" minlength="6"></label>
-      <label>Confirmar contraseña<input type="password" name="clave2" minlength="6"></label>
+  <div class="cuenta-g">
+    <!-- el perfil, cuenta.js pone la foto (o la inicial), el nombre y las fechas -->
+    <aside class="pg-card perfil">
+      <div class="foto-grande" id="foto-grande">?</div>
+      <div>
+        <h2 id="nombre-cuenta"></h2>
+        <p class="sub" id="correo-cuenta"></p>
+      </div>
+      <span class="rol-pill">Administrador</span>
+      <div class="perfil-botones">
+        <!-- el input de archivo esta escondido, el boton lo abre -->
+        <input type="file" id="foto-archivo" accept="image/png,image/jpeg,image/webp" hidden>
+        <button class="btn sec" type="button" id="foto-cambiar"><i data-icono="camara"></i>Cambiar foto</button>
+        <button class="mini rojo" type="button" id="foto-quitar" hidden>Quitar foto</button>
+      </div>
+      <dl class="perfil-datos">
+        <div><dt>Miembro desde</dt><dd id="d-registro">—</dd></div>
+        <div><dt>Último acceso</dt><dd id="d-acceso">—</dd></div>
+      </dl>
+    </aside>
+
+    <div class="secciones">
+      <!-- 1 datos personales -->
+      <form class="pg-card" id="form-datos">
+        <h3>Datos personales</h3>
+        <div class="tres-campos">
+          <label>Nombre(s)<input name="nombres" required maxlength="60" autocomplete="given-name"></label>
+          <label>Apellido paterno<input name="paterno" required maxlength="50" autocomplete="family-name"></label>
+          <label><span>Apellido materno <small class="ayuda">(opcional)</small></span><input name="materno" maxlength="50"></label>
+        </div>
+        <div class="pie-form"><button class="btn">Guardar datos</button></div>
+      </form>
+
+      <!-- 2 cambiar correo, pide la contraseña para que nadie te lo cambie si dejaste la sesion abierta -->
+      <form class="pg-card" id="form-correo">
+        <h3>Cambiar correo</h3>
+        <p class="sub">Con este correo inicias sesión y te llegan los códigos para recuperar tu contraseña.</p>
+        <div class="dos-campos">
+          <label>Correo nuevo<input type="email" name="correo" required maxlength="100" autocomplete="email"></label>
+          <label>Tu contraseña actual
+            <span class="pw"><input type="password" name="clave" required autocomplete="current-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+          </label>
+        </div>
+        <div class="pie-form"><button class="btn">Cambiar correo</button></div>
+      </form>
+
+      <!-- 3 cambiar contraseña -->
+      <form class="pg-card" id="form-clave">
+        <h3>Cambiar contraseña</h3>
+        <div class="tres-campos">
+          <label>Contraseña actual
+            <span class="pw"><input type="password" name="actual" required autocomplete="current-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+          </label>
+          <label>Contraseña nueva
+            <span class="pw"><input type="password" name="nueva" required minlength="8" maxlength="20" autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+            <span class="fuerza" id="fuerza"><i></i><i></i><i></i><i></i></span>
+          </label>
+          <label>Confirmar contraseña
+            <span class="pw"><input type="password" name="nueva2" required autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+          </label>
+        </div>
+        <p class="ayuda">De 8 a 20 caracteres, con una mayúscula, una minúscula y un número.</p>
+        <div class="pie-form">
+          <button class="link" type="button" id="olvide">¿No te acuerdas de tu contraseña actual?</button>
+          <button class="btn">Cambiar contraseña</button>
+        </div>
+      </form>
+
+      <!-- 4 recuperar contraseña: sale cuando le das clic a "no te acuerdas", llega un codigo a tu correo -->
+      <form class="pg-card" id="form-recuperar" hidden>
+        <h3>Recuperar contraseña</h3>
+        <p class="msg info" id="rec-aviso"></p>
+        <div class="tres-campos">
+          <label>Código de 6 números<input name="codigo" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="000000"></label>
+          <label>Contraseña nueva
+            <span class="pw"><input type="password" name="clave" required minlength="8" maxlength="20" autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+          </label>
+          <label>Confirmar contraseña
+            <span class="pw"><input type="password" name="clave2" required autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+          </label>
+        </div>
+        <div class="pie-form">
+          <button class="link" type="button" id="rec-cancelar">Cancelar</button>
+          <button class="btn">Guardar contraseña nueva</button>
+        </div>
+      </form>
     </div>
-    <p id="msg" hidden></p>
-    <button class="btn">Guardar cambios</button>
-  </form>
+  </div>
 </div>

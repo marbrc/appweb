@@ -1,52 +1,72 @@
 <!DOCTYPE html>
-<html lang="es" data-tema="claro">
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Panel de Administrador</title>
-    <link rel="stylesheet" href="/static/css/estilos.css">
-    <style>
-        .marco { display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: var(--tx); }
-        .barra-app { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--hd); color: #fff; }
-        .cuerpo { display: flex; flex: 1; overflow: hidden; padding: 0; }
-
-        .opciones { width: 260px; background: var(--card); border-right: 1px solid var(--bd); display: flex; flex-direction: column; padding: 1rem 0; overflow-y: auto; flex-shrink: 0; }
-        .opciones .op { display: flex; align-items: center; gap: 15px; width: 100%; padding: 12px 20px; background: none; border: none; text-align: left; cursor: pointer; font-size: 15px; color: var(--tx); transition: background .2s; }
-        .opciones .op:hover { background: var(--bg); }
-        .opciones .op.activa { background: var(--bg); color: var(--ac); font-weight: bold; border-right: 4px solid var(--pri); }
-
-        .area { flex: 1; padding: 2rem; overflow-y: auto; min-width: 0; }
-        .cabecera h1 { margin: 0; color: var(--ac); }
-        .cabecera p { margin: 5px 0 0; color: var(--mut); }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encuesta Docente UTNG</title>
+<link rel="icon" href="/static/img/logo.svg" type="image/svg+xml">
+<!-- el tema se pone antes de que cargue la pagina para que no parpadee en blanco -->
+<script>document.documentElement.dataset.tema = localStorage.getItem("tema") || "claro";</script>
+<link rel="stylesheet" href="/static/css/estilos.css">
+<link rel="stylesheet" href="/static/css/marco.css">
+<link rel="stylesheet" href="/static/css/admin.css">
 </head>
 <body>
 
+<!-- EL MARCO: la barra de arriba y el menu NO cambian, solo cambia lo que hay dentro de #contenido -->
 <div id="marco" class="marco">
-    <header class="barra-app">
-        <b>Encuesta Docente UTNG</b>
-        <button id="salir" style="background:#d32f2f;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;">Cerrar sesión</button>
-    </header>
 
-    <main class="cuerpo">
-        <nav id="menu-op" class="opciones"></nav>
+  <!-- barra de arriba: los tres puntitos, el logo, donde estas y tu cuenta -->
+  <header class="superior">
+    <button id="btn-menu" class="btn-menu" type="button" title="Ocultar menú" aria-label="Ocultar o mostrar el menú"><i data-icono="puntos"></i></button>
+    <a class="marca" href="#admin/inicio">
+      <img src="/static/img/logo.svg" alt="" width="34" height="34">
+      <span><b>Encuesta Docente</b><small>UTNG</small></span>
+    </a>
+    <!-- migas: Administración > Grupos, el nombre de la pantalla lo pone marco.js -->
+    <p class="migas"><span>Administración</span><i data-icono="derecha"></i><b id="titulo">Inicio</b></p>
 
-        <div class="area">
-            <header class="cabecera">
-                <h1 id="titulo">Cargando...</h1>
-                <p id="desc"></p>
-            </header>
-            <div id="contenido" class="contenido"></div>
+    <div class="cuenta-caja">
+      <button id="btn-cuenta" class="btn-cuenta" type="button" aria-haspopup="true">
+        <span class="avatar-mini" id="cuenta-foto"></span>
+        <span class="cuenta-txt"><b id="cuenta-nombre"></b><small id="cuenta-rol"></small></span>
+        <i data-icono="abajo"></i>
+      </button>
+      <div id="menu-cuenta" class="menu-cuenta" hidden>
+        <div class="menu-cuenta-cab">
+          <span class="avatar-mini grande" id="mc-foto"></span>
+          <div><b id="mc-nombre"></b><small id="mc-correo"></small></div>
         </div>
-    </main>
+        <button type="button" data-ruta="comun/cuenta"><i data-icono="usuario"></i>Mi cuenta</button>
+        <button type="button" data-ruta="comun/config"><i data-icono="ajustes"></i>Configuración</button>
+        <hr>
+        <button type="button" data-salir class="salir"><i data-icono="salir"></i>Cerrar sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="cuerpo">
+    <!-- el menu de la izquierda, las opciones las pone marco.js leyendo menus.js -->
+    <nav id="lateral" class="lateral" aria-label="Menú principal">
+      <div id="menu-op" class="ops"></div>
+    </nav>
+    <!-- en el celular el menu sale encima y esta sombra lo cierra al tocarla -->
+    <div id="velo" class="velo"></div>
+
+    <!-- aqui adentro el router mete cada pantalla -->
+    <main id="contenido" class="contenedor"></main>
+  </div>
 </div>
 
-<script type="module" src="/static/js/app.js"></script>
-<script>
-    document.getElementById("salir").addEventListener("click", () => {
-        localStorage.removeItem("sesion");
-        window.location.href = "/";
-    });
-</script>
+<!-- la pantallita de cerrando sesión -->
+<div id="cerrando" class="cerrando" hidden>
+  <div class="cerrando-caja">
+    <img src="/static/img/logo.svg" alt="" width="56" height="56">
+    <div class="spinner"></div>
+    <p>Cerrando sesión…</p>
+  </div>
+</div>
+
+<script type="module" src="/static/js/nucleo/marco.js"></script>
 </body>
 </html>

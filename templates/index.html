@@ -1,63 +1,135 @@
 <!DOCTYPE html>
-<html lang="es" data-tema="claro">
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Encuesta Docente UTNG - Login</title>
-    <link rel="stylesheet" href="/static/css/estilos.css">
-    <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f4f6f9; font-family: sans-serif; }
-        .tarjeta { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        label { display: block; margin-bottom: 1rem; font-weight: bold; }
-        input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 12px; background: #1f6feb; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .btn:hover { background: #1558b0; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iniciar sesión · Encuesta Docente UTNG</title>
+<link rel="icon" href="/static/img/logo.svg" type="image/svg+xml">
+<script>document.documentElement.dataset.tema = localStorage.getItem("tema") || "claro";</script>
+<link rel="stylesheet" href="/static/css/estilos.css">
+<link rel="stylesheet" href="/static/css/acceso.css">
 </head>
 <body>
+<!-- la pagina de entrada del administrador: iniciar sesión, registrarse y recuperar contraseña
+     las tres estan aqui y login.js enseña una u otra segun el # (#login, #registro, #recuperar) -->
+<main class="entrada">
 
-<div class="tarjeta">
-    <div class="logo" style="text-align: center; font-size: 2rem; font-weight: bold; color: #1f6feb; margin-bottom: 20px;">UTNG</div>
-    <h2 style="text-align: center; margin-bottom: 20px;">Iniciar sesión</h2>
-    
-    <!-- Formulario sin action ni method para que no se envíe al servidor -->
-    <form id="form-login">
-        <label>Correo institucional
-            <input type="email" id="correo" required placeholder="ejemplo@utng.edu.mx">
+  <!-- lado izquierdo con el logo, en el celular se esconde -->
+  <aside class="entrada-marca">
+    <div class="marca-arriba">
+      <img src="/static/img/logo.svg" alt="" width="44" height="44">
+      <span><b>Encuesta Docente</b><small>UTNG</small></span>
+    </div>
+    <div class="marca-texto">
+      <h1>La opinión de los alumnos, ordenada y lista para mejorar cada clase.</h1>
+      <ul>
+        <li><i data-icono="escudo"></i>Respuestas 100% anónimas</li>
+        <li><i data-icono="enlace"></i>Cada grupo entra con su propio enlace</li>
+        <li><i data-icono="grafica"></i>Reportes por grupo, docente y materia</li>
+      </ul>
+    </div>
+    <p class="marca-pie">Universidad Tecnológica del Norte de Guanajuato</p>
+  </aside>
+
+  <section class="entrada-form">
+    <div class="caja-form">
+      <img class="logo-cel" src="/static/img/logo.svg" alt="" width="48" height="48">
+
+      <!-- ============ 1 INICIAR SESIÓN ============ -->
+      <form id="v-login" class="vista-form" novalidate>
+        <header>
+          <h2>Iniciar sesión</h2>
+          <p class="sub">Entra con tu correo y contraseña de administrador.</p>
+        </header>
+        <label>Correo
+          <input type="email" name="correo" required autocomplete="username" placeholder="tu.correo@utng.edu.mx">
+        </label>
+        <label>
+          <span class="fila-label">Contraseña <a href="#recuperar">¿La olvidaste?</a></span>
+          <span class="pw"><input type="password" name="clave" required autocomplete="current-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+        </label>
+        <label class="check"><input type="checkbox" name="recordar"> Mantener la sesión iniciada</label>
+        <p class="msg err" data-error hidden></p>
+        <button class="btn ancho">Entrar</button>
+        <p class="cambiar">¿No tienes cuenta? <a href="#registro">Regístrate</a></p>
+      </form>
+
+      <!-- ============ 2 REGISTRO ============ -->
+      <form id="v-registro" class="vista-form" novalidate hidden>
+        <header>
+          <a class="volver" href="#login"><i data-icono="izquierda"></i>Volver</a>
+          <h2>Crear cuenta</h2>
+          <p class="sub">La cuenta nueva tiene rol de administrador.</p>
+        </header>
+        <label>Nombre(s)
+          <input name="nombres" required maxlength="60" autocomplete="given-name" placeholder="Ej. María Guadalupe">
+        </label>
+        <div class="dos">
+          <label>Apellido paterno<input name="paterno" required maxlength="50" autocomplete="family-name"></label>
+          <label>Apellido materno<input name="materno" maxlength="50" placeholder="Opcional"></label>
+        </div>
+        <label>Correo
+          <input type="email" name="correo" required maxlength="100" autocomplete="email" placeholder="tu.correo@utng.edu.mx">
         </label>
         <label>Contraseña
-            <input type="password" id="clave" minlength="6" required>
+          <span class="pw"><input type="password" name="clave" required minlength="8" maxlength="20" autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+          <span class="fuerza" id="fuerza-reg"><i></i><i></i><i></i><i></i></span>
+          <small class="ayuda">De 8 a 20 caracteres, con una mayúscula, una minúscula y un número.</small>
         </label>
-        <!-- type="button" es clave para que NO recargue la página -->
-        <button type="button" id="btn-entrar" class="btn">Iniciar sesión</button>
-    </form>
-</div>
+        <label>Confirmar contraseña
+          <span class="pw"><input type="password" name="clave2" required autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+        </label>
+        <p class="msg err" data-error hidden></p>
+        <button class="btn ancho">Crear cuenta</button>
+        <p class="cambiar">¿Ya tienes cuenta? <a href="#login">Inicia sesión</a></p>
+      </form>
 
-<script>
-    // Escuchamos el clic del botón
-    document.getElementById("btn-entrar").addEventListener("click", () => {
-        const correo = document.getElementById("correo").value;
-        const clave = document.getElementById("clave").value;
+      <!-- ============ 3 RECUPERAR CONTRASEÑA (3 pasos) ============ -->
+      <div id="v-recuperar" class="vista-form" hidden>
+        <header>
+          <a class="volver" href="#login"><i data-icono="izquierda"></i>Volver</a>
+          <h2>Recuperar contraseña</h2>
+          <ol class="pasos" id="pasos"><li class="on">Correo</li><li>Código</li><li>Contraseña nueva</li></ol>
+        </header>
 
-        if (correo && clave) {
-            // 1. Guardamos la sesión en el localStorage del navegador
-            localStorage.setItem("sesion", JSON.stringify({
-                nombre: correo.split('@')[0], // Sacamos el nombre antes del @
-                correo: correo,
-                rol: "administrador"
-            }));
+        <!-- paso 1, tu correo -->
+        <form id="rec-1" class="vista-form" novalidate>
+          <p class="sub">Escribe el correo de tu cuenta y te mandamos un código de 6 números.</p>
+          <label>Correo<input type="email" name="correo" required autocomplete="email"></label>
+          <p class="msg err" data-error hidden></p>
+          <button class="btn ancho">Mandar código</button>
+        </form>
 
-            // 2. Redirigimos a la ruta de Flask que sirve el marco
-            window.location.href = "/app"; 
-        } else {
-            alert("Por favor, llena todos los campos.");
-        }
-    });
+        <!-- paso 2, el codigo que te llego -->
+        <form id="rec-2" class="vista-form" novalidate hidden>
+          <p class="msg info" id="rec-aviso"></p>
+          <label>Código
+            <input class="campo-codigo" name="codigo" required inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" placeholder="000000">
+          </label>
+          <p class="msg err" data-error hidden></p>
+          <button class="btn ancho">Verificar código</button>
+          <p class="cambiar">¿No te llegó? <button class="link" type="button" id="reenviar">Mandar otro</button></p>
+        </form>
 
-    // Si ya hay una sesión guardada, mandarlo directo a /app
-    if (localStorage.getItem("sesion")) {
-        window.location.href = "/app";
-    }
-</script>
+        <!-- paso 3, la contraseña nueva -->
+        <form id="rec-3" class="vista-form" novalidate hidden>
+          <label>Contraseña nueva
+            <span class="pw"><input type="password" name="clave" required minlength="8" maxlength="20" autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+            <span class="fuerza" id="fuerza-rec"><i></i><i></i><i></i><i></i></span>
+            <small class="ayuda">De 8 a 20 caracteres, con una mayúscula, una minúscula y un número.</small>
+          </label>
+          <label>Confirmar contraseña
+            <span class="pw"><input type="password" name="clave2" required autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+          </label>
+          <p class="msg err" data-error hidden></p>
+          <button class="btn ancho">Guardar contraseña</button>
+        </form>
+      </div>
+
+      <p class="alumno-link">¿Eres alumno? <a href="/alumno">Entra con el código de tu grupo</a></p>
+    </div>
+  </section>
+</main>
+<script type="module" src="/static/js/login.js"></script>
 </body>
 </html>

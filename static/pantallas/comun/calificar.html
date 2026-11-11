@@ -1,12 +1,22 @@
+<!-- calificar el sistema con estrellitas y un comentario, ahora si se guarda en la BD (tabla Opinion) -->
 <div class="pg">
+  <div class="cab">
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="estrella"></i></span>
+      <div>
+        <h2>Calificar el sistema</h2>
+        <p class="sub">Tu opinión nos ayuda a mejorarlo</p>
+      </div>
+    </div>
+  </div>
+
   <form class="pg-card calificar-centro" id="form-opinion">
-    <b>¿Qué tan bien te pareció el sistema?</b>
+    <h3>¿Qué tan bien te pareció el sistema?</h3>
     <div class="estrellas" id="estrellas"></div>
     <p class="sub" id="texto-estrellas">Toca una estrella</p>
-    <label>Comentarios (opcional)
+    <label><span>Comentarios <small class="ayuda">(opcional)</small></span>
       <textarea name="comentario" rows="4" maxlength="300" placeholder="¿Qué te gustó? ¿Qué podemos mejorar?"></textarea>
     </label>
-    <p id="msg" hidden></p>
-    <button class="btn">Enviar opinión</button>
+    <button class="btn"><i data-icono="enviar"></i>Enviar opinión</button>
   </form>
 </div>

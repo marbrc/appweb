@@ -3,43 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Entrar como alumno · Encuesta Docente UTNG</title>
+<title>Evaluación docente · Encuesta Docente UTNG</title>
+<link rel="icon" href="/static/img/logo.svg" type="image/svg+xml">
 <script>document.documentElement.dataset.tema = localStorage.getItem("tema") || "claro";</script>
 <link rel="stylesheet" href="/static/css/estilos.css">
 <link rel="stylesheet" href="/static/css/acceso.css">
 </head>
-<body>
+<body class="alumno">
+<!-- el alumno NO tiene cuenta, entra con el enlace de su grupo (/alumno?c=K7M2QP) o escribe el código
+     y aqui mismo contesta todo, ya no lo manda al marco del administrador -->
+<header class="alumno-barra">
+  <a class="marca" href="/alumno"><img src="/static/img/logo.svg" alt="" width="32" height="32"><span><b>Encuesta Docente</b><small>UTNG</small></span></a>
+  <span class="anonimo"><i data-icono="escudo"></i>Respuestas anónimas</span>
+</header>
+
 <main class="acceso">
   <div class="acceso-caja">
-    <div class="acceso-logo">UTNG</div>
-    <h1>Encuesta Docente</h1>
 
-    <!-- 1 el códigom La validación de HTML es required, minlength, maxlength y pattern -->
-    <section id="paso-codigo">
-      <h2>¡Bienvenido, alumno!</h2>
-      <p class="sub">Escribe el código de tu grupo, viene en el enlace que te mandaron. Tus respuestas son completamente anónimas.</p>
-      <form id="form-codigo">
-        <label>Código de tu grupo
-          <input class="codigo-campo" id="codigo" name="codigo" required minlength="6" maxlength="6" pattern="[A-Za-z0-9]{6}" autocomplete="off" placeholder="ABC123">
-        </label>
-        <p class="err" id="msg" hidden></p>
-        <button class="btn">Continuar</button>
+    <!-- 1 el código. La validación de HTML es required, minlength, maxlength y pattern -->
+    <section id="paso-codigo" class="paso-a">
+      <span class="paso-ico"><i data-icono="llave"></i></span>
+      <h1>Evalúa a tu docente</h1>
+      <p class="sub">Escribe el código de 6 letras que viene en el enlace que te mandaron. No necesitas cuenta y nadie sabrá qué contestaste.</p>
+      <form id="form-codigo" novalidate>
+        <label class="sr">Código de tu clase</label>
+        <input class="codigo-campo" id="codigo" name="codigo" required minlength="6" maxlength="6" pattern="[A-Za-z0-9]{6}" autocomplete="off" placeholder="ABC123" aria-label="Código de tu clase">
+        <p class="msg err" id="msg" hidden></p>
+        <button class="btn ancho">Continuar</button>
       </form>
     </section>
 
-     <!-- 2 confirma su clase, los datos los llena acceso.js con lo que dice el servidor -->
-    <section id="paso-grupo" hidden>
-      <h2>¡Código correcto!</h2>
-      <p class="sub">Vas a evaluar a:</p>
+    <!-- 2 confirma su clase, los datos los llena acceso.js con lo que dice el servidor -->
+    <section id="paso-grupo" class="paso-a" hidden>
+      <span class="paso-ico ok"><i data-icono="check"></i></span>
+      <h1>¿Deseas comenzar con la evaluación?</h1>
+      <p class="sub">Revisa que esta sea tu clase:</p>
       <dl class="grupo-datos">
-        <dt>Carrera</dt><dd id="d-carrera"></dd>
-        <dt>Cuatrimestre</dt><dd id="d-cuatri"></dd>
-        <dt>Grupo</dt><dd id="d-grupo"></dd>
         <dt>Docente</dt><dd id="d-docente"></dd>
         <dt>Materia</dt><dd id="d-materia"></dd>
+        <dt>Grupo</dt><dd id="d-grupo"></dd>
+        <dt>Carrera</dt><dd id="d-carrera"></dd>
       </dl>
-      <button class="btn" id="comenzar">Comenzar</button>
-      <button class="btn sec" id="otro">No es mi clase</button>
+      <p class="sub" id="d-cuantas"></p>
+      <p class="msg info" id="ya-contesto" hidden>Ya contestaste esta evaluación desde este dispositivo. Si eres otro alumno, puedes continuar.</p>
+      <div class="botones">
+        <button class="btn sec" type="button" id="otro">No es mi clase</button>
+        <button class="btn" type="button" id="comenzar">Sí, comenzar</button>
+      </div>
+    </section>
+
+    <!-- 3 las preguntas, una por una con transición -->
+    <section id="paso-preguntas" class="paso-a" hidden>
+      <div class="preg-cab">
+        <span id="preg-num">Pregunta 1 de 12</span>
+        <span id="preg-clase" class="sub"></span>
+      </div>
+      <div class="prog"><i id="preg-barra"></i></div>
+      <div class="preg-caja">
+        <p class="preg-texto" id="preg-texto"></p>
+        <div class="escala" id="escala" role="radiogroup" aria-label="Calificación del 5 al 10"></div>
+        <div class="escala-txt"><span>5 · Muy en desacuerdo</span><span>10 · Totalmente de acuerdo</span></div>
+      </div>
+      <div class="botones">
+        <button class="btn sec" type="button" id="anterior"><i data-icono="izquierda"></i>Anterior</button>
+        <button class="btn" type="button" id="siguiente" disabled><span id="sig-txt">Siguiente</span><i data-icono="derecha"></i></button>
+      </div>
+    </section>
+
+    <!-- 4 comentario opcional y enviar -->
+    <section id="paso-comentario" class="paso-a" hidden>
+      <span class="paso-ico"><i data-icono="mensaje"></i></span>
+      <h1>¿Algo más que quieras decir?</h1>
+      <p class="sub">Es opcional. Cuéntale a tu docente qué te gusta de su clase y qué podría mejorar, con respeto.</p>
+      <label class="sr" for="comentario">Comentario</label>
+      <textarea id="comentario" maxlength="300" rows="4" placeholder="Escribe tu comentario…"></textarea>
+      <small class="ayuda" id="com-cont">0/300</small>
+      <p class="msg err" id="msg-envio" hidden></p>
+      <div class="botones">
+        <button class="btn sec" type="button" id="volver-preg"><i data-icono="izquierda"></i>Revisar respuestas</button>
+        <button class="btn" type="button" id="enviar"><i data-icono="enviar"></i>Enviar evaluación</button>
+      </div>
+    </section>
+
+    <!-- 5 gracias -->
+    <section id="paso-gracias" class="paso-a" hidden>
+      <span class="paso-ico ok grande"><i data-icono="check"></i></span>
+      <h1>¡Gracias por tu evaluación!</h1>
+      <p class="sub">Tus respuestas se guardaron de forma anónima. Ya puedes cerrar esta página.</p>
+      <button class="btn sec" type="button" id="otra">Evaluar otra clase</button>
     </section>
   </div>
 </main>

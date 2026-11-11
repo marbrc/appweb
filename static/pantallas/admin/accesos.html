@@ -5,30 +5,32 @@
       <span class="cab-ico"><i data-icono="enlace"></i></span>
       <div>
         <h2>Códigos de acceso</h2>
-        <p class="sub">Un código por grupo para que solo evalúen quienes lo recibieron</p>
+        <p class="sub">Un código por clase para que solo evalúen quienes lo recibieron <span class="total" id="a-total"></span></p>
       </div>
     </div>
+    <button class="btn" id="a-todos" type="button"><i data-icono="refrescar"></i>Generar los que faltan</button>
   </div>
 
   <div class="nota-caja">
     <i data-icono="info"></i>
     <div>
-      <p class="sub">Cada grupo tiene su propio código. El alumno entra con el enlace o escribe el código y así solo evalúan quienes lo recibieron. Si regeneras o revocas un código, el anterior deja de funcionar.</p>
-      <p class="sub" id="nota-enlace"></p>
+      <p>Cada clase (grupo + materia + docente) tiene su propio código. El alumno abre el enlace o escribe el código y contesta sin cuenta, de forma anónima. Si regeneras o revocas un código, el anterior deja de funcionar.</p>
+      <p id="nota-enlace"></p>
     </div>
   </div>
-  <p id="msg" hidden></p>
-  
-  <div class="tabla-wrap">
-    <table>
+
+  <div class="filtros">
+    <label class="buscador" aria-label="Buscar"><i data-icono="buscar"></i><input id="a-buscar" type="search" placeholder="Buscar grupo, materia o docente…"></label>
+  </div>
+
+  <div class="tabla-scroll">
+    <table class="tabla">
       <thead>
         <tr>
           <th>Grupo</th>
-          <th>Carrera</th>
-          <th>Cuatrimestre</th>
-          <th>Docente</th>
+          <th>Materia y docente</th>
           <th>Código</th>
-          <th></th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody id="tabla-accesos"></tbody>

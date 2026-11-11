@@ -1,35 +1,49 @@
-<!-- /static/pantallas/admin/inicio.html -->
+
 <div class="pg admin-inicio">
 
-  <!-- el letrero de bienvenida, el saludo y el nombre los pone inicio.js con la sesion de quien entro -->
-  <div class="hero">
-    <h2><span id="a-saludo">Hola</span>, <span id="a-nombre"></span> 👋</h2>
-    <p>Resumen general: todo lo que está pasando en el sistema.</p>
-    <span class="rol-chip">Rol: Administrador</span>
+  <!-- el saludo, el nombre y la fecha los pone inicio.js con la sesion de quien entro -->
+  <div class="saludo">
+    <div>
+      <h1><span id="a-saludo">Hola</span>, <span id="a-nombre"></span></h1>
+      <p class="sub">Así va la evaluación docente de este cuatrimestre.</p>
+    </div>
+    <p class="fecha"><i data-icono="calendario"></i><span id="a-fecha"></span></p>
   </div>
 
-  <!-- las tarjetitas con numeros las dibuja inicio.js -->
-  <div class="tarjetas-resumen" id="a-resumen"></div>
+  <!-- la franja con los numeros, cada uno es un boton que te lleva a su pantalla -->
+  <div class="kpis" id="a-resumen"></div>
 
-  <!-- atajos a las demas pantallas del menu tambien los dibuja inicio.js leyendo menus.js asi no se repite nadaaa -->
-  <h3 class="titulo-sec">Accesos rápidos</h3>
-  <div class="atajos-g" id="a-atajos"></div>
+  <div class="dos-col">
+    <!-- cuantos alumnos de cada grupo ya contestaron -->
+    <section class="pg-card">
+      <header>
+        <h3>Avance por grupo</h3>
+        <button class="link" type="button" data-ruta="admin/grupos">Ver grupos</button>
+      </header>
+      <ul class="avance" id="a-avance"></ul>
+    </section>
 
-  <div class="panel-c">
-    <h3>Promedio por pregunta (global)</h3>
-    <p class="sub" id="a-aviso">Aquí se ve qué tan bien califican los alumnos cada pregunta.</p>
-    <div id="a-barras" class="barras"></div>
+    <!-- lo que le falta al sistema para que los alumnos puedan contestar -->
+    <section class="pg-card">
+      <header><h3>Pendientes</h3></header>
+      <ul class="pendientes" id="a-pendientes"></ul>
+    </section>
   </div>
 
-  <h3 class="titulo-sec">Últimas evaluaciones</h3>
-  <div class="tabla-scroll">
-    <table class="tabla">
-      <thead>
-        <tr>
-          <th>Fecha</th><th>Carrera</th><th>Grupo</th><th>Profesor</th><th>Materia</th><th>Promedio</th>
-        </tr>
-      </thead>
-      <tbody id="a-tabla"></tbody>
-    </table>
-  </div>
+  <section class="pg-card" style="padding-bottom:.4rem">
+    <header>
+      <h3>Últimas evaluaciones</h3>
+      <button class="link" type="button" data-ruta="admin/reportes">Ver reportes</button>
+    </header>
+    <div class="tabla-scroll" style="box-shadow:none;border:0;border-radius:0;margin:0 -1.4rem">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Grupo</th><th>Profesor</th><th>Materia</th><th>Promedio</th>
+          </tr>
+        </thead>
+        <tbody id="a-tabla"></tbody>
+      </table>
+    </div>
+  </section>
 </div>

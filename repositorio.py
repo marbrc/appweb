@@ -1,7 +1,9 @@
 # repositorio.py  ->  todas las consultas a SQL Server.
 # Devuelve y recibe los MISMOS formatos JSON que ya usa el front (datos.js), por eso
 # no hay que cambiar nada en las pantallas.
+import hashlib
 import itertools
+import re
 import secrets
 from datetime import datetime
 
@@ -16,7 +18,14 @@ class ErrorDatos(Exception):
 
 # ---------------------------------------------------------------- utilidades
 def asegurar_esquema(cur):
-    """Agrega a Clave_Acceso las columnas Codigo y FechaCreacion si todavía no existen."""
+    """Revisa que la BD sea la version nueva (Pregunta como catalogo y Respuesta con id_encuesta).
+    Si es la vieja avisa que hay que volver a correr DB_EncuestaDocente.sql y la insercion."""
+    cur.execute("SELECT COL_LENGTH('dbo.Respuesta','id_encuesta'), COL_LENGTH('dbo.Administrador','Foto'), "
+                "OBJECT_ID('dbo.Recuperacion'), OBJECT_ID('dbo.Opinion')")
+    if any(v is None for v in cur.fetchone()):
+        raise ErrorDatos("La base de datos es la versión vieja. Vuelve a ejecutar DB_EncuestaDocente.sql "
+                         "y después INSERCION_DE_DATOS_REALES.sql", 500)
+    # por si alguien creo la tabla Clave_Acceso a mano sin las columnas del codigo
     cur.execute("IF COL_LENGTH('dbo.Clave_Acceso','Codigo') IS NULL "
                 "ALTER TABLE dbo.Clave_Acceso ADD Codigo varchar(6) NULL")
     cur.execute("IF COL_LENGTH('dbo.Clave_Acceso','FechaCreacion') IS NULL "
@@ -438,6 +447,83 @@ def generar_codigo(cur, grupo, materia, docente):
     return buscar_codigo(cur, codigo) | {"creado": datetime.now().strftime("%d/%m/%Y")}
 
 
+# ---------------------------------------------------------------- PREGUNTAS
+# ahora las preguntas viven en la tabla Pregunta (antes estaban en datos/preguntas.json)
+def leer_preguntas(cur, solo_activas=False):
+    sql = "SELECT id_pregunta, NumPregunta, Texto, Activa FROM dbo.Pregunta"
+    if solo_activas:
+        sql += " WHERE Activa = 1"
+    cur.execute(sql + " ORDER BY NumPregunta, id_pregunta")
+    return [{"id": r.id_pregunta, "num": int(r.NumPregunta), "texto": r.Texto, "activa": bool(r.Activa)}
+            for r in cur.fetchall()]
+
+
+def _renumerar(cur):
+    """deja los numeros parejitos 1, 2, 3... primero las activas y al final las desactivadas"""
+    cur.execute("SELECT id_pregunta FROM dbo.Pregunta ORDER BY Activa DESC, NumPregunta, id_pregunta")
+    for i, (id_p,) in enumerate(cur.fetchall(), 1):
+        cur.execute("UPDATE dbo.Pregunta SET NumPregunta = ? WHERE id_pregunta = ?", i, id_p)
+
+
+def _texto_pregunta(cur, texto, id_actual=None):
+    t = _texto(texto, 250, "el texto de la pregunta")
+    if len(t) < 10:
+        raise ErrorDatos("La pregunta debe tener al menos 10 caracteres.")
+    t = t[0].upper() + t[1:]
+    cur.execute("SELECT id_pregunta FROM dbo.Pregunta WHERE LOWER(Texto) = LOWER(?)", t)
+    r = cur.fetchone()
+    if r and r[0] != id_actual:
+        raise ErrorDatos("Esa pregunta ya existe.", 409)
+    return t
+
+
+def crear_pregunta(cur, texto):
+    t = _texto_pregunta(cur, texto)
+    cur.execute("SELECT ISNULL(MAX(NumPregunta), 0) FROM dbo.Pregunta WHERE Activa = 1")
+    num = cur.fetchone()[0] + 1
+    id_p = next(_contador(cur, "Pregunta", "id_pregunta"))
+    cur.execute("INSERT INTO dbo.Pregunta (id_pregunta, NumPregunta, Texto, Activa) VALUES (?, ?, ?, 1)", id_p, num, t)
+    _renumerar(cur)
+
+
+def editar_pregunta(cur, id_p, texto=None, activa=None):
+    cur.execute("SELECT 1 FROM dbo.Pregunta WHERE id_pregunta = ?", id_p)
+    if not cur.fetchone():
+        raise ErrorDatos("Esa pregunta no existe.", 404)
+    if texto is not None:
+        cur.execute("UPDATE dbo.Pregunta SET Texto = ? WHERE id_pregunta = ?", _texto_pregunta(cur, texto, id_p), id_p)
+    if activa is not None:
+        # si la vuelven a activar se va al final de la lista
+        if activa:
+            cur.execute("SELECT ISNULL(MAX(NumPregunta), 0) + 1 FROM dbo.Pregunta WHERE Activa = 1")
+            num = cur.fetchone()[0]
+            cur.execute("UPDATE dbo.Pregunta SET Activa = 1, NumPregunta = ? WHERE id_pregunta = ?", num, id_p)
+        else:
+            cur.execute("UPDATE dbo.Pregunta SET Activa = 0 WHERE id_pregunta = ?", id_p)
+    _renumerar(cur)
+
+
+def borrar_pregunta(cur, id_p):
+    """si ya tiene respuestas NO se borra (se perderian los reportes), solo se desactiva.
+    regresa 'borrada' o 'desactivada' para que el front avise que paso"""
+    cur.execute("SELECT COUNT(*) FROM dbo.Respuesta WHERE id_pregunta = ?", id_p)
+    if cur.fetchone()[0]:
+        cur.execute("UPDATE dbo.Pregunta SET Activa = 0 WHERE id_pregunta = ?", id_p)
+        accion = "desactivada"
+    else:
+        cur.execute("DELETE FROM dbo.Pregunta WHERE id_pregunta = ?", id_p)
+        accion = "borrada"
+    _renumerar(cur)
+    return accion
+
+
+def ordenar_preguntas(cur, ids):
+    """recibe los id de las preguntas activas en el orden nuevo"""
+    for i, id_p in enumerate(ids, 1):
+        cur.execute("UPDATE dbo.Pregunta SET NumPregunta = ? WHERE id_pregunta = ? AND Activa = 1", i, int(id_p))
+    _renumerar(cur)
+
+
 # ---------------------------------------------------------------- EVALUACIONES
 def leer_evaluaciones(cur):
     cur.execute("""SELECT e.id_encuesta, e.FechaEncuesta, e.Comentario, c.NomCarrera, g.Cuatrimestre, g.ClaveGrupo,
@@ -454,58 +540,234 @@ def leer_evaluaciones(cur):
     for r in cur.fetchall():
         f = r.FechaEncuesta
         evals[r.id_encuesta] = {
+            "id": r.id_encuesta,
             "fecha": f"{f.day}/{f.month}/{f.year}", "carrera": r.NomCarrera, "cuatrimestre": str(int(r.Cuatrimestre)),
             "grupo": r.ClaveGrupo, "profesor": _nombre(r.NomDocente, r.ApellidoPaterno, r.ApellidoMaterno),
-            "materia": r.NomAsignatura, "calificaciones": [], "comentario": r.Comentario or ""}
-    cur.execute("""SELECT p.id_encuesta, r.Calificacion FROM dbo.Pregunta p
-                   JOIN dbo.Respuesta r ON r.id_pregunta = p.id_pregunta
-                   ORDER BY p.id_encuesta, p.NumPregunta""")
-    for id_e, cal in cur.fetchall():
+            "materia": r.NomAsignatura, "calificaciones": [], "respuestas": {}, "comentario": r.Comentario or ""}
+    # ahora la respuesta trae directo su encuesta y su pregunta
+    cur.execute("""SELECT r.id_encuesta, r.id_pregunta, r.Calificacion FROM dbo.Respuesta r
+                   JOIN dbo.Pregunta p ON p.id_pregunta = r.id_pregunta
+                   ORDER BY r.id_encuesta, p.NumPregunta""")
+    for id_e, id_p, cal in cur.fetchall():
         if id_e in evals:
             evals[id_e]["calificaciones"].append(int(cal))
+            evals[id_e]["respuestas"][str(id_p)] = int(cal)
     for e in evals.values():
         c = e["calificaciones"]
         e["promedio"] = round(sum(c) / len(c), 1) if c else 0
     return list(evals.values())
 
 
-def guardar_evaluacion(cur, e, textos_preguntas):
-    grupo, materia, profesor = e.get("grupo"), e.get("materia"), e.get("profesor")
-    califs = e.get("calificaciones")
-    if not (grupo and materia and profesor) or not isinstance(califs, list) or not califs:
-        raise ErrorDatos("Evaluación incompleta.")
-    try:
-        califs = [int(c) for c in califs]
-    except (TypeError, ValueError):
-        raise ErrorDatos("Calificaciones inválidas.")
-    if any(not 5 <= c <= 10 for c in califs):
-        raise ErrorDatos("Las calificaciones deben ir del 5 al 10.")
-
-    id_clase = _clase_de(cur, grupo, materia, profesor)
-    if not id_clase:
-        raise ErrorDatos("No se encontró la clase que se está evaluando.", 404)
-
-    # la encuesta cuelga de una Clave_Acceso; si la clase no tiene ninguna se crea una sin código
-    cur.execute("SELECT TOP 1 id_acceso FROM dbo.Clave_Acceso WHERE id_clase = ? ORDER BY id_acceso", id_clase)
+def guardar_evaluacion(cur, codigo, respuestas, comentario=""):
+    """el alumno manda el codigo de su enlace y sus respuestas {id_pregunta: calificacion}
+    ya no se busca la clase por nombres (eso fallaba si el docente tenia acentos o correo), se usa el codigo"""
+    cur.execute("""SELECT k.id_acceso, cl.id_clase, g.id_grupo, g.CantidadAlumnos
+                   FROM dbo.Clave_Acceso k JOIN dbo.Clase cl ON cl.id_clase = k.id_clase
+                   JOIN dbo.Grupo g ON g.id_grupo = cl.id_grupo
+                   WHERE k.Codigo = ?""", codigo)
     r = cur.fetchone()
-    if r:
-        id_acceso = r[0]
-    else:
-        id_acceso = next(_contador(cur, "Clave_Acceso", "id_acceso"))
-        cur.execute("INSERT INTO dbo.Clave_Acceso (id_acceso, id_clase) VALUES (?, ?)", id_acceso, id_clase)
+    if not r:
+        raise ErrorDatos("El código ya no es válido. Pídele uno nuevo a tu profesor.", 404)
+    id_acceso, id_clase, id_grupo, alumnos = r
+
+    # si el grupo tiene su numero de alumnos no se dejan mas encuestas que alumnos
+    if alumnos:
+        cur.execute("""SELECT COUNT(*) FROM dbo.Encuesta e JOIN dbo.Clave_Acceso k ON k.id_acceso = e.id_acceso
+                       WHERE k.id_clase = ?""", id_clase)
+        if cur.fetchone()[0] >= alumnos:
+            raise ErrorDatos("Ya respondieron todos los alumnos de este grupo.", 409)
+
+    activas = leer_preguntas(cur, solo_activas=True)
+    if not activas:
+        raise ErrorDatos("Todavía no hay preguntas activas en el sistema.", 409)
+    if not isinstance(respuestas, dict):
+        raise ErrorDatos("Evaluación incompleta.")
+    califs = {}
+    for p in activas:
+        v = respuestas.get(str(p["id"]))
+        try:
+            v = int(v)
+        except (TypeError, ValueError):
+            raise ErrorDatos(f"Falta contestar la pregunta {p['num']}.")
+        if not 5 <= v <= 10:
+            raise ErrorDatos("Las calificaciones deben ir del 5 al 10.")
+        califs[p["id"]] = v
 
     id_enc = next(_contador(cur, "Encuesta", "id_encuesta"))
-    comentario = str(e.get("comentario") or "").strip()[:500] or None
+    comentario = " ".join(str(comentario or "").split())[:500] or None
     cur.execute("INSERT INTO dbo.Encuesta (id_encuesta, Comentario, id_acceso) VALUES (?, ?, ?)",
                 id_enc, comentario, id_acceso)
-
-    ids_p = _contador(cur, "Pregunta", "id_pregunta")
     ids_r = _contador(cur, "Respuesta", "id_respuesta")
-    for i, cal in enumerate(califs, 1):
-        texto = textos_preguntas[i - 1] if i - 1 < len(textos_preguntas) else f"Pregunta {i}"
-        id_p = next(ids_p)
-        cur.execute("INSERT INTO dbo.Pregunta (id_pregunta, NumPregunta, Texto, Activa, id_encuesta) "
-                    "VALUES (?, ?, ?, 1, ?)", id_p, i, str(texto)[:500], id_enc)
-        cur.execute("INSERT INTO dbo.Respuesta (id_respuesta, Calificacion, id_pregunta) VALUES (?, ?, ?)",
-                    next(ids_r), cal, id_p)
-    cur.execute("UPDATE dbo.Grupo SET participaciones = participaciones + 1 WHERE ClaveGrupo = ?", grupo)
+    for id_p, cal in califs.items():
+        cur.execute("INSERT INTO dbo.Respuesta (id_respuesta, Calificacion, id_pregunta, id_encuesta) VALUES (?, ?, ?, ?)",
+                    next(ids_r), cal, id_p, id_enc)
+    cur.execute("UPDATE dbo.Grupo SET participaciones = participaciones + 1 WHERE id_grupo = ?", id_grupo)
+    return id_enc
+
+
+# ---------------------------------------------------------------- ADMINISTRADORES (login, registro y cuenta)
+def hash_clave(clave):
+    # es lo mismo que HASHBYTES('SHA2_256', '...') de SQL Server, por eso la contraseña del script sirve
+    return hashlib.sha256(str(clave).encode("utf-8")).digest()
+
+
+def _fila_admin(r):
+    return {"id": r.id_admin, "nombres": r.NomAdmin, "paterno": r.ApellidoPaterno,
+            "materno": r.ApellidoMaterno or "", "nombre": _nombre(r.NomAdmin, r.ApellidoPaterno, r.ApellidoMaterno),
+            "correo": r.Correo, "foto": r.Foto or "", "rol": "administrador",
+            "registro": r.FechaRegistro.strftime("%d/%m/%Y") if r.FechaRegistro else "",
+            "ultimoAcceso": r.UltimoAcceso.strftime("%d/%m/%Y %H:%M") if r.UltimoAcceso else ""}
+
+
+_SQL_ADMIN = ("SELECT id_admin, NomAdmin, ApellidoPaterno, ApellidoMaterno, Correo, Foto, Estatus, "
+              "FechaRegistro, UltimoAcceso FROM dbo.Administrador")
+
+
+def admin_por_id(cur, id_admin):
+    cur.execute(_SQL_ADMIN + " WHERE id_admin = ? AND Estatus = 1", id_admin)
+    r = cur.fetchone()
+    return _fila_admin(r) if r else None
+
+
+def login(cur, correo, clave):
+    correo = str(correo or "").strip().lower()
+    cur.execute(_SQL_ADMIN + " WHERE LOWER(Correo) = ? AND Contrasena = ?", correo, hash_clave(clave))
+    r = cur.fetchone()
+    if not r:
+        raise ErrorDatos("Correo o contraseña incorrectos.", 401)
+    if not r.Estatus:
+        raise ErrorDatos("Tu cuenta está desactivada.", 403)
+    usuario = _fila_admin(r)   # el ultimo acceso que se muestra es el de ANTES de entrar ahorita
+    cur.execute("UPDATE dbo.Administrador SET UltimoAcceso = GETDATE() WHERE id_admin = ?", r.id_admin)
+    return usuario
+
+
+def _validar_clave(clave):
+    clave = str(clave or "")
+    if not re.fullmatch(r"(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}", clave):
+        raise ErrorDatos("La contraseña debe tener de 8 a 20 caracteres, una mayúscula, una minúscula y un número.")
+    return clave
+
+
+def _validar_correo(cur, correo, id_actual=None):
+    correo = str(correo or "").strip().lower()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", correo) or len(correo) > 100:
+        raise ErrorDatos("Escribe un correo válido.")
+    cur.execute("SELECT id_admin FROM dbo.Administrador WHERE LOWER(Correo) = ?", correo)
+    r = cur.fetchone()
+    if r and r[0] != id_actual:
+        raise ErrorDatos("Ese correo ya está registrado.", 409)
+    return correo
+
+
+def _validar_nombre(v, campo, maximo, obligatorio=True):
+    v = _texto(v, maximo, campo, obligatorio)
+    if v and not re.fullmatch(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ. ]+", v):
+        raise ErrorDatos(f"{campo[0].upper() + campo[1:]} solo puede tener letras.")
+    return v or None
+
+
+def registrar_admin(cur, d):
+    nombres = _validar_nombre(d.get("nombres"), "el nombre", 60)
+    paterno = _validar_nombre(d.get("paterno"), "el apellido paterno", 50)
+    materno = _validar_nombre(d.get("materno"), "el apellido materno", 50, obligatorio=False)
+    correo = _validar_correo(cur, d.get("correo"))
+    clave = _validar_clave(d.get("clave"))
+    id_a = next(_contador(cur, "Administrador", "id_admin"))
+    cur.execute("INSERT INTO dbo.Administrador (id_admin, NomAdmin, ApellidoPaterno, ApellidoMaterno, Correo, "
+                "Contrasena, Estatus) VALUES (?, ?, ?, ?, ?, ?, 1)",
+                id_a, nombres, paterno, materno, correo, hash_clave(clave))
+    return id_a
+
+
+def _revisar_clave_actual(cur, id_admin, clave):
+    cur.execute("SELECT 1 FROM dbo.Administrador WHERE id_admin = ? AND Contrasena = ?", id_admin, hash_clave(clave))
+    if not cur.fetchone():
+        raise ErrorDatos("Tu contraseña actual no es correcta.", 403)
+
+
+def cambiar_datos(cur, id_admin, d):
+    nombres = _validar_nombre(d.get("nombres"), "el nombre", 60)
+    paterno = _validar_nombre(d.get("paterno"), "el apellido paterno", 50)
+    materno = _validar_nombre(d.get("materno"), "el apellido materno", 50, obligatorio=False)
+    cur.execute("UPDATE dbo.Administrador SET NomAdmin = ?, ApellidoPaterno = ?, ApellidoMaterno = ? WHERE id_admin = ?",
+                nombres, paterno, materno, id_admin)
+
+
+def cambiar_correo(cur, id_admin, correo, clave_actual):
+    _revisar_clave_actual(cur, id_admin, clave_actual)
+    correo = _validar_correo(cur, correo, id_admin)
+    cur.execute("UPDATE dbo.Administrador SET Correo = ? WHERE id_admin = ?", correo, id_admin)
+
+
+def cambiar_clave(cur, id_admin, actual, nueva):
+    _revisar_clave_actual(cur, id_admin, actual)
+    if actual == nueva:
+        raise ErrorDatos("La contraseña nueva tiene que ser diferente a la actual.")
+    cur.execute("UPDATE dbo.Administrador SET Contrasena = ? WHERE id_admin = ?", hash_clave(_validar_clave(nueva)), id_admin)
+
+
+def cambiar_foto(cur, id_admin, foto):
+    foto = str(foto or "")
+    if foto and not re.match(r"data:image/(png|jpe?g|webp|gif);base64,", foto):
+        raise ErrorDatos("La foto tiene que ser una imagen PNG, JPG o WEBP.")
+    if len(foto) > 1_500_000:   # mas o menos 1 MB, el front ya la achica antes de mandarla
+        raise ErrorDatos("La foto es muy pesada, elige una más chica.")
+    cur.execute("UPDATE dbo.Administrador SET Foto = ? WHERE id_admin = ?", foto or None, id_admin)
+
+
+# ---------------------------------------------------------------- RECUPERAR CONTRASEÑA
+MINUTOS_CODIGO = 15
+
+
+def crear_recuperacion(cur, correo):
+    """regresa (correo, nombre, codigo) o None si el correo no existe.
+    el codigo es de 6 numeros y en la BD se guarda encriptado"""
+    correo = str(correo or "").strip().lower()
+    cur.execute("SELECT id_admin, NomAdmin FROM dbo.Administrador WHERE LOWER(Correo) = ? AND Estatus = 1", correo)
+    r = cur.fetchone()
+    if not r:
+        return None
+    # los codigos que tenia antes ya no sirven
+    cur.execute("UPDATE dbo.Recuperacion SET Usado = 1 WHERE id_admin = ? AND Usado = 0", r.id_admin)
+    codigo = f"{secrets.randbelow(1_000_000):06d}"
+    id_r = next(_contador(cur, "Recuperacion", "id_recuperacion"))
+    cur.execute("INSERT INTO dbo.Recuperacion (id_recuperacion, id_admin, Codigo, FechaExpira) "
+                "VALUES (?, ?, ?, DATEADD(MINUTE, ?, GETDATE()))", id_r, r.id_admin, hash_clave(codigo), MINUTOS_CODIGO)
+    return correo, r.NomAdmin, codigo
+
+
+def _recuperacion_valida(cur, correo, codigo):
+    cur.execute("""SELECT TOP 1 r.id_recuperacion, r.id_admin FROM dbo.Recuperacion r
+                   JOIN dbo.Administrador a ON a.id_admin = r.id_admin
+                   WHERE LOWER(a.Correo) = ? AND r.Codigo = ? AND r.Usado = 0 AND r.FechaExpira > GETDATE()
+                   ORDER BY r.id_recuperacion DESC""",
+                str(correo or "").strip().lower(), hash_clave(str(codigo or "").strip()))
+    r = cur.fetchone()
+    if not r:
+        raise ErrorDatos("El código no es correcto o ya expiró. Pide uno nuevo.", 400)
+    return r
+
+
+def revisar_recuperacion(cur, correo, codigo):
+    _recuperacion_valida(cur, correo, codigo)
+
+
+def usar_recuperacion(cur, correo, codigo, nueva):
+    r = _recuperacion_valida(cur, correo, codigo)
+    cur.execute("UPDATE dbo.Administrador SET Contrasena = ? WHERE id_admin = ?", hash_clave(_validar_clave(nueva)), r.id_admin)
+    cur.execute("UPDATE dbo.Recuperacion SET Usado = 1 WHERE id_recuperacion = ?", r.id_recuperacion)
+
+
+# ---------------------------------------------------------------- OPINIONES (calificar el sistema)
+def guardar_opinion(cur, estrellas, comentario, id_admin=None):
+    try:
+        estrellas = int(estrellas)
+    except (TypeError, ValueError):
+        raise ErrorDatos("Elige cuántas estrellas le das al sistema.")
+    if not 1 <= estrellas <= 5:
+        raise ErrorDatos("Elige de 1 a 5 estrellas.")
+    comentario = " ".join(str(comentario or "").split())[:300] or None
+    id_o = next(_contador(cur, "Opinion", "id_opinion"))
+    cur.execute("INSERT INTO dbo.Opinion (id_opinion, Estrellas, Comentario, id_admin) VALUES (?, ?, ?, ?)",
+                id_o, estrellas, comentario, id_admin)

@@ -1,5 +1,5 @@
 // /static/pantallas/admin/docentes.js
-import { buscar } from "/static/js/nucleo/utiles.js";
+import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import {
   getDocentes, setDocentes, getClases, setClases, getAsignaturas
@@ -9,7 +9,8 @@ let cont = null;
 let editando = -1;
 
 const correoPermitido = /^[A-Z0-9._%+-]+@(gmail\.com|utng\.edu\.mx|outlook\.com)$/i;
-const mayus = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$/;
+// cada palabra con mayuscula, y se vale la inicial con punto (J. Refugio)
+const mayus = /^[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]*\.?(\s[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]*\.?)*$/;
 
 function escaparHTML(valor) {
     return String(valor ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -40,17 +41,17 @@ export function iniciar(contenedor) {
 
     function llenarMaterias(seleccion = []) {
         const caja = buscar("#d-materias", cont);
-        const asignaturas = getAsignaturas() || [];
+        // la misma materia puede estar en varias carreras, aqui solo sale una vez
+        const asignaturas = [...new Set((getAsignaturas() || []).map(a => a.nombre))].sort();
         caja.innerHTML = asignaturas.length
-            ? asignaturas.map(a => `<label><input type="checkbox" name="materias" value="${escaparHTML(a.nombre)}" ${seleccion.includes(a.nombre) ? "checked" : ""}>${escaparHTML(a.nombre)}</label>`).join("")
+            ? asignaturas.map(n => `<label><input type="checkbox" name="materias" value="${escaparHTML(n)}" ${seleccion.includes(n) ? "checked" : ""}>${escaparHTML(n)}</label>`).join("")
             : `<span style="color:var(--mut)">No hay asignaturas registradas</span>`;
     }
 
     campoCorreo.addEventListener("input", () => {
         campoCorreo.setCustomValidity("");
         const correo = campoCorreo.value.trim();
-        if (!correo) campoCorreo.setCustomValidity("El correo es obligatorio.");
-        else if (!correoPermitido.test(correo)) campoCorreo.setCustomValidity("Solo correos Gmail, UTNG u Outlook.");
+        if (correo && !correoPermitido.test(correo)) campoCorreo.setCustomValidity("Solo correos Gmail, UTNG u Outlook.");
     });
 
     btnNuevo.onclick = () => abrirForm(-1);
@@ -63,7 +64,7 @@ export function iniciar(contenedor) {
     };
 
     // --- GUARDAR (nuevo o edición) ---
-    form.onsubmit = evento => {
+    form.onsubmit = async evento => {
         evento.preventDefault();
 
         const d = Object.fromEntries(new FormData(form));
@@ -73,14 +74,15 @@ export function iniciar(contenedor) {
         const correo = (d.correo || "").trim().toLowerCase();
         const materiasSel = [...form.querySelectorAll('input[name="materias"]:checked')].map(x => x.value);
 
-        if (!nombres || !paterno || !correo) return alert("Completa los nombres, el apellido paterno y el correo.");
+        // el correo ya es opcional porque todavia no tenemos el de todos los maestros
+        if (!nombres || !paterno) return avisar("Completa el nombre y el apellido paterno.", "err");
         if (!mayus.test(nombres) || !mayus.test(paterno) || (materno && !mayus.test(materno)))
-            return alert("Nombre y apellidos deben empezar con mayúscula (ej. Juan Pérez).");
-        if (!correoPermitido.test(correo)) return alert("Correo no permitido.");
+            return avisar("Nombre y apellidos deben empezar con mayúscula (ej. Juan Pérez).", "err");
+        if (correo && !correoPermitido.test(correo)) return avisar("Solo se permiten correos Gmail, UTNG u Outlook.", "err");
 
         const lista = getDocentes() || [];
-        if (lista.some((doc, i) => i !== editando && doc.correo === correo))
-            return alert("Ya existe un docente con este correo.");
+        if (correo && lista.some((doc, i) => i !== editando && doc.correo === correo))
+            return avisar("Ya existe un docente con este correo.", "err");
 
         const nombreCompleto = `${nombres} ${paterno}${materno ? " " + materno : ""}`;
         const item = { nombre: nombreCompleto, nombres, paterno, materno, correo, materias: materiasSel };
@@ -89,24 +91,28 @@ export function iniciar(contenedor) {
         const correoViejo = viejo ? viejo.correo : correo;
         const nombreViejo = viejo ? viejo.nombre : nombreCompleto;
 
-        if (editando >= 0) lista[editando] = item;
+        const eraEdicion = editando >= 0;
+        if (eraEdicion) lista[editando] = item;
         else lista.push(item);
-        setDocentes(lista);
-
-        // solo actualiza el correo en las asignaciones que ya tenía (Carga Académica)
-        const clases = (getClases() || []).map(c =>
-            (c.docenteId === correoViejo || c.docenteId === nombreViejo) ? { ...c, docenteId: correo } : c);
-        setClases(clases);
-
         form.reset();
         campoCorreo.setCustomValidity("");
         form.hidden = true;
         editando = -1;
         dibujar();
+        // primero se guarda el docente y DESPUES sus clases, si se mandan juntas el servidor
+        // todavia no conoce el correo nuevo y truena
+        await setDocentes(lista);
+        const nuevoId = correo || nombreCompleto;
+        if (eraEdicion && (correoViejo !== correo || nombreViejo !== nombreCompleto)) {
+            const clases = (getClases() || []).map(c =>
+                (c.docenteId === correoViejo || c.docenteId === nombreViejo) ? { ...c, docenteId: nuevoId } : c);
+            setClases(clases);
+        }
+        avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
     };
 
     // --- EDITAR / ELIMINAR ---
-    tabla.onclick = evento => {
+    tabla.onclick = async evento => {
         const botonEditar = evento.target.closest("[data-ed]");
         const botonEliminar = evento.target.closest("[data-del]");
 
@@ -120,11 +126,10 @@ export function iniciar(contenedor) {
 
             const asignadas = clases.filter(c => c.docenteId === docente.correo || c.docenteId === docente.nombre);
             if (asignadas.length > 0) {
-                alert(`No puedes eliminar a "${docente.nombre}" porque tiene grupos asignados en Carga Académica. Elimina esas asignaciones primero.`);
-                return;
+                return avisar(`No puedes eliminar a "${docente.nombre}" porque tiene grupos asignados en Carga Académica. Elimina esas asignaciones primero.`, "err");
             }
 
-            if (!confirm("¿Eliminar este docente?")) return;
+            if (!await confirmar("Esta acción no se puede deshacer.", { titulo: `¿Eliminar a ${docente.nombre}?`, si: "Eliminar", peligro: true })) return;
             lista.splice(indice, 1);
             setDocentes(lista);
             dibujar();
@@ -135,6 +140,7 @@ export function iniciar(contenedor) {
         editando = indice;
         form.hidden = false;
         campoCorreo.setCustomValidity("");
+        buscar("#d-titulo", cont).textContent = indice >= 0 ? "Editar docente" : "Nuevo docente";
 
         if (indice >= 0) {
             const doc = getDocentes()[indice];
@@ -162,16 +168,16 @@ export function iniciar(contenedor) {
                 const materias = materiasDe(doc, clases);
 
                 const materiasHTML = materias.length === 0
-                    ? `<span style="color:var(--mut);font-size:.85rem;">Sin asignar</span>`
+                    ? `<span class="sub">Sin asignar</span>`
                     : `<div style="display:flex;flex-wrap:wrap;gap:4px;">` +
-                      materias.slice(0, 3).map(m => `<span class="chip" style="font-size:.75rem;">${escaparHTML(m)}</span>`).join(" ") +
-                      (materias.length > 3 ? `<span style="font-size:.75rem;color:var(--mut);"> +${materias.length - 3} más</span>` : "") +
+                      materias.slice(0, 3).map(m => `<span class="chip">${escaparHTML(m)}</span>`).join(" ") +
+                      (materias.length > 3 ? `<span class="sub"> +${materias.length - 3} más</span>` : "") +
                       `</div>`;
 
                 return `
                 <tr>
                     <td><div class="persona"><span class="avatar-mini">${escaparHTML((doc.nombre || "?").trim().charAt(0).toUpperCase())}</span>${escaparHTML(doc.nombre)}</div></td>
-                    <td>${escaparHTML(doc.correo)}</td>
+                    <td>${doc.correo ? escaparHTML(doc.correo) : '<span class="sub">Sin correo</span>'}</td>
                     <td>${materiasHTML}</td>
                     <td class="acciones-fila">
                         <button class="mini" type="button" data-ed="${indice}">Editar</button>

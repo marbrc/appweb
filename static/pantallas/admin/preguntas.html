@@ -11,20 +11,21 @@
     <button class="btn" id="p-nuevo" type="button"><i data-icono="mas"></i>Nueva pregunta</button>
   </div>
 
+  <p class="nota-caja"><i data-icono="info"></i><span>Las preguntas se guardan en la base de datos. Si una pregunta ya tiene respuestas
+    no se borra (se perderían los reportes), se <b>desactiva</b> y deja de salirle a los alumnos.</span></p>
+
   <form id="p-form" class="form-cat" hidden>
     <h3 class="form-tit" id="p-titulo">Nueva pregunta</h3>
 
-    <label style="grid-column:1/-1">Texto de la pregunta
+    <label class="completo">Texto de la pregunta
       <textarea name="texto" id="p-texto" rows="3" required minlength="10" maxlength="250"
-        placeholder="Ej. El profesor expone los contenidos de manera clara..."></textarea>
-      <small style="font-weight:400;color:var(--mut)">
-        Mínimo 10 caracteres. <span id="p-cont">0/250</span>
-      </small>
+        placeholder="Ej. El docente expone los contenidos de manera clara..."></textarea>
+      <small class="ayuda">Mínimo 10 caracteres. <span id="p-cont">0/250</span></small>
     </label>
 
     <div class="acciones">
-      <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="p-cancelar">Cancelar</button>
+      <button class="btn" type="submit" id="p-guardar">Guardar</button>
     </div>
   </form>
 

@@ -1,120 +1,99 @@
-/* ===== EL MARCO: menú a la izquierda y  a la derecha ===== */
-.marco{display:flex;height:100vh;overflow:hidden}
-.derecha{flex:1;display:flex;flex-direction:column;min-width:0}
-/* los iconos cada <i> es una cajita y el dibujo se ajusta a ella */
-.marco i{display:grid;flex:none;width:1.3rem;height:1.3rem;font-style:normal}
-.marco i svg{width:100%;height:100%}
-
-/* ===== MENÚ LATERAL ===== */
-.lateral{flex:none;display:flex;flex-direction:column;gap:.3rem;width:16rem;padding:.8rem .6rem;overflow:hidden;color:#fff;background:var(--hd);transition:width .35s cubic-bezier(.4,0,.2,1)}
-.logo-lat{display:flex;align-items:center;gap:.7rem;margin-bottom:.6rem;padding:.2rem 0 1rem;white-space:nowrap;font-size:.78rem;font-weight:700;line-height:1.2;text-transform:uppercase;border-bottom:1px solid #ffffff2a}
-.logo-caja{flex:none;display:grid;place-items:center;width:3.6rem;height:3.6rem;font-weight:800;letter-spacing:.04em;border:2px dashed #ffffff88;border-radius:.8rem}
-.ops{position:relative;display:flex;flex-direction:column;flex:1;gap:.2rem;overflow-x:hidden;overflow-y:auto}
-.linea{width:100%;margin:.5rem 0;border:0;border-top:1px solid #ffffff2a}
-
-/* cada opción, el padding está hecho para que el icono quede en el centro cuando el menú se oculta
-   los iconos no se mueven, solo se encoge el menú y se quitn los textos */
-.op{position:relative;z-index:1;display:flex;align-items:center;gap:.9rem;width:100%;padding:.7rem 1rem;overflow:hidden;white-space:nowrap;text-align:left;color:#cfe0ff;background:none;border:0;border-radius:.8rem;transition:color .25s,background .25s}
-.op i{width:1.6rem;height:1.6rem}
-.op:hover{color:#fff;background:#ffffff14}
-.op.activa{font-weight:700;color:#fff}
-.op.salir{color:#ff9b9b}
-.op.salir:hover{background:#ff9b9b22}
-
-/* el textos del menú y del logo se desvanecen  */
-.op span,.logo-lat span{transition:opacity .25s}
-
-/* cajita azul que se desliza hasta la opción elegida  */
-.pill{position:absolute;left:0;right:0;top:0;height:0;z-index:0;opacity:0;background:var(--pri);border-radius:.8rem;box-shadow:0 6px 16px #0005;transition:top .45s cubic-bezier(.34,1.3,.64,1),height .45s cubic-bezier(.34,1.3,.64,1),opacity .25s}
-
-/* menú oculto como tipo Gmail, el ancho se encoge con transición, se van los textos y quedan solo los iconos */
-.marco.cerrado .lateral{width:4.8rem}
-.marco.cerrado .op span,.marco.cerrado .logo-lat span{opacity:0}
+/* ===== EL MARCO: barra arriba, menú a la izquierda y las pantallas a la derecha ===== */
+.marco{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.cuerpo{position:relative;flex:1;display:flex;min-height:0}
 
 /* ===== BARRA DE ARRIBA ===== */
-.superior{display:flex;align-items:center;gap:1rem;padding:.7rem 1.2rem;background:var(--card);border-bottom:1px solid var(--bd)}
-.btn-hamb{display:grid;place-items:center;width:3.6rem;height:3rem;margin-bottom:.4rem;color:#fff;background:none;border:0;border-radius:.8rem;transition:background .2s}
-.btn-hamb:hover{background:#ffffff1f}
-.btn-hamb i{width:1.6rem;height:1.6rem}
-.titulos{flex:1;min-width:0}
-.titulos h1{font-size:1.3rem}
-.titulos p{margin:0}
-/* aqui estaban los estilos del reloj .reloj pero ya se quito el reloj de la barra */
-.cuenta-caja{position:relative}
-.btn-cuenta{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;color:var(--tx);background:var(--in);border:1px solid var(--bd);border-radius:2rem}
-.btn-cuenta i{width:1rem;height:1rem}
-.menu-cuenta{position:absolute;right:0;top:calc(100% + .5rem);z-index:5;display:grid;gap:.2rem;min-width:13rem;padding:.7rem;background:var(--card);border:1px solid var(--bd);border-radius:.8rem;box-shadow:0 10px 28px #0004;animation:desvanece .2s ease}
-.menu-cuenta p{margin:0 0 .3rem}
-.menu-cuenta button{display:flex;align-items:center;gap:.6rem;padding:.55rem .7rem;text-align:left;color:var(--tx);background:none;border:0;border-radius:.5rem}
-.menu-cuenta button:hover{background:var(--bg)}
+.superior{flex:none;display:flex;align-items:center;gap:.8rem;height:62px;padding:0 1.1rem 0 .75rem;background:var(--card);border-bottom:1px solid var(--bd);position:relative;z-index:20}
+/* los tres puntitos que ocultan el menu */
+.btn-menu{display:grid;place-items:center;width:2.5rem;height:2.5rem;color:var(--mut);background:none;border:0;border-radius:9px;transition:background .2s,color .2s}
+.btn-menu:hover{color:var(--tx);background:var(--sutil)}
+.btn-menu i[data-icono]{width:1.35rem;height:1.35rem;transition:transform .35s ease}
+.marco.cerrado .btn-menu i[data-icono]{transform:rotate(90deg)}
+.marca{display:flex;align-items:center;gap:.6rem;color:var(--tx);text-decoration:none!important}
+.marca img{border-radius:8px}
+.marca span{display:grid;line-height:1.15}
+.marca b{font-size:.98rem}
+.marca small{font-size:.7rem;font-weight:700;letter-spacing:.12em;color:var(--ac)}
+/* Administración > Grupos */
+.migas{display:flex;align-items:center;gap:.4rem;margin-left:1.4rem;padding-left:1.4rem;font-size:.88rem;color:var(--mut);border-left:1px solid var(--bd);min-width:0}
+.migas i[data-icono]{width:.9rem;height:.9rem}
+.migas b{color:var(--tx);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* la cuenta de arriba a la derecha */
+.cuenta-caja{position:relative;margin-left:auto}
+.btn-cuenta{display:flex;align-items:center;gap:.6rem;padding:.3rem .6rem .3rem .3rem;color:var(--tx);background:none;border:1px solid transparent;border-radius:30px;transition:background .2s,border-color .2s}
+.btn-cuenta:hover,.btn-cuenta[aria-expanded=true]{background:var(--sutil);border-color:var(--bd)}
+.btn-cuenta .avatar-mini{width:2.1rem;height:2.1rem}
+.cuenta-txt{display:grid;text-align:left;line-height:1.2}
+.cuenta-txt b{font-size:.86rem;max-width:11rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cuenta-txt small{font-size:.74rem;color:var(--mut)}
+.btn-cuenta>i[data-icono]{width:1rem;height:1rem;color:var(--mut)}
+.menu-cuenta{position:absolute;right:0;top:calc(100% + .45rem);z-index:30;display:grid;gap:.1rem;width:16rem;padding:.4rem;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:0 14px 36px #0b2a5b2b;animation:aparece .16s ease}
+.menu-cuenta-cab{display:flex;align-items:center;gap:.7rem;padding:.6rem .6rem .8rem;margin-bottom:.2rem;border-bottom:1px solid var(--bd)}
+.menu-cuenta-cab div{display:grid;min-width:0;line-height:1.3}
+.menu-cuenta-cab b{font-size:.9rem}
+.menu-cuenta-cab small{font-size:.78rem;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.avatar-mini.grande{width:2.6rem;height:2.6rem;font-size:.95rem}
+.menu-cuenta button{display:flex;align-items:center;gap:.65rem;padding:.55rem .65rem;font-size:.9rem;text-align:left;background:none;border:0;border-radius:8px}
+.menu-cuenta button:hover{background:var(--sutil)}
+.menu-cuenta button i[data-icono]{color:var(--mut)}
+.menu-cuenta hr{width:100%;margin:.2rem 0;border:0;border-top:1px solid var(--bd)}
+.menu-cuenta .salir{color:var(--err)}
+.menu-cuenta .salir i[data-icono]{color:var(--err)}
+
+/* ===== MENÚ LATERAL ===== */
+.lateral{flex:none;display:flex;flex-direction:column;width:17rem;padding:.9rem .7rem;overflow:hidden;background:var(--card);border-right:1px solid var(--bd);transition:width .32s cubic-bezier(.4,0,.2,1)}
+.ops{position:relative;display:flex;flex-direction:column;gap:2px;flex:1;overflow-x:hidden;overflow-y:auto}
+/* los titulitos Gestión y General */
+.grupo-menu{padding:.9rem .9rem .35rem;font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;color:var(--mut);transition:opacity .2s}
+.grupo-menu:first-of-type{padding-top:.2rem}
+
+/* cada opcion, el padding esta hecho para que el icono quede en el centro cuando el menu se oculta */
+.op{position:relative;z-index:1;display:flex;align-items:center;gap:.8rem;width:100%;min-height:2.6rem;padding:.55rem .95rem;font-size:.92rem;font-weight:500;white-space:nowrap;text-align:left;color:var(--mut);background:none;border:0;border-radius:9px;transition:color .25s,background .2s}
+.op i{display:grid;place-items:center;flex:none;width:1.25rem;height:1.25rem;font-style:normal}
+.op i svg{width:100%;height:100%}
+.op:hover{color:var(--tx);background:var(--sutil)}
+.op.activa{font-weight:600;color:var(--ac);background:none}
+.op span{flex:1;overflow:hidden;text-overflow:ellipsis;transition:opacity .2s}
+/* la flechita azul que sale en la opcion elegida */
+.op .flecha{width:1rem;height:1rem;color:var(--pri);opacity:0;transform:translateX(-6px);transition:opacity .3s,transform .3s}
+.op.activa .flecha{opacity:1;transform:none}
+
+/* la cajita azul clarito que se desliza hasta la opcion elegida, con su rayita azul a la izquierda */
+.pill{position:absolute;left:0;right:0;top:0;height:0;z-index:0;opacity:0;background:var(--sel);border-radius:9px;pointer-events:none;transition:top .4s cubic-bezier(.34,1.25,.64,1),height .4s cubic-bezier(.34,1.25,.64,1),opacity .25s}
+.pill::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:3px;background:var(--pri);border-radius:0 3px 3px 0}
+
+/* menú oculto como tipo Gmail, se encoge con transición, se van los textos y quedan solo los iconos */
+.marco.cerrado .lateral{width:4.6rem}
+.marco.cerrado .op span,.marco.cerrado .op .flecha{opacity:0}
+.marco.cerrado .grupo-menu{opacity:0;height:1rem;padding:0}
+.marco.cerrado .grupo-menu+.op{margin-top:.2rem}
+
+.velo{display:none}
 
 /* ===== CONTENEDOR DONDE CAMBIAN LAS PANTALLAS ===== */
 /* la clase saliendo la pone el router, la pantalla se desvanece y al quitarla aparece la nueva */
-.contenedor{flex:1;overflow:auto;padding:1.4rem;transition:opacity .18s ease,transform .18s ease}
-.contenedor.saliendo{opacity:0;transform:translateY(8px)}
+.contenedor{flex:1;min-width:0;overflow:auto;padding:1.8rem 2.2rem 3rem;transition:opacity .18s ease,transform .18s ease}
+.contenedor.saliendo{opacity:0;transform:translateY(6px)}
+.contenedor>*{max-width:82rem;margin-inline:auto}
 
 /* ===== PANTALLITA DE CERRANDO SESIÓN ===== */
-.cerrando{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--bg);animation:desvanece .35s ease}
-.cerrando-caja{display:grid;justify-items:center;gap:.8rem;text-align:center}
-.cerrando-caja p{margin:0}
-.spinner{width:3rem;height:3rem;border:4px solid var(--bd);border-top-color:var(--pri);border-radius:50%;animation:gira .9s linear infinite}
-@keyframes gira{to{transform:rotate(360deg)}}
-@keyframes desvanece{from{opacity:0}}
+.cerrando{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:var(--bg);animation:desvanece .3s ease}
+.cerrando-caja{display:grid;justify-items:center;gap:1rem;text-align:center;color:var(--mut)}
+.cerrando-caja img{border-radius:14px}
+.spinner{width:2rem;height:2rem;border:3px solid var(--bd);border-top-color:var(--pri);border-radius:50%;animation:gira .8s linear infinite}
 
-/* ===== PIEZAS QUE USAN LAS PANTALLAS ===== */
-.resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:1rem;margin-top:1rem}
-.dato{display:grid;gap:.3rem;padding:1.1rem;background:var(--card);border:1px solid var(--bd);border-radius:1rem}
-.dato small{color:var(--mut)}
-.dato b{font-size:1.8rem;color:var(--ac)}
-.vacio{display:grid;justify-items:start;gap:.5rem}
-.temas{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.8rem}
-.contenedor .tarjeta{margin:1rem 0 0}
-.tarjeta.ancha{max-width:44rem}
-
-/* pantalla Acerca del sistema */
-.acerca{display:grid;grid-template-columns:auto 1fr;gap:.6rem 1.2rem;margin:0}
-.acerca dt{font-weight:700;color:var(--ac)}
-.acerca dd{margin:0}
-.acerca ul{margin:0;padding-left:1.1rem}
-
-/* pantalla Calificar el sistema, las estrellas */
-.estrellas{display:flex;gap:.3rem}
-.estrella{width:2.8rem;height:2.8rem;padding:0;color:var(--mut);background:none;border:0;transition:transform .2s,color .2s}
-.estrella svg{width:100%;height:100%}
-.estrella:hover{transform:scale(1.15)}
-.estrella.on{color:#f5a524}
-.estrella.on svg{fill:currentColor}
-
-/* en el celular */
-@media(max-width:700px){
-  .superior{padding:.6rem .8rem}
+/* ===== EN EL CELULAR el menu sale encima de todo ===== */
+@media(max-width:860px){
+  .superior{padding:0 .7rem 0 .4rem;gap:.5rem}
+  .migas,.cuenta-txt,.btn-cuenta>i[data-icono]{display:none}
+  .lateral{position:absolute;left:0;top:0;bottom:0;z-index:15;width:17rem;box-shadow:12px 0 30px #0b2a5b26;transform:translateX(-100%);transition:transform .3s ease}
+  .marco.abierto .lateral{transform:none}
+  .marco.cerrado .lateral{width:17rem}
+  .marco.cerrado .op span,.marco.cerrado .op .flecha{opacity:1}
+  .marco.cerrado .op:not(.activa) .flecha{opacity:0}
+  .marco.cerrado .grupo-menu{opacity:1;height:auto;padding:.9rem .9rem .35rem}
+  .velo{position:absolute;inset:0;z-index:14;display:block;background:#0b1a3355;opacity:0;pointer-events:none;transition:opacity .3s}
+  .marco.abierto .velo{opacity:1;pointer-events:auto}
+  .contenedor{padding:1.2rem 1rem 2.5rem}
 }
-/* si la persona no quiere animaciones en su compu, se quitan */
-@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-
-/* ===== INICIO DEL ALUMNO: tarjeta de bienvenida y tarjetas que se abren ===== */
-.inicio-alumno{max-width:56rem}
-.inicio-alumno>.btn{margin-top:1.2rem}
-.turno{padding:1.6rem;color:#fff;background:linear-gradient(135deg,var(--pri),var(--hd));border-radius:1.2rem}
-.turno h2{color:#fff}
-.turno p{margin:0}
-.turno-grande{margin:.3rem 0 .7rem!important;font-size:1.5rem;font-weight:700}
-.turno .sub{display:flex;align-items:center;gap:.5rem;color:#dbe8ff}
-.guia-titulo{margin:1.6rem 0 .8rem}
-.guia{display:grid;gap:.8rem}
-.guia-card{overflow:hidden;background:var(--card);border:1px solid var(--bd);border-radius:1rem;animation:entra-carta .5s ease backwards;animation-delay:calc(var(--d) * 80ms);transition:box-shadow .25s,border-color .25s}
-.guia-card:hover{box-shadow:0 8px 22px #0b2a5b22}
-.guia-card.abierta{border-color:var(--pri)}
-.guia-cab{display:flex;align-items:center;gap:1rem;width:100%;padding:1rem 1.2rem;font-weight:700;text-align:left;color:var(--tx);background:none;border:0}
-.guia-cab i{margin-left:auto;transition:transform .3s}
-.guia-card.abierta .guia-cab i{transform:rotate(180deg)}
-.guia-num{display:grid;place-items:center;flex:none;width:2.2rem;height:2.2rem;color:#fff;background:var(--pri);border-radius:50%}
-/* el truco para que se abra suave: la fila pasa de 0fr (cerrada) a 1fr (abierta) con transición */
-.guia-cuerpo{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
-.guia-card.abierta .guia-cuerpo{grid-template-rows:1fr}
-.guia-cuerpo>div{overflow:hidden}
-.guia-cuerpo p{margin:0;padding:0 1.2rem 1.1rem 4.4rem;color:var(--mut)}
-@keyframes entra-carta{from{opacity:0;transform:translateY(16px)}}
-
-/* los códigos de acceso */
-.codigo{font-family:ui-monospace,Consolas,monospace;font-size:1.1rem;letter-spacing:.2em}

@@ -12,10 +12,10 @@
   </div>
 
   <form id="g-form" class="form-cat" hidden>
-    <h3 class="form-tit">Datos del grupo</h3>
+    <h3 class="form-tit" id="g-titulo">Datos del grupo</h3>
 
     <label>Clave del Grupo
-      <input name="clave" required placeholder="Ej. DSW123" pattern="[A-Z]{3,4}[0-9]{3}"
+      <input name="clave" required placeholder="Ej. GTID241" pattern="[A-Z]{3,4}[0-9]{3}"
              title="3 o 4 letras mayúsculas seguidas de 3 números (Ej. DSW123, MEC1234)"
              oninput="this.value = this.value.toUpperCase()">
     </label>
@@ -27,7 +27,7 @@
     </label>
 
     <label>Cuatrimestre
-      <input type="number" name="cuatrimestre" min="1" max="12" placeholder="Ej. 1" required>
+      <input type="number" name="cuatrimestre" min="1" max="11" placeholder="Ej. 4" required>
     </label>
 
     <label>Alumnos en el grupo
@@ -35,8 +35,8 @@
     </label>
 
     <div class="acciones">
-      <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="g-cancelar">Cancelar</button>
+      <button class="btn" type="submit">Guardar</button>
     </div>
   </form>
 

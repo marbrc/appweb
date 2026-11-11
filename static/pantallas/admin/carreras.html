@@ -18,17 +18,17 @@
       <input
         name="nombre"
         required
-        minlength="10"
-        maxlength="200"
-        placeholder="Ej. Desarrollo de software"
-        pattern="^[A-ZÁÉÍÓÚÑ][a-záéíóúñü\s]*$"
-        title="Solo la primera letra debe ser mayúscula, el resto minúsculas. Máximo 200 caracteres."
+        minlength="5"
+        maxlength="60"
+        placeholder="Ej. Desarrollo de Software Multiplataforma"
+        pattern="[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]*"
+        title="Debe empezar con mayúscula y solo llevar letras. Máximo 60 caracteres."
         autocomplete="off">
     </label>
 
     <div class="acciones">
-      <button class="btn" type="submit">Guardar</button>
       <button class="btn sec" type="button" id="c-cancelar">Cancelar</button>
+      <button class="btn" type="submit">Guardar</button>
     </div>
   </form>
 
@@ -46,34 +46,3 @@
     </table>
   </div>
 </div>
-
-<script>
-  // Bloquea caracteres no válidos, fuerza la primera letra a mayúscula y el resto a minúscula
-  (function () {
-    const input = document.querySelector('#c-form input[name="nombre"]');
-    if (!input) return;
-
-    input.addEventListener("input", function () {
-      // 1. Quita todo lo que no sea letra (con acentos/ñ) ni espacio
-      let valor = this.value.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ\s]/g, "");
-      
-      // 2. Forzar todo a minúsculas primero
-      valor = valor.toLowerCase();
-      
-      // 3. Si hay texto, poner la primera letra en mayúscula
-      if (valor.length > 0) {
-        valor = valor.charAt(0).toUpperCase() + valor.slice(1);
-      }
-      
-      // 4. Límite de 200 caracteres
-      if (valor.length > 200) {
-        valor = valor.slice(0, 200);
-      }
-   
-      
-      
-      // 5. Asignar el valor limpio de vuelta al input
-      this.value = valor;
-    });
-  })();
-</script>

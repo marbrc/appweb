@@ -12,35 +12,35 @@
   </div>
 
   <form id="d-form" class="form-cat" hidden>
-    <h3 class="form-tit">Datos del docente</h3>
+    <h3 class="form-tit" id="d-titulo">Datos del docente</h3>
 
     <label>Nombre(s)
       <input name="nombres" required placeholder="Ej. Apolinar"
-        pattern="[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*"
-        title="Cada nombre debe empezar con mayúscula. Ej. Juan Carlos">
+        pattern="[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]*\.?(\s[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]*\.?)*"
+        title="Cada nombre debe empezar con mayúscula. Ej. Juan Carlos o J. Refugio">
     </label>
     <label>Apellido Paterno
       <input name="paterno" required placeholder="Ej. Trejo"
-        pattern="[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*"
+        pattern="[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]*\.?(\s[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]*\.?)*"
         title="Debe empezar con mayúscula. Ej. Trejo">
     </label>
     <label>Apellido Materno
       <input name="materno" placeholder="Ej. Cuevas"
-        pattern="([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)?"
+        pattern="([A-ZÁÉÍÓÚÑ][a-záéíóúüñ]*\.?(\s[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]*\.?)*)?"
         title="Debe empezar con mayúscula. Ej. Cuevas">
     </label>
-    <label>Correo
-      <input type="email" name="correo" required placeholder="Ej. erika@utng.edu.mx">
+    <label><span>Correo <small class="ayuda">(opcional)</small></span>
+      <input type="email" name="correo" placeholder="Ej. erika@utng.edu.mx">
     </label>
 
-    <div style="grid-column:1/-1;margin-top:15px;border-top:1px solid var(--bd);padding-top:15px;">
-      <b>Asignaturas que imparte</b>
+    <div class="completo" style="border-top:1px solid var(--bd);padding-top:1rem">
+      <b>Asignaturas que imparte</b> <small class="ayuda">sirve para sugerirlas primero en Carga Académica</small>
       <div id="d-materias" class="checks"></div>
     </div>
 
-    <div class="acciones" style="margin-top:20px;grid-column:1/-1;justify-content:flex-end;">
-      <button class="btn" type="submit">Guardar</button>
+    <div class="acciones">
       <button class="btn sec" type="button" id="d-cancelar">Cancelar</button>
+      <button class="btn" type="submit">Guardar</button>
     </div>
   </form>
 

@@ -7,10 +7,10 @@
   ],
   "admin_grupos": [
     {
-      "clave": "MECA123",
+      "alumnos": 1,
       "carrera": "Mecatrónica",
-      "cuatrimestre": 1,
-      "alumnos": 1
+      "clave": "MECA123",
+      "cuatrimestre": 1
     },
     {
       "alumnos": 2,
@@ -27,6 +27,12 @@
       "carrera": "Desarrollo de Software",
       "clave": "GTID211",
       "cuatrimestre": 12
+    },
+    {
+      "clave": "GTID123",
+      "carrera": "Desarrollo de Software",
+      "cuatrimestre": 10,
+      "alumnos": 24
     }
   ],
   "admin_docentes": [

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 72" role="img" aria-label="Encuesta Docente UTNG">
+  <!-- el logo con el nombre a un lado, para documentos y presentaciones -->
+  <g transform="translate(4 4)">
+    <rect width="64" height="64" rx="15" fill="#0B2A5B"/>
+    <rect x="14" y="38" width="8" height="13" rx="2.5" fill="#fff" opacity=".45"/>
+    <rect x="28" y="30" width="8" height="21" rx="2.5" fill="#fff" opacity=".75"/>
+    <rect x="42" y="22" width="8" height="29" rx="2.5" fill="#fff"/>
+    <path d="M15 22.5l5 5 11-12" fill="none" stroke="#5B9BFF" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="84" y="34" font-family="Segoe UI, Roboto, Arial, sans-serif" font-size="25" font-weight="700" fill="#0B2A5B">Encuesta Docente</text>
+  <text x="85" y="58" font-family="Segoe UI, Roboto, Arial, sans-serif" font-size="12.5" font-weight="600" letter-spacing="1.6" fill="#1F5FD1">UTNG · EVALUACIÓN DOCENTE</text>
+</svg>

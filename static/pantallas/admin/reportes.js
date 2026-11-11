@@ -1,8 +1,8 @@
 // /static/pantallas/admin/reportes.js
-import { buscar } from "/static/js/nucleo/utiles.js";
+import { buscar, esc } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import {
-  getEvaluaciones, getPreguntas, getGrupos, getDocentes,
+  getEvaluaciones, getPreguntasActivas, getGrupos, getDocentes,
   promedioGeneral, promedioPorPregunta,
   getCarrerasConEvaluaciones, promedioDe
 } from "/static/js/nucleo/datos.js";
@@ -10,40 +10,14 @@ import {
 let cont = null;
 const sel = k => buscar("#r-" + k, cont);
 
-const ESTILOS = `
-#r-barras { display: flex; align-items: stretch; gap: 2rem; margin: 1.5rem 0; padding: 1rem; background: var(--card); border: 1px solid var(--bd); border-radius: 1rem; color: var(--tx); }
-#r-barras .grafica-area { display: flex; flex: 1; position: relative; padding-left: 28px; }
-#r-barras .y-axis { position: absolute; left: -8px; top: 50%; transform: translateY(-50%) rotate(-90deg); font-size: .8rem; color: var(--mut); white-space: nowrap; }
-#r-barras .ticks { display: flex; flex-direction: column; justify-content: space-between; margin-top: 30px; height: 140px; padding-right: 6px; font-size: .7rem; text-align: right; color: var(--mut); }
-#r-barras .grafica-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-#r-barras .fila-vals, #r-barras .fila-nums { display: flex; }
-#r-barras .val-cel { flex: 1; text-align: center; font-size: .75rem; color: var(--tx); }
-#r-barras .fila-vals { height: 30px; align-items: center; }
-#r-barras .val-top { border: 1px solid var(--bd); background: var(--in); border-radius: .3rem; padding: 1px 4px; font-weight: 700; }
-#r-barras .cols-container { display: flex; height: 140px; border: 1px solid var(--bd); background-image: linear-gradient(to top, var(--bd) 1px, transparent 1px); background-size: 100% 20%; }
-#r-barras .col { flex: 1; display: flex; flex-direction: row; align-items: flex-end; justify-content: center; height: 100%; }
-#r-barras .col i { display: block; width: 80%; border-radius: 4px 4px 0 0; }
-#r-barras .fila-nums { margin-top: 4px; }
-#r-barras .x-axis { text-align: center; font-size: .85rem; margin-top: 4px; color: var(--mut); }
-#r-barras .promedio-lateral { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 120px; gap: .8rem; }
-#r-barras .promedio-lateral .lbl { font-size: .85rem; color: var(--mut); text-transform: uppercase; text-align: center; letter-spacing: 1px; }
-#r-barras .caja-prom { font-size: 2rem; font-weight: 800; padding: .5rem 1.2rem; border: 2px solid var(--pri); background: var(--in); color: var(--ac); border-radius: .8rem; box-shadow: 0 6px 16px #0b2a5b33; }
-`;
 
 export function iniciar(contenedor) {
   cont = contenedor;
   pintarIconos(cont);
 
-  if (!document.getElementById("estilos-resultados")) {
-    const st = document.createElement("style");
-    st.id = "estilos-resultados";
-    st.textContent = ESTILOS;
-    document.head.appendChild(st);
-  }
-
   // 1. Jalamos datos frescos
   const evals = getEvaluaciones() || [];
-  const preguntas = getPreguntas() || [];
+  const preguntas = getPreguntasActivas();
   const grupos = getGrupos() || [];
   const docentes = getDocentes() || [];
 
@@ -62,7 +36,7 @@ export function iniciar(contenedor) {
   const sCarrera = sel("carrera");
   if (sCarrera) {
     sCarrera.innerHTML = `<option value="">Todas las carreras</option>` +
-      carrerasUnicas.map(c => `<option value="${c}">${c}</option>`).join("");
+      carrerasUnicas.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
   }
 
   // 4. Función para actualizar los filtros en cascada
@@ -99,7 +73,7 @@ export function iniciar(contenedor) {
         const valorPrevio = sGrupo.value; // Guardamos la selección
         const grps = unicos(evals.filter(e => e.carrera === c && String(e.cuatrimestre) === String(ct)), "grupo");
         
-        sGrupo.innerHTML = `<option value="">Todos los grupos</option>` + grps.map(x => `<option value="${x}">${x}</option>`).join("");
+        sGrupo.innerHTML = `<option value="">Todos los grupos</option>` + grps.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
         
         sGrupo.value = valorPrevio; // Restauramos la selección
         sGrupo.disabled = false;
@@ -116,7 +90,7 @@ export function iniciar(contenedor) {
         const valorPrevio = sProf.value; // Guardamos la selección
         const profes = unicos(evals.filter(e => e.carrera === c && String(e.cuatrimestre) === String(ct) && e.grupo === g), "profesor");
         
-        sProf.innerHTML = `<option value="">Todos los profesores</option>` + profes.map(x => `<option value="${x}">${x}</option>`).join("");
+        sProf.innerHTML = `<option value="">Todos los profesores</option>` + profes.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
         
         sProf.value = valorPrevio; // Restauramos la selección
         sProf.disabled = false;
@@ -133,7 +107,7 @@ export function iniciar(contenedor) {
         const valorPrevio = sMat.value; // Guardamos la selección
         const materias = unicos(evals.filter(e => e.carrera === c && String(e.cuatrimestre) === String(ct) && e.grupo === g && e.profesor === p), "materia");
         
-        sMat.innerHTML = `<option value="">Todas las materias</option>` + materias.map(x => `<option value="${x}">${x}</option>`).join("");
+        sMat.innerHTML = `<option value="">Todas las materias</option>` + materias.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
         
         sMat.value = valorPrevio; // Restauramos la selección
         sMat.disabled = false;
@@ -203,50 +177,54 @@ function dibujarTabla(evals, preguntas) {
   const infoEl = buscar("#r-info", cont);
   if (infoEl) infoEl.textContent = `${filtradas.length} evaluación(es) encontradas`;
 
+  // los cuadritos de arriba: cuantas, promedio, la mejor y la peor pregunta
   const promGeneral = Number(promedioGeneral(filtradas)) || 0;
-  const proms = (promedioPorPregunta(filtradas, preguntas.length) || []).map(v => Number(v) || 0);
+  const proms = promedioPorPregunta(filtradas, preguntas).map(v => Number(v) || 0);
+  const conDatos = proms.map((v, i) => [v, i]).filter(([v]) => v > 0);
+  const mejor = conDatos.length ? conDatos.reduce((a, b) => b[0] > a[0] ? b : a) : null;
+  const peor = conDatos.length ? conDatos.reduce((a, b) => b[0] < a[0] ? b : a) : null;
+  const resumenEl = buscar("#r-resumen", cont);
+  if (resumenEl) resumenEl.innerHTML = [
+    ["Evaluaciones", filtradas.length],
+    ["Promedio general", filtradas.length ? promGeneral.toFixed(1) : "—"],
+    ["Pregunta mejor calificada", mejor ? `P${mejor[1] + 1} · ${mejor[0].toFixed(1)}` : "—"],
+    ["Pregunta más baja", peor ? `P${peor[1] + 1} · ${peor[0].toFixed(1)}` : "—"]
+  ].map(([l, v]) => `<div class="pg-card"><small>${l}</small><b>${v}</b></div>`).join("");
 
-  const vals = proms.map(v => `<div class="val-cel"><span class="val-top">${v.toFixed(1)}</span></div>`).join("");
-  const cols = proms.map((v, i) => {
-    const pct = Math.min(Math.max((v - 5) / 5 * 100, 0), 100);
-    return `<div class="col" title="P${i + 1}: ${v.toFixed(1)}"><i style="height:${pct}%;background:var(--pri)"></i></div>`;
-  }).join("");
-  const nums = proms.map((_, i) => `<b class="val-cel">${i + 1}</b>`).join("");
-  const ticks = [10, 9, 8, 7, 6, 5].map(t => `<span>${t}</span>`).join("");
-
+  // la grafica, una barra por pregunta con su texto. va de 5 a 10 asi que el 5 es la barra vacia
   const barrasEl = buscar("#r-barras", cont);
   if (barrasEl) {
-    barrasEl.innerHTML = `
-      <div class="grafica-area">
-        <span class="y-axis">Puntuación</span>
-        <div class="ticks">${ticks}</div>
-        <div class="grafica-main">
-          <div class="fila-vals">${vals}</div>
-          <div class="cols-container">${cols}</div>
-          <div class="fila-nums">${nums}</div>
-          <div class="x-axis">Preguntas</div>
-        </div>
-      </div>
-      <div class="promedio-lateral">
-        <span class="lbl">Promedio<br>General</span>
-        <div class="caja-prom">${promGeneral.toFixed(1)}</div>
-      </div>`;
+    barrasEl.innerHTML = preguntas.length
+      ? preguntas.map((p, i) => {
+          const v = proms[i] || 0;
+          const pct = v ? Math.min(Math.max((v - 5) / 5 * 100, 2), 100) : 0;
+          return `<li title="${esc(p.texto)}">
+            <span class="n">P${i + 1}</span>
+            <div class="t"><span>${esc(p.texto)}</span><div class="pista"><i style="width:${pct}%"></i></div></div>
+            <b class="v">${v ? v.toFixed(1) : "—"}</b>
+          </li>`;
+        }).join("")
+      : `<li class="sub">No hay preguntas activas.</li>`;
   }
 
+  const clasePromedio = n => n >= 9 ? "alta" : n >= 7 ? "media" : "baja";
   const tablaEl = buscar("#r-tabla", cont);
   if (tablaEl) {
     tablaEl.innerHTML = filtradas.length
-      ? filtradas.slice().reverse().map(e => `
+      ? filtradas.slice().reverse().map(e => {
+          const prom = promedioDe(e);
+          return `
           <tr>
-            <td>${e.fecha || "—"}</td>
-            <td>${e.carrera || "—"}</td>
-            <td>${e.cuatrimestre || "—"}</td>
-            <td>${e.grupo || "—"}</td>
-            <td>${e.profesor || "—"}</td>
-            <td>${e.materia || "—"}</td>
-            <td><b>${promedioDe(e).toFixed(1)}</b></td>
-            <td>${e.comentario || "—"}</td>
-          </tr>`).join("")
+            <td>${esc(e.fecha) || "—"}</td>
+            <td>${esc(e.carrera) || "—"}</td>
+            <td>${esc(e.cuatrimestre) ? esc(e.cuatrimestre) + "°" : "—"}</td>
+            <td><span class="chip clave">${esc(e.grupo) || "—"}</span></td>
+            <td>${esc(e.profesor) || "—"}</td>
+            <td>${esc(e.materia) || "—"}</td>
+            <td><span class="nota-prom ${clasePromedio(prom)}">${prom.toFixed(1)}</span></td>
+            <td class="comentario-celda">${esc(e.comentario) || "—"}</td>
+          </tr>`;
+        }).join("")
       : `<tr><td colspan="8" class="vacio">No hay evaluaciones con esos filtros.</td></tr>`;
   }
 }

@@ -1,11 +1,113 @@
-[hidden]{display:none!important}
-.acceso{display:grid;place-items:center;min-height:100vh;padding:1.2rem}
-.acceso-caja{display:grid;gap:1rem;width:100%;max-width:26rem;padding:2rem;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:1.2rem;box-shadow:0 14px 40px #0b2a5b26}
-.acceso-caja section,.acceso-caja form{display:grid;gap:.9rem}
-.acceso-caja h1,.acceso-caja h2,.acceso-caja p{margin:0}
-.acceso-logo{justify-self:center;display:grid;place-items:center;width:4rem;height:4rem;font-weight:800;color:var(--pri);border:2px dashed var(--pri);border-radius:1rem}
-.acceso-caja label{display:grid;gap:.4rem;text-align:left;font-weight:600}
-.codigo-campo{text-align:center;font-size:1.7rem;font-weight:700;letter-spacing:.35em;text-transform:uppercase}
-.grupo-datos{display:grid;grid-template-columns:auto 1fr;gap:.4rem 1rem;margin:0;padding:1rem;text-align:left;background:var(--bg);border-radius:.8rem}
-.grupo-datos dt{font-weight:700;color:var(--ac)}
-.grupo-datos dd{margin:0}
+/* /static/css/acceso.css */
+/* las paginas de afuera del marco: el login del administrador (index.html) y la del alumno (alumno.html) */
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ===================== LOGIN ===================== */
+.entrada{display:grid;grid-template-columns:minmax(22rem,1fr) minmax(24rem,1.15fr);min-height:100vh}
+
+/* lado azul con el logo */
+.entrada-marca{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:2rem;padding:2.4rem 3rem;overflow:hidden;color:#dbe6fb;background:#0b2a5b}
+/* las barritas de fondo, son las mismas del logo pero grandotas y casi invisibles */
+.entrada-marca::after{content:"";position:absolute;right:-3rem;bottom:-2rem;width:22rem;height:18rem;opacity:.07;pointer-events:none;
+  background:linear-gradient(#fff,#fff) 0 100%/4.5rem 40% no-repeat,linear-gradient(#fff,#fff) 7.5rem 100%/4.5rem 68% no-repeat,linear-gradient(#fff,#fff) 15rem 100%/4.5rem 100% no-repeat}
+.marca-arriba{display:flex;align-items:center;gap:.8rem}
+.marca-arriba img{border-radius:10px;box-shadow:0 0 0 1px #ffffff2e}
+.marca-arriba span{display:grid;line-height:1.15}
+.marca-arriba b{font-size:1.1rem;color:#fff}
+.marca-arriba small{font-size:.72rem;font-weight:700;letter-spacing:.14em;color:#8fb5ff}
+.marca-texto{position:relative;z-index:1;display:grid;gap:1.6rem;max-width:26rem}
+.marca-texto h1{font-size:1.75rem;line-height:1.3;color:#fff}
+.marca-texto ul{display:grid;gap:.85rem;margin:0;padding:0;list-style:none}
+.marca-texto li{display:flex;align-items:center;gap:.7rem;font-size:.95rem}
+.marca-texto li i[data-icono]{display:grid;place-items:center;width:2rem;height:2rem;padding:.4rem;color:#8fb5ff;background:#ffffff12;border-radius:8px}
+.marca-pie{font-size:.8rem;color:#8ea3c7}
+
+/* lado del formulario */
+.entrada-form{display:grid;place-items:center;padding:2rem 1.5rem;background:var(--card)}
+.caja-form{display:grid;gap:1.4rem;width:100%;max-width:24rem}
+.logo-cel{display:none;border-radius:12px}
+.vista-form{display:grid;gap:1rem}
+.vista-form header{display:grid;gap:.35rem;margin-bottom:.3rem}
+.vista-form h2{font-size:1.5rem}
+.fila-label{display:flex;justify-content:space-between;align-items:baseline}
+.fila-label a{font-size:.82rem;font-weight:600}
+label.check{display:flex;align-items:center;gap:.55rem;font-weight:500;color:var(--mut)}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.cambiar{font-size:.88rem;text-align:center;color:var(--mut)}
+.cambiar a{font-weight:600}
+.volver{display:inline-flex;align-items:center;gap:.3rem;justify-self:start;margin-bottom:.4rem;font-size:.85rem;font-weight:600;color:var(--mut)}
+.volver i[data-icono]{width:1rem;height:1rem}
+.alumno-link{padding-top:1.2rem;font-size:.86rem;text-align:center;color:var(--mut);border-top:1px solid var(--bd)}
+.alumno-link a{font-weight:600}
+/* los 3 pasos de recuperar */
+.pasos{display:flex;gap:.4rem;margin:.5rem 0 0;padding:0;list-style:none;counter-reset:p}
+.pasos li{flex:1;display:grid;gap:.35rem;font-size:.75rem;font-weight:600;color:var(--mut);counter-increment:p}
+.pasos li::before{content:"";height:4px;background:var(--bd);border-radius:3px;transition:background .3s}
+.pasos li.on::before{background:var(--pri)}
+.pasos li.actual{color:var(--tx)}
+.campo-codigo{font-size:1.5rem;font-weight:700;letter-spacing:.5em;text-align:center;font-family:ui-monospace,Consolas,monospace}
+
+@media(max-width:860px){
+  .entrada{grid-template-columns:1fr}
+  .entrada-marca{display:none}
+  .entrada-form{align-items:start;padding-top:3rem;background:var(--bg)}
+  .caja-form{padding:1.8rem 1.4rem;background:var(--card);border:1px solid var(--bd);border-radius:16px;box-shadow:var(--sombra)}
+  .logo-cel{display:block}
+}
+
+/* ===================== ALUMNO ===================== */
+.alumno-barra{display:flex;align-items:center;justify-content:space-between;gap:1rem;height:60px;padding:0 1.4rem;background:var(--card);border-bottom:1px solid var(--bd)}
+.alumno-barra .marca{display:flex;align-items:center;gap:.6rem;color:var(--tx);text-decoration:none}
+.alumno-barra .marca img{border-radius:8px}
+.alumno-barra .marca span{display:grid;line-height:1.15}
+.alumno-barra .marca b{font-size:.95rem}
+.alumno-barra .marca small{font-size:.68rem;font-weight:700;letter-spacing:.12em;color:var(--ac)}
+.anonimo{display:flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:600;color:var(--ok)}
+
+.acceso{display:grid;justify-items:center;min-height:calc(100vh - 60px);padding:3rem 1.2rem}
+.acceso-caja{width:100%;max-width:38rem}
+.paso-a{display:grid;gap:1rem;padding:2.2rem 2rem;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:16px;box-shadow:var(--sombra)}
+.paso-a.entra{animation:aparece .3s ease}
+.paso-a h1{font-size:1.45rem}
+.paso-ico{justify-self:center;display:grid;place-items:center;width:3.2rem;height:3.2rem;color:var(--ac);background:var(--sel);border-radius:50%}
+.paso-ico i[data-icono]{width:1.5rem;height:1.5rem}
+.paso-ico.ok{color:var(--ok);background:var(--ok-bg)}
+.paso-ico.grande{width:4.4rem;height:4.4rem}
+.paso-ico.grande i[data-icono]{width:2rem;height:2rem}
+#form-codigo{display:grid;gap:.9rem;margin-top:.4rem}
+.codigo-campo{min-height:3.6rem;font-size:1.7rem;font-weight:700;letter-spacing:.4em;text-align:center;text-transform:uppercase;font-family:ui-monospace,Consolas,monospace}
+.grupo-datos{display:grid;grid-template-columns:auto 1fr;gap:.55rem 1.2rem;margin:0;padding:1.1rem 1.3rem;text-align:left;background:var(--sutil);border:1px solid var(--bd);border-radius:12px}
+.grupo-datos dt{font-size:.85rem;font-weight:600;color:var(--mut)}
+.grupo-datos dd{margin:0;font-weight:600}
+.botones{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.7rem;margin-top:.3rem}
+.botones .btn{flex:1;min-width:10rem}
+.paso-a textarea{min-height:7rem}
+.paso-a .ayuda{justify-self:end;margin-top:-.6rem}
+
+/* las preguntas */
+#paso-preguntas{text-align:left;gap:1.1rem}
+.preg-cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.4rem;font-size:.86rem;font-weight:700;color:var(--ac)}
+.preg-cab .sub{font-weight:500}
+.preg-caja{display:grid;gap:1.4rem;min-height:15rem;align-content:center;padding:1rem 0}
+.preg-caja.de-der{animation:de-der .35s ease}
+.preg-caja.de-izq{animation:de-izq .35s ease}
+@keyframes de-der{from{opacity:0;transform:translateX(30px)}}
+@keyframes de-izq{from{opacity:0;transform:translateX(-30px)}}
+.preg-texto{font-size:1.22rem;font-weight:600;line-height:1.45}
+.escala{display:grid;grid-template-columns:repeat(6,1fr);gap:.6rem}
+.nota{height:3.4rem;font-size:1.2rem;font-weight:700;color:var(--tx);background:var(--card);border:1.5px solid var(--bd);border-radius:12px;transition:transform .12s,background .15s,border-color .15s,color .15s}
+.nota:hover{transform:translateY(-2px);border-color:#b9c6db}
+/* colores: 5 y 6 rojo, 7 y 8 amarillo, 9 y 10 verde */
+.nota.n5.on,.nota.n6.on{color:#fff;background:#c9363f;border-color:#c9363f}
+.nota.n7.on,.nota.n8.on{color:#1a1a1a;background:#f5a524;border-color:#f5a524}
+.nota.n9.on,.nota.n10.on{color:#fff;background:#1f8f4e;border-color:#1f8f4e}
+.nota.on{transform:scale(1.05)}
+.escala-txt{display:flex;justify-content:space-between;gap:1rem;margin-top:-.8rem;font-size:.76rem;color:var(--mut)}
+
+@media(max-width:560px){
+  .acceso{padding:1.2rem .8rem}
+  .paso-a{padding:1.6rem 1.2rem}
+  .escala{grid-template-columns:repeat(3,1fr)}
+  .anonimo{display:none}
+}

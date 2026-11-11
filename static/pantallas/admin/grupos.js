@@ -1,7 +1,7 @@
 // /static/pantallas/admin/grupos.js
-import { buscar } from "/static/js/nucleo/utiles.js";
+import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getGrupos, setGrupos, getCarreras, getEvaluaciones, alCambiarDatos } from "/static/js/nucleo/datos.js";
+import { getGrupos, setGrupos, getCarreras, getEvaluaciones, getClases, alCambiarDatos } from "/static/js/nucleo/datos.js";
 
 let cont = null;
 let editando = -1;
@@ -55,13 +55,13 @@ export function iniciar(contenedor) {
     const lista = getGrupos() || [];
 
     if (lista.some((g, i) => i !== editando && g.clave === clave)) {
-      alert(`Error: La clave "${clave}" ya está registrada en otro grupo.`);
+      avisar(`La clave "${clave}" ya está registrada en otro grupo.`, "err");
       form.clave.focus();
       return;
     }
 
     if (!Number.isInteger(alumnos) || alumnos < 1) {
-      alert("El número de alumnos debe ser un entero mayor a 0.");
+      avisar("El número de alumnos debe ser un entero mayor a 0.", "err");
       form.alumnos.focus();
       return;
     }
@@ -70,7 +70,7 @@ export function iniciar(contenedor) {
     const claveVieja = editando >= 0 ? lista[editando].clave : clave;
     const ya = respondieron(claveVieja);
     if (alumnos < ya) {
-      alert(`Este grupo ya tiene ${ya} alumnos que respondieron. No puedes poner menos.`);
+      avisar(`Este grupo ya tiene ${ya} alumnos que respondieron. No puedes poner menos.`, "err");
       form.alumnos.focus();
       return;
     }
@@ -81,21 +81,26 @@ export function iniciar(contenedor) {
     else lista.push(item);
 
     setGrupos(lista);
+    avisar(editando >= 0 ? "Grupo actualizado." : "Grupo registrado.");
     e.target.reset();
     form.hidden = true;
     editando = -1;
     dibujar();
   };
 
-  tabla.onclick = e => {
+  tabla.onclick = async e => {
     const ed = e.target.closest("[data-ed]");
     const del = e.target.closest("[data-del]");
 
     if (ed) abrirForm(+ed.dataset.ed);
 
     if (del) {
-      if (!confirm("¿Eliminar este grupo?")) return;
       const lista = getGrupos() || [];
+      const g = lista[+del.dataset.del];
+      // si tiene clases en carga academica la BD no deja borrarlo, mejor avisar antes
+      if ((getClases() || []).some(c => c.grupoId === g.clave))
+        return avisar(`El grupo ${g.clave} tiene asignaciones en Carga Académica. Elimínalas primero.`, "err");
+      if (!await confirmar("También se quitan sus asignaturas.", { titulo: `¿Eliminar el grupo ${g.clave}?`, si: "Eliminar", peligro: true })) return;
       lista.splice(+del.dataset.del, 1);
       setGrupos(lista);
       dibujar();
@@ -112,6 +117,7 @@ export function iniciar(contenedor) {
   function abrirForm(i) {
     editando = i;
     form.hidden = false;
+    buscar("#g-titulo", cont).textContent = i >= 0 ? "Editar grupo" : "Nuevo grupo";
 
     if (i >= 0) {
       const g = getGrupos()[i];
@@ -144,8 +150,8 @@ export function iniciar(contenedor) {
             <td>${g.alumnos ? `${ya} / ${g.alumnos}` : ya}</td>
             <td style="min-width:8rem">
               ${pct === null
-                ? `<span style="color:var(--mut);font-size:.85rem">Edita el grupo</span>`
-                : `<div class="prog"><i style="width:${pct}%"></i></div><small>${pct}%</small>`}
+                ? `<span class="badge warn">Falta # de alumnos</span>`
+                : `<div class="prog"><i style="width:${pct}%"></i></div><small class="sub">${pct}%</small>`}
             </td>
             <td class="acciones-fila">
               <button class="mini" type="button" data-ed="${i}">Editar</button>

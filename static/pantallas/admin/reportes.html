@@ -4,33 +4,34 @@
     <div class="cab-txt">
       <span class="cab-ico"><i data-icono="grafica"></i></span>
       <div>
-        <h2>Reportes de Evaluación</h2>
-        <p class="sub">Filtra los resultados por carrera, cuatrimestre, grupo, profesor y materia.</p>
+        <h2>Reportes de evaluación</h2>
+        <p class="sub" id="r-info">0 evaluación(es) encontradas</p>
       </div>
     </div>
   </div>
 
-  <!-- Filtros en cascada -->
+  <!-- Filtros en cascada, se van prendiendo uno por uno -->
   <div class="filtros">
-    <select id="r-carrera"><option value="">Todas las carreras</option></select>
-    <select id="r-cuatri" disabled><option value="">Todos los cuatrimestres</option></select>
-    <select id="r-grupo" disabled><option value="">Todos los grupos</option></select>
-    <select id="r-prof" disabled><option value="">Todos los profesores</option></select>
-    <select id="r-mat" disabled><option value="">Todas las materias</option></select>
+    <select id="r-carrera" aria-label="Carrera"><option value="">Todas las carreras</option></select>
+    <select id="r-cuatri" aria-label="Cuatrimestre" disabled><option value="">Todos los cuatrimestres</option></select>
+    <select id="r-grupo" aria-label="Grupo" disabled><option value="">Todos los grupos</option></select>
+    <select id="r-prof" aria-label="Profesor" disabled><option value="">Todos los profesores</option></select>
+    <select id="r-mat" aria-label="Materia" disabled><option value="">Todas las materias</option></select>
   </div>
 
-  <p id="r-info" class="sub">0 evaluación(es) encontradas</p>
+  <!-- los 4 cuadritos con el resumen, los llena reportes.js -->
+  <div class="resumen-rep" id="r-resumen"></div>
 
-  <div class="panel-c">
-    <h3>Promedio por pregunta</h3>
-    <div id="r-barras"></div>
-  </div>
+  <section class="pg-card">
+    <header><h3>Promedio por pregunta</h3><span class="sub">Escala del 5 al 10</span></header>
+    <ul class="barras-preg" id="r-barras"></ul>
+  </section>
 
   <div class="tabla-scroll">
     <table class="tabla">
       <thead>
         <tr>
-          <th>Fecha</th><th>Carrera</th><th>Cuatrimestre</th><th>Grupo</th><th>Profesor</th><th>Materia</th><th>Promedio</th><th>Comentario</th>
+          <th>Fecha</th><th>Carrera</th><th>Cuatri</th><th>Grupo</th><th>Profesor</th><th>Materia</th><th>Promedio</th><th>Comentario</th>
         </tr>
       </thead>
       <tbody id="r-tabla"></tbody>
