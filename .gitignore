@@ -19,4 +19,4 @@ Thumbs.db
 
    .venv/
    .venv-1/
-   __pycache__/
+   __pycache__/datos/
