@@ -136,7 +136,6 @@ def sync_grupos(cur, lista):
     def actualizar(id_g, clave, d):
         cur.execute("UPDATE dbo.Grupo SET ClaveGrupo=?, Cuatrimestre=?, CantidadAlumnos=?, id_carrera=? "
                     "WHERE id_grupo=?", clave, d["cuatri"], d["alumnos"], d["carrera"], id_g)
-        cur.execute("UPDATE dbo.Asignatura SET id_carrera=? WHERE id_grupo=?", d["carrera"], id_g)
 
     for k in comunes:
         actualizar(act[k], k, nuevos[k])
@@ -144,26 +143,13 @@ def sync_grupos(cur, lista):
         actualizar(act[viejo], nuevo, nuevos[nuevo])
 
     ids = _contador(cur, "Grupo", "id_grupo")
-    ids_asig = _contador(cur, "Asignatura", "id_asignatura")
     for clave in crear:
         d, id_g = nuevos[clave], next(ids)
         cur.execute("INSERT INTO dbo.Grupo (id_grupo, ClaveGrupo, Cuatrimestre, CantidadAlumnos, id_carrera, participaciones) "
                     "VALUES (?, ?, ?, ?, ?, 0)", id_g, clave, d["cuatri"], d["alumnos"], d["carrera"])
-        # el grupo nuevo hereda las asignaturas que ya tienen los demás grupos de su carrera y cuatrimestre
-        cur.execute("""SELECT DISTINCT a.NomAsignatura FROM dbo.Asignatura a
-                       JOIN dbo.Grupo g ON g.id_grupo = a.id_grupo
-                       WHERE g.id_carrera = ? AND g.Cuatrimestre = ? AND g.id_grupo <> ?""",
-                    d["carrera"], d["cuatri"], id_g)
-        for (nom,) in cur.fetchall():
-            cur.execute("INSERT INTO dbo.Asignatura (id_asignatura, NomAsignatura, id_grupo, id_carrera) "
-                        "VALUES (?, ?, ?, ?)", next(ids_asig), nom, id_g, d["carrera"])
 
     for clave in borrar:
-        id_g = act[clave]
-        cur.execute("DELETE FROM dbo.Docente_Grupo WHERE id_asignatura IN "
-                    "(SELECT id_asignatura FROM dbo.Asignatura WHERE id_grupo = ?)", id_g)
-        cur.execute("DELETE FROM dbo.Asignatura WHERE id_grupo = ?", id_g)
-        cur.execute("DELETE FROM dbo.Grupo WHERE id_grupo = ?", id_g)   # si tiene clases -> 409
+        cur.execute("DELETE FROM dbo.Grupo WHERE id_grupo = ?", act[clave])   # si tiene clases -> 409
 
 
 # ---------------------------------------------------------------- DOCENTES
@@ -234,8 +220,10 @@ def sync_docentes(cur, lista):
             return
         cur.execute("DELETE FROM dbo.Docente_Grupo WHERE id_docente = ?", id_d)
         for m in d["materias"]:
+            # una sola fila por materia (la asignatura activa con menor id)
             cur.execute("INSERT INTO dbo.Docente_Grupo (id_asignatura, id_docente) "
-                        "SELECT id_asignatura, ? FROM dbo.Asignatura WHERE NomAsignatura = ?", id_d, m)
+                        "SELECT MIN(id_asignatura), ? FROM dbo.Asignatura "
+                        "WHERE NomAsignatura = ? AND activo = 1 HAVING COUNT(*) > 0", id_d, m)
 
     for viejo, nuevo in pares:
         id_d, d = act[viejo], nuevos[nuevo]
@@ -256,62 +244,37 @@ def sync_docentes(cur, lista):
 
 
 # ---------------------------------------------------------------- ASIGNATURAS
-# En la BD cada asignatura existe UNA VEZ POR GRUPO. En el front es una sola por carrera + cuatrimestre.
+# Catálogo de asignaturas con borrado lógico (columna activo). Puede haber varias filas con el
+# mismo nombre (una por grupo, viene del script); aquí se tratan como una sola por nombre.
 def leer_asignaturas(cur):
-    cur.execute("""SELECT a.NomAsignatura, c.NomCarrera, g.Cuatrimestre
-                   FROM dbo.Asignatura a
-                   JOIN dbo.Grupo g ON g.id_grupo = a.id_grupo
-                   JOIN dbo.Carrera c ON c.id_carrera = g.id_carrera
-                   GROUP BY a.NomAsignatura, c.NomCarrera, g.Cuatrimestre
-                   ORDER BY MIN(a.id_asignatura)""")
-    return [{"nombre": r[0], "carrera": r[1], "cuatrimestre": int(r[2])} for r in cur.fetchall()]
+    cur.execute("""SELECT MIN(id_asignatura), NomAsignatura
+                   FROM dbo.Asignatura
+                   WHERE activo = 1
+                   GROUP BY NomAsignatura
+                   ORDER BY NomAsignatura""")
+    return [{"id": r[0], "nombre": r[1]} for r in cur.fetchall()]
 
 
 def sync_asignaturas(cur, lista):
-    omitidas = []
-    nuevos = {}
-    for it in lista:
-        nom = _texto(it.get("nombre"), 60, "el nombre de la asignatura")
-        carrera, cuatri = it.get("carrera"), it.get("cuatrimestre")
-        if not carrera or not cuatri:
-            omitidas.append(nom)          # sin carrera y cuatrimestre no hay a qué grupo ligarla
-            continue
-        nuevos[(nom, carrera, int(cuatri))] = None
+    nuevos = {" ".join(str(it.get("nombre") or "").split()) for it in lista}
+    nuevos.discard("")
 
-    cur.execute("""SELECT a.id_asignatura, a.NomAsignatura, c.NomCarrera, g.Cuatrimestre
-                   FROM dbo.Asignatura a JOIN dbo.Grupo g ON g.id_grupo = a.id_grupo
-                   JOIN dbo.Carrera c ON c.id_carrera = g.id_carrera""")
-    act = {}
-    for id_a, nom, carr, cuat in cur.fetchall():
-        act.setdefault((nom, carr, int(cuat)), []).append(id_a)
+    cur.execute("SELECT DISTINCT NomAsignatura FROM dbo.Asignatura WHERE activo = 1")
+    actuales = {r[0] for r in cur.fetchall()}
 
-    comunes, renombres, crear, borrar = _diff(act, nuevos)
-    for viejo, nuevo in renombres:
-        if viejo[1:] == nuevo[1:]:        # solo cambió el nombre
-            for id_a in act[viejo]:
-                cur.execute("UPDATE dbo.Asignatura SET NomAsignatura = ? WHERE id_asignatura = ?", nuevo[0], id_a)
-        else:
-            crear.append(nuevo)
-            borrar.append(viejo)
+    # borrado lógico: desactiva TODAS las filas con ese nombre
+    for nom in actuales - nuevos:
+        cur.execute("UPDATE dbo.Asignatura SET activo = 0 WHERE NomAsignatura = ?", nom)
 
+    # crear o reactivar
     ids = _contador(cur, "Asignatura", "id_asignatura")
-    for nom, carr, cuat in crear:
-        cur.execute("""SELECT g.id_grupo, g.id_carrera FROM dbo.Grupo g
-                       JOIN dbo.Carrera c ON c.id_carrera = g.id_carrera
-                       WHERE c.NomCarrera = ? AND g.Cuatrimestre = ?""", carr, cuat)
-        grupos = cur.fetchall()
-        if not grupos:
-            omitidas.append(nom)          # todavía no hay grupos en esa carrera y cuatrimestre
-            continue
-        for id_g, id_c in grupos:
-            cur.execute("INSERT INTO dbo.Asignatura (id_asignatura, NomAsignatura, id_grupo, id_carrera) "
-                        "VALUES (?, ?, ?, ?)", next(ids), nom, id_g, id_c)
-
-    for k in borrar:
-        for id_a in act[k]:
-            cur.execute("DELETE FROM dbo.Docente_Grupo WHERE id_asignatura = ?", id_a)
-            cur.execute("DELETE FROM dbo.Asignatura WHERE id_asignatura = ?", id_a)   # si tiene clases -> 409
-    return omitidas
+    for nom in nuevos - actuales:
+        _texto(nom, 60, "el nombre de la asignatura")
+        cur.execute("UPDATE dbo.Asignatura SET activo = 1 WHERE NomAsignatura = ?", nom)
+        if cur.rowcount == 0:
+            cur.execute("INSERT INTO dbo.Asignatura (id_asignatura, NomAsignatura, activo) VALUES (?, ?, 1)",
+                        next(ids), nom)
+    return []
 
 
 # ---------------------------------------------------------------- CLASES (Carga Académica)
@@ -359,9 +322,10 @@ def sync_clases(cur, lista):
             continue
         if not id_doc:
             raise ErrorDatos(f"El docente «{doc}» no existe en la base de datos.")
-        cur.execute("""SELECT g.id_grupo, a.id_asignatura FROM dbo.Grupo g
-                       JOIN dbo.Asignatura a ON a.id_grupo = g.id_grupo
-                       WHERE g.ClaveGrupo = ? AND a.NomAsignatura = ?""", grupo, asig)
+        cur.execute("""SELECT g.id_grupo, MIN(a.id_asignatura)
+                       FROM dbo.Grupo g, dbo.Asignatura a
+                       WHERE g.ClaveGrupo = ? AND a.NomAsignatura = ? AND a.activo = 1
+                       GROUP BY g.id_grupo""", grupo, asig)
         r = cur.fetchone()
         if not r:
             raise ErrorDatos(f"El grupo {grupo} no tiene la asignatura «{asig}».")
@@ -448,7 +412,7 @@ def generar_codigo(cur, grupo, materia, docente):
 
 
 # ---------------------------------------------------------------- PREGUNTAS
-# ahora las preguntas viven en la tabla Pregunta (antes estaban en datos/preguntas.json)
+# las preguntas viven en la tabla Pregunta
 def leer_preguntas(cur, solo_activas=False):
     sql = "SELECT id_pregunta, NumPregunta, Texto, Activa FROM dbo.Pregunta"
     if solo_activas:
@@ -544,7 +508,6 @@ def leer_evaluaciones(cur):
             "fecha": f"{f.day}/{f.month}/{f.year}", "carrera": r.NomCarrera, "cuatrimestre": str(int(r.Cuatrimestre)),
             "grupo": r.ClaveGrupo, "profesor": _nombre(r.NomDocente, r.ApellidoPaterno, r.ApellidoMaterno),
             "materia": r.NomAsignatura, "calificaciones": [], "respuestas": {}, "comentario": r.Comentario or ""}
-    # ahora la respuesta trae directo su encuesta y su pregunta
     cur.execute("""SELECT r.id_encuesta, r.id_pregunta, r.Calificacion FROM dbo.Respuesta r
                    JOIN dbo.Pregunta p ON p.id_pregunta = r.id_pregunta
                    ORDER BY r.id_encuesta, p.NumPregunta""")
@@ -559,8 +522,7 @@ def leer_evaluaciones(cur):
 
 
 def guardar_evaluacion(cur, codigo, respuestas, comentario=""):
-    """el alumno manda el codigo de su enlace y sus respuestas {id_pregunta: calificacion}
-    ya no se busca la clase por nombres (eso fallaba si el docente tenia acentos o correo), se usa el codigo"""
+    """el alumno manda el codigo de su enlace y sus respuestas {id_pregunta: calificacion}"""
     cur.execute("""SELECT k.id_acceso, cl.id_clase, g.id_grupo, g.CantidadAlumnos
                    FROM dbo.Clave_Acceso k JOIN dbo.Clase cl ON cl.id_clase = k.id_clase
                    JOIN dbo.Grupo g ON g.id_grupo = cl.id_grupo
@@ -607,7 +569,7 @@ def guardar_evaluacion(cur, codigo, respuestas, comentario=""):
 
 # ---------------------------------------------------------------- ADMINISTRADORES (login, registro y cuenta)
 def hash_clave(clave):
-    # es lo mismo que HASHBYTES('SHA2_256', '...') de SQL Server, por eso la contraseña del script sirve
+    # es lo mismo que HASHBYTES('SHA2_256', '...') de SQL Server
     return hashlib.sha256(str(clave).encode("utf-8")).digest()
 
 

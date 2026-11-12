@@ -57,6 +57,7 @@ def con_bd(fn):
     return envoltura
 
 
+
 def solo_admin(fn):
     """las rutas del administrador, si no inicio sesion regresa 401 y el front lo manda al login"""
     @wraps(fn)
@@ -281,7 +282,7 @@ def GuardarDatos(clave):
         return jsonify({"error": "Se esperaba una lista."}), 400
     with transaccion() as cur:
         omitidas = SINCRONIZAR[clave](cur, valor)
-        # regresa como quedo en la BD para que el front se quede igualito
+        # Regresa cómo quedó en la BD para que el front se mantenga sincronizado
         return jsonify({"ok": True, "omitidas": omitidas or [], "lista": LEER[clave](cur)})
 
 # POST /api/evaluaciones  el alumno manda {codigo, respuestas: {id_pregunta: calificacion}, comentario}

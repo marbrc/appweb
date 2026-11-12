@@ -18,15 +18,8 @@
     <h3 class="form-tit" id="s-titulo">Datos de la asignatura</h3>
     <label>Nombre de la asignatura
       <input type="text" name="nombre" required maxlength="60" placeholder="Ej. Bases de Datos, Inglés IV"
-        pattern="[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.()-]*"
+        pattern=[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]*
         title="Debe empezar con mayúscula. Ej. Inglés IV">
-    </label>
-    <label>Carrera
-      <select name="carrera" required><option value="">Selecciona una carrera</option></select>
-    </label>
-    <label>Cuatrimestre
-      <select name="cuatrimestre" required><option value="">Selecciona</option></select>
-      <small class="ayuda">Se agrega a todos los grupos de esa carrera y cuatrimestre.</small>
     </label>
 
     <div class="acciones">
@@ -35,18 +28,12 @@
     </div>
   </form>
 
-  <div class="filtros">
-    <select id="s-f-carrera" aria-label="Filtrar por carrera"><option value="">Todas las carreras</option></select>
-    <select id="s-f-cuatri" aria-label="Filtrar por cuatrimestre"><option value="">Todos los cuatrimestres</option></select>
-  </div>
 
   <div class="tabla-scroll">
     <table class="tabla">
       <thead>
         <tr>
           <th>Asignatura</th>
-          <th>Carrera</th>
-          <th>Cuatrimestre</th>
           <th>Acciones</th>
         </tr>
       </thead>

@@ -163,14 +163,13 @@
   border-radius: 10px;
   background: var(--tarjeta, #fafafa);
 }
-<<<<<<< HEAD
+
 /* datos del grupo (salen del código de acceso) */
 .evaluar-alumno .grupo-datos{display:grid;grid-template-columns:auto 1fr;gap:.4rem 1rem;margin:0 0 1rem;padding:1rem;background:var(--bg);border-radius:.8rem}
 .evaluar-alumno .grupo-datos dt{font-weight:700;color:var(--ac)}
 .evaluar-alumno .grupo-datos dd{margin:0}
 .evaluar-alumno #cuenta-coment{display:block;text-align:right}
-=======
-/* ===== ALUMNO: INICIO ===== */
+
 .inicio-alumno { display:grid; gap:1rem; max-width:48rem; }
 .turno { padding:1.4rem 1.6rem; color:#fff; background:linear-gradient(135deg,var(--pri),var(--hd)); border-radius:1rem; display:grid; gap:.4rem; }
 .turno h2 { color:#fff; }
@@ -193,4 +192,4 @@
 
 /* ===== ALUMNO: EVALUAR ===== */
 .evaluar-alumno { display:grid; gap:1rem; max-width:48rem; }
->>>>>>> f49411b (v final 1.0)
+

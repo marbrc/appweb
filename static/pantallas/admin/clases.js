@@ -64,14 +64,13 @@ export function iniciar(contenedor) {
     const g = (getGrupos() || []).find(x => x.clave === grupo);
     const doc = (getDocentes() || []).find(d => (d.correo || d.nombre) === valor);
     const suyas = doc?.materias || [];
-    const delGrupo = [...new Set((getAsignaturas() || [])
-      .filter(a => a.carrera === g?.carrera && Number(a.cuatrimestre) === Number(g?.cuatrimestre)).map(a => a.nombre))];
+    const delGrupo = [...new Set((getAsignaturas() || []).map(a => a.nombre))];
     const ocupadas = (getClases() || []).filter(c => c.grupoId === grupo).map(c => c.asignaturaId);
     const disponibles = delGrupo.filter(m => !ocupadas.includes(m))
       .sort((a, b) => suyas.includes(b) - suyas.includes(a) || a.localeCompare(b));
 
     if (delGrupo.length === 0) {
-      selAsignatura.innerHTML = '<option value="">Este grupo no tiene materias (agrégalas en Asignaturas)</option>';
+      selAsignatura.innerHTML = '<option value="">No hay asignaturas (agrégalas en Asignaturas)</option>';
       selAsignatura.disabled = true;
     } else if (disponibles.length === 0) {
       selAsignatura.innerHTML = '<option value="">Todas las materias de este grupo ya tienen docente</option>';

@@ -5,15 +5,20 @@ from contextlib import contextmanager
 import pyodbc
 
 # El punto significa "esta misma computadora", así le sirve a todo el equipo.
-# Si a alguien no le conecta, que ponga aquí el nombre que sale en SSMS (Server name).
-SERVIDOR = os.environ.get("DB_SERVER", r".\SQLEXPRESS")
-BASE     = os.environ.get("DB_NAME", "DB_EncuestaDocente")
-# Con "Autenticación de Windows" se dejan USUARIO y CLAVE vacíos
-USUARIO  = os.environ.get("DB_USER", "")
-CLAVE    = os.environ.get("DB_PASSWORD", "")
-# Si te sale error de driver, prueba con "ODBC Driver 18 for SQL Server" o "SQL Server"
-DRIVER = os.environ.get("DB_DRIVER", "ODBC Driver 18 for SQL Server")
+import os
+import pyodbc
 
+# En Linux no se usa ".\SQLEXPRESS". Pon "localhost" o la IP del servidor.
+# Si la instancia usa un puerto específico: "localhost,1433"
+SERVIDOR = os.environ.get("DB_SERVER", "localhost")
+BASE     = os.environ.get("DB_NAME", "DB_EncuestaDocente")
+
+# En Linux se debe usar usuario y contraseña de SQL Server (Autenticación SQL)
+USUARIO  = os.environ.get("DB_USER", "sa")
+CLAVE    = os.environ.get("DB_PASSWORD", "M$100m#100")
+
+# Driver instalado en tu sistema Linux (FreeTDS u ODBC Driver para SQL Server)
+DRIVER   = os.environ.get("DB_DRIVER", "ODBC Driver 18 for SQL Server")
 
 def cadena_conexion():
     c = f"DRIVER={{{DRIVER}}};SERVER={SERVIDOR};DATABASE={BASE};TrustServerCertificate=yes;"
@@ -22,7 +27,6 @@ def cadena_conexion():
     else:
         c += "Trusted_Connection=yes;"
     return c
-
 
 def conectar():
     return pyodbc.connect(cadena_conexion(), autocommit=False)

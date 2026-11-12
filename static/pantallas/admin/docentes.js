@@ -39,14 +39,19 @@ export function iniciar(contenedor) {
     const campoMaterno = form.elements.namedItem("materno");
     const campoCorreo = form.elements.namedItem("correo");
 
-    function llenarMaterias(seleccion = []) {
-        const caja = buscar("#d-materias", cont);
-        // la misma materia puede estar en varias carreras, aqui solo sale una vez
-        const asignaturas = [...new Set((getAsignaturas() || []).map(a => a.nombre))].sort();
-        caja.innerHTML = asignaturas.length
-            ? asignaturas.map(n => `<label><input type="checkbox" name="materias" value="${escaparHTML(n)}" ${seleccion.includes(n) ? "checked" : ""}>${escaparHTML(n)}</label>`).join("")
-            : `<span style="color:var(--mut)">No hay asignaturas registradas</span>`;
-    }
+   function llenarMaterias(seleccion = []) {
+    const caja = buscar("#d-materias", cont);
+    const datos = getAsignaturas() || [];
+
+    // Extraer el nombre correctamente si viene como string u objeto ({nombre} o {NomAsignatura})
+    const nombresUnicos = [...new Set(
+        datos.map(a => typeof a === "string" ? a : (a.nombre || a.NomAsignatura)).filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+
+    caja.innerHTML = nombresUnicos.length
+        ? nombresUnicos.map(n => `<label><input type="checkbox" name="materias" value="${escaparHTML(n)}" ${seleccion.includes(n) ? "checked" : ""}>${escaparHTML(n)}</label>`).join("")
+        : `<span style="color:var(--mut)">No hay asignaturas registradas</span>`;
+}
 
     campoCorreo.addEventListener("input", () => {
         campoCorreo.setCustomValidity("");
@@ -92,23 +97,24 @@ export function iniciar(contenedor) {
         const nombreViejo = viejo ? viejo.nombre : nombreCompleto;
 
         const eraEdicion = editando >= 0;
-        if (eraEdicion) lista[editando] = item;
-        else lista.push(item);
-        form.reset();
-        campoCorreo.setCustomValidity("");
-        form.hidden = true;
-        editando = -1;
-        dibujar();
-        // primero se guarda el docente y DESPUES sus clases, si se mandan juntas el servidor
-        // todavia no conoce el correo nuevo y truena
-        await setDocentes(lista);
-        const nuevoId = correo || nombreCompleto;
-        if (eraEdicion && (correoViejo !== correo || nombreViejo !== nombreCompleto)) {
-            const clases = (getClases() || []).map(c =>
-                (c.docenteId === correoViejo || c.docenteId === nombreViejo) ? { ...c, docenteId: nuevoId } : c);
-            setClases(clases);
-        }
-        avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
+if (eraEdicion) lista[editando] = item;
+else lista.push(item);
+form.reset();
+campoCorreo.setCustomValidity("");
+form.hidden = true;
+editando = -1;
+
+await setDocentes(lista);   // guarda y actualiza la copia local
+dibujar();                  // ahora sí pinta
+
+const nuevoId = correo || nombreCompleto;
+if (eraEdicion && (correoViejo !== correo || nombreViejo !== nombreCompleto)) {
+    const clases = (getClases() || []).map(c =>
+        (c.docenteId === correoViejo || c.docenteId === nombreViejo) ? { ...c, docenteId: nuevoId } : c);
+    await setClases(clases);
+    dibujar();
+}
+avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
     };
 
     // --- EDITAR / ELIMINAR ---
