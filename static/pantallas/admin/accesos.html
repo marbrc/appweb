@@ -14,13 +14,19 @@
   <div class="nota-caja">
     <i data-icono="info"></i>
     <div>
-      <p>Cada clase (grupo + materia + docente) tiene su propio código. El alumno abre el enlace o escribe el código y contesta sin cuenta, de forma anónima. Si regeneras o revocas un código, el anterior deja de funcionar.</p>
+      <p>Cada clase (grupo + materia + docente) tiene su propio código. El alumno abre el enlace o escribe el código y contesta sin cuenta, de forma anónima. Si regeneras un código, el anterior deja de funcionar. Si lo desactivas, el código se queda guardado y lo puedes reactivar.</p>
       <p id="nota-enlace"></p>
     </div>
   </div>
 
   <div class="filtros">
     <label class="buscador" aria-label="Buscar"><i data-icono="buscar"></i><input id="a-buscar" type="search" placeholder="Buscar grupo, materia o docente…"></label>
+    <select id="a-estado" aria-label="Estado del código">
+      <option value="">Todos los códigos</option>
+      <option value="activos">Solo activos</option>
+      <option value="desactivados">Solo desactivados</option>
+      <option value="sincodigo">Sin código</option>
+    </select>
   </div>
 
   <div class="tabla-scroll">
@@ -29,6 +35,7 @@
         <tr>
           <th>Grupo</th>
           <th>Materia y docente</th>
+          <th>Contestaron</th>
           <th>Código</th>
           <th>Acciones</th>
         </tr>

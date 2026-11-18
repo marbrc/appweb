@@ -2,13 +2,14 @@
 import { buscar, esc, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { getAsignaturas, setAsignaturas, refrescarDatos } from "/static/js/nucleo/datos.js";
 import { abrirPapelera } from "/static/js/nucleo/papelera.js";
+import { filtrar, conectar, cuenta } from "/static/js/nucleo/filtro.js";
 
 let cont = null;
 let editando = -1;
 
-// primera letra mayúscula y luego letras, números (Inglés IV, Cálculo de Varias Variables)
-const REGEX_NOMBRE = /[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]*/;
-const MSG_NOMBRE = "El nombre debe empezar con mayúscula (ej. Inglés IV, Bases de Datos).";
+// primera letra mayúscula y luego letras, números, espacios y signos (Inglés IV, Cálculo de Varias Variables, Animación 3D)
+const REGEX_NOMBRE = /^[A-ZÁÉÍÓÚÜÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,\-]*$/;
+const MSG_NOMBRE = "El nombre debe empezar con mayúscula y puede llevar letras, números y espacios (ej. Inglés IV, Animación 3D).";
 
 export function iniciar(contenedor) {
   cont = contenedor;
@@ -20,6 +21,9 @@ export function iniciar(contenedor) {
   buscar("#s-nuevo", cont).onclick = () => abrirForm(-1);
   buscar("#s-cancelar", cont).onclick = () => { form.reset(); form.hidden = true; editando = -1; };
   buscar("#s-papelera", cont).onclick = () => abrirPapelera("asignaturas", dibujar);
+  // buscador: filtra por nombre de la asignatura
+  const campoBuscar = buscar("#s-buscar", cont);
+  conectar(campoBuscar, () => dibujar());
 
   // Agregamos `async` aquí para esperar la respuesta del backend
   form.onsubmit = async e => {
@@ -90,17 +94,29 @@ export function iniciar(contenedor) {
 
   function dibujar() {
     const lista = getAsignaturas();
-    buscar("#s-total", cont).textContent = lista.length + (lista.length === 1 ? " registrada" : " registradas");
+    const q = campoBuscar ? campoBuscar.value : "";
+    const textoPlanes = a => (a.planes || [])
+      .map(p => `${p.carrera} ${p.cuatrimestre}°`).join(" ");
+    const visibles = filtrar(lista, q, a => `${a.nombre} ${textoPlanes(a)}`);
+    buscar("#s-total", cont).textContent = cuenta(visibles.length, lista.length, "registrada", "registradas");
 
-    tabla.innerHTML = lista.length
-      ? lista.map((a, i) => `
+    const planes = a => (a.planes || []).length
+      ? `<div class="chips-planes">${a.planes.map(p =>
+          `<span class="chip">${esc(p.carrera)} · ${esc(p.cuatrimestre)}°</span>`).join("")}</div>`
+      : `<span class="badge warn">Sin plan todavía</span>`;
+
+    tabla.innerHTML = visibles.length
+      ? visibles.map(([a, i]) => `
           <tr>
             <td><b>${esc(a.nombre)}</b></td>
+            <td>${planes(a)}</td>
             <td class="acciones-fila">
               <button class="mini" type="button" data-ed="${i}">Editar</button>
               <button class="mini rojo" type="button" data-del="${i}">Eliminar</button>
             </td>
           </tr>`).join("")
-      : `<tr><td colspan="2" class="vacio">Todavía no hay asignaturas registradas en el catálogo.</td></tr>`;
+      : q.trim()
+        ? `<tr><td colspan="3" class="vacio">Nada coincide con "${esc(q.trim())}".</td></tr>`
+        : `<tr><td colspan="3" class="vacio">Todavía no hay asignaturas registradas en el catálogo.</td></tr>`;
   }
 }

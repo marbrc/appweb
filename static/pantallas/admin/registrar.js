@@ -5,6 +5,7 @@
 import { buscar, buscarTodos, api, avisar, confirmar, cargando, ojitos, fuerza, esc, REGLA_CLAVE, MSG_CLAVE } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import { obtenerSesion } from "/static/js/nucleo/datos.js";
+import { filtrar, conectar, cuenta } from "/static/js/nucleo/filtro.js";
 
 // las mismas reglas de nombre que usa el servidor
 const NOMBRE = /^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]*\.?(?:\s+[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]*\.?){0,4}$/;
@@ -31,6 +32,10 @@ export async function iniciar(contenedor) {
   }
 
   ojitos(form);
+
+  // buscador: filtra por nombre o correo
+  const campoBuscar = buscar("#ad-buscar", cont);
+  conectar(campoBuscar, () => dibujar());
 
   // ---------- mostrar / ocultar el formulario ----------
   const abrirForm = () => {
@@ -132,13 +137,15 @@ export async function iniciar(contenedor) {
   }
 
   function dibujar() {
+    const q = campoBuscar ? campoBuscar.value : "";
+    const visibles = filtrar(admins, q, a => `${a.nombre} ${a.correo}`);
     const total = buscar("#ad-total", cont);
-    if (total) total.textContent = admins.length + (admins.length === 1 ? " cuenta" : " cuentas");
+    if (total) total.textContent = cuenta(visibles.length, admins.length, "cuenta", "cuentas");
 
     const soyYo = a => yo && Number(yo.id) === Number(a.id);
 
-    tabla.innerHTML = admins.length
-      ? admins.map((a, i) => `
+    tabla.innerHTML = visibles.length
+      ? visibles.map(([a, i]) => `
         <tr>
           <td class="sub">${i + 1}</td>
           <td><b>${esc(a.nombre)}</b>${soyYo(a) ? ' <span class="chip">Tú</span>' : ""}</td>
@@ -151,7 +158,9 @@ export async function iniciar(contenedor) {
               : `<button class="mini" type="button" data-estado="${a.id}" data-accion="activar">Activar</button>`}
           </td>
         </tr>`).join("")
-      : `<tr><td colspan="6" class="vacio">Todavía no hay administradores.</td></tr>`;
+      : q.trim()
+        ? `<tr><td colspan="6" class="vacio">Nada coincide con "${esc(q.trim())}".</td></tr>`
+        : `<tr><td colspan="6" class="vacio">Todavía no hay administradores.</td></tr>`;
   }
 
   await cargar();

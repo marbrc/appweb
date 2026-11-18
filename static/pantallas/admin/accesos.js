@@ -1,10 +1,12 @@
 // /static/pantallas/admin/accesos.js
 import { buscar, esc, api, avisar, confirmar, cargando } from "/static/js/nucleo/utiles.js";
-import { getGrupos, getClases, getDocentes } from "/static/js/nucleo/datos.js";
+import { getGrupos, getClases, getDocentes, encuestasDeClase } from "/static/js/nucleo/datos.js";
+import { normalizar } from "/static/js/nucleo/filtro.js";
 
 export async function iniciar(cont) {
   const cuerpo = buscar("#tabla-accesos", cont);
   const campoBuscar = buscar("#a-buscar", cont);
+  const selEstado = buscar("#a-estado", cont);
   let codigos = [];
 
   // una fila por asignación de Carga Académica: grupo + docente + materia
@@ -19,6 +21,7 @@ export async function iniciar(cont) {
         grupo: g.clave,
         carrera: g.carrera,
         cuatri: g.cuatrimestre,
+        alumnos: Number(g.alumnos) || 0,
         docente: c.docenteId,                       // mismo valor que espera el servidor
         docenteNombre: d ? d.nombre : c.docenteId,
         materia: c.asignaturaId
@@ -33,34 +36,54 @@ export async function iniciar(cont) {
   const buscarCodigo = f => codigos.find(x => x.grupo === f.grupo && x.docente === f.docente && x.materia === f.materia);
 
   function dibujar() {
-    const q = campoBuscar.value.trim().toLowerCase();
+    const q = normalizar(campoBuscar.value).trim();
+    const estado = selEstado ? selEstado.value : "";
     const con = lista.filter(f => buscarCodigo(f)).length;
-    buscar("#a-total", cont).textContent = `${con} de ${lista.length} con código`;
+    const inactivos = lista.filter(f => buscarCodigo(f) && !buscarCodigo(f).activo).length;
+
+    buscar("#a-total", cont).textContent = `${con} de ${lista.length} con código` +
+      (inactivos ? ` · ${inactivos} desactivado${inactivos === 1 ? "" : "s"}` : "");
     buscar("#a-todos", cont).hidden = !lista.length || con === lista.length;
 
     if (!lista.length) {
-      cuerpo.innerHTML = `<tr><td colspan="4" class="vacio">No hay asignaciones. Crea una en Carga Académica.</td></tr>`;
+      cuerpo.innerHTML = `<tr><td colspan="5" class="vacio">No hay asignaciones. Crea una en Carga Académica.</td></tr>`;
       return;
     }
-    const visibles = lista.map((f, i) => [f, i]).filter(([f]) => !q || `${f.grupo} ${f.materia} ${f.docenteNombre}`.toLowerCase().includes(q));
+
+    const visibles = lista.map((f, i) => [f, i]).filter(([f]) => {
+      const c = buscarCodigo(f);
+      if (estado === "activos" && !(c && c.activo)) return false;
+      if (estado === "desactivados" && !(c && !c.activo)) return false;
+      if (estado === "sincodigo" && c) return false;
+      return !q || normalizar(`${f.grupo} ${f.materia} ${f.docenteNombre} ${f.carrera}`).includes(q);
+    });
+
     cuerpo.innerHTML = visibles.length ? visibles.map(([f, i]) => {
       const c = buscarCodigo(f);
+      const contestaron = encuestasDeClase(f.grupo, f.docente, f.materia);
+      const avance = f.alumnos ? `${contestaron} de ${f.alumnos}` : `${contestaron} (falta # alumnos)`;
+
+      const acciones = !c
+        ? `<button class="mini azul" type="button" data-acc="generar" data-i="${i}">Generar código</button>`
+        : c.activo
+          ? `<button class="mini azul" type="button" data-acc="copiar" data-i="${i}">Copiar enlace</button>
+             <button class="mini" type="button" data-acc="generar" data-i="${i}">Regenerar</button>
+             <button class="mini rojo" type="button" data-acc="desactivar" data-i="${i}">Desactivar</button>`
+          : `<button class="mini" type="button" data-acc="activar" data-i="${i}">Reactivar</button>
+             <button class="mini" type="button" data-acc="generar" data-i="${i}">Regenerar</button>`;
+
       return `<tr>
         <td><span class="chip clave">${esc(f.grupo)}</span> <small class="sub">${esc(f.cuatri)}°</small></td>
-        <td><b>${esc(f.materia)}</b><br><small class="sub">${esc(f.docenteNombre)}</small></td>` +
+        <td><b>${esc(f.materia)}</b><br><small class="sub">${esc(f.docenteNombre)}</small></td>
+        <td><small class="sub">${avance}</small></td>` +
         (c
-          ? `<td><span class="codigo">${esc(c.codigo)}</span><br><small class="sub" style="white-space:nowrap">Creado ${esc(c.creado)}</small></td>
-             <td class="acciones-fila">
-               <button class="mini azul" type="button" data-acc="copiar" data-i="${i}">Copiar enlace</button>
-               <button class="mini" type="button" data-acc="generar" data-i="${i}">Regenerar</button>
-               <button class="mini rojo" type="button" data-acc="revocar" data-i="${i}">Revocar</button>
-             </td>`
-          : `<td><span class="badge gris">Sin código</span></td>
-             <td class="acciones-fila">
-               <button class="mini azul" type="button" data-acc="generar" data-i="${i}">Generar código</button>
-             </td>`) +
-        "</tr>";
-    }).join("") : `<tr><td colspan="4" class="vacio">Nada coincide con "${esc(q)}".</td></tr>`;
+          ? `<td><span class="codigo">${esc(c.codigo)}</span>
+               ${c.activo ? '<span class="chip">Activo</span>' : '<span class="badge warn">Desactivado</span>'}
+               <br><small class="sub" style="white-space:nowrap">Creado ${esc(c.creado)}</small></td>`
+          : `<td><span class="badge gris">Sin código</span></td>`) +
+        `<td class="acciones-fila">${acciones}</td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="5" class="vacio">Nada coincide con el filtro.</td></tr>`;
   }
 
   async function cargar() {
@@ -79,8 +102,11 @@ export async function iniciar(cont) {
   }
 
   const generar = f => api("/api/codigos", { metodo: "POST", datos: f });
+  const cambiarActivo = (codigo, activo) =>
+    api("/api/codigos/" + codigo, { metodo: "PUT", datos: { activo } });
 
   campoBuscar.addEventListener("input", dibujar);
+  if (selEstado) selEstado.addEventListener("change", dibujar);
 
   cuerpo.addEventListener("click", async e => {
     const b = e.target.closest("[data-acc]");
@@ -101,11 +127,17 @@ export async function iniciar(cont) {
         avisar(`Código ${nuevo.codigo} listo para ${f.grupo} · ${f.materia}.`);
       }
 
-      if (b.dataset.acc === "revocar") {
-        if (!await confirmar(`Ya nadie podrá entrar con el código ${c.codigo}. Las respuestas que ya llegaron no se borran.`,
-          { titulo: "¿Revocar el código?", si: "Revocar", peligro: true })) return;
-        await api("/api/codigos/" + c.codigo, { metodo: "DELETE" });
-        avisar("Código revocado.");
+      if (b.dataset.acc === "desactivar") {
+        if (!await confirmar(`El código ${c.codigo} se queda guardado, solo queda desactivado. ` +
+          "El alumno verá que está desactivado y lo puedes reactivar cuando quieras. Las respuestas que ya llegaron no se borran.",
+          { titulo: "¿Desactivar el código de acceso?", si: "Desactivar", peligro: true })) return;
+        await cambiarActivo(c.codigo, false);
+        avisar("Código desactivado. Ya no se puede usar hasta que lo reactives.");
+      }
+
+      if (b.dataset.acc === "activar") {
+        await cambiarActivo(c.codigo, true);
+        avisar("Código reactivado. Los alumnos ya pueden volver a entrar.");
       }
       await cargar();
     } catch (err) {

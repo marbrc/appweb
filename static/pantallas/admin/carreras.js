@@ -3,6 +3,7 @@ import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import { getCarreras, setCarreras, alCambiarDatos, getGrupos, refrescarDatos } from "/static/js/nucleo/datos.js";
 import { abrirPapelera } from "/static/js/nucleo/papelera.js";
+import { filtrar, conectar, cuenta } from "/static/js/nucleo/filtro.js";
 
 let cont = null;
 let editando = -1;
@@ -30,6 +31,9 @@ export function iniciar(contenedor) {
   btnCancelar.onclick = () => { form.reset(); form.hidden = true; editando = -1; };
   // la tabla de las carreras que se desactivaron (no se borran)
   buscar("#c-papelera", cont).onclick = () => abrirPapelera("carreras", dibujar);
+  // buscador: filtra la tabla mientras escribes
+  const campoBuscar = buscar("#c-buscar", cont);
+  conectar(campoBuscar, () => dibujar());
 
   // limpia lo que escriben: quita lo que no sea letra y pone la primera en mayuscula
   // (esto antes estaba en un <script> dentro de carreras.html pero ahi NUNCA se ejecutaba porque el router mete el html con innerHTML)
@@ -124,12 +128,14 @@ export function iniciar(contenedor) {
   function dibujar() {
     const lista = getCarreras() || [];
     const grupos = getGrupos() || [];
-    
-    const total = buscar("#c-total", cont);
-    if (total) total.textContent = lista.length + (lista.length === 1 ? " registrada" : " registradas");
+    const q = campoBuscar ? campoBuscar.value : "";
+    const visibles = filtrar(lista, q, c => c);
 
-    tabla.innerHTML = lista.length
-      ? lista.map((c, i) => {
+    const total = buscar("#c-total", cont);
+    if (total) total.textContent = cuenta(visibles.length, lista.length, "registrada", "registradas");
+
+    tabla.innerHTML = visibles.length
+      ? visibles.map(([c, i]) => {
           const qtyGrupos = grupos.filter(g => g.carrera === c).length;
           
           return `
@@ -143,6 +149,8 @@ export function iniciar(contenedor) {
             </td>
           </tr>`;
         }).join("")
-      : `<tr><td colspan="4" class="vacio">Todavía no hay carreras. Toca "+ Nueva carrera".</td></tr>`;
+      : q.trim()
+        ? `<tr><td colspan="4" class="vacio">Nada coincide con "${limpiar(q.trim())}".</td></tr>`
+        : `<tr><td colspan="4" class="vacio">Todavía no hay carreras. Toca "+ Nueva carrera".</td></tr>`;
   }
 }

@@ -19,7 +19,7 @@ export const leer = k => { try { return JSON.parse(localStorage.getItem(k)) || [
 
 // claves que viven en el servidor (la sesión y el tema se quedan locales)
 const COMPARTIDAS = ["admin_carreras", "admin_grupos", "admin_docentes", "admin_asignaturas",
-                     "admin_preguntas", "admin_clases", "evaluaciones"];
+                     "admin_plan", "admin_preguntas", "admin_clases", "evaluaciones"];
 // estas NO se suben con PUT: las preguntas tienen su propia ruta (/api/preguntas) y las evaluaciones
 // solo las manda el alumno una por una
 const NO_SUBIR = ["admin_preguntas", "evaluaciones"];
@@ -94,6 +94,7 @@ const K = {
   grupos: "admin_grupos",
   docentes: "admin_docentes",
   asignaturas: "admin_asignaturas",
+  plan: "admin_plan",
   preguntas: "admin_preguntas",
   evaluaciones: "evaluaciones",
   clases: "admin_clases"
@@ -107,6 +108,11 @@ export const getDocentes = () => leer(K.docentes);
 export const setDocentes = v => guardar(K.docentes, v);
 export const getAsignaturas = () => leer(K.asignaturas);
 export const setAsignaturas = v => guardar(K.asignaturas, v);
+// plan de estudios: qué materias tocan en cada carrera y cuatrimestre
+export const getPlan = () => leer(K.plan);
+export const getPlanDe = (carrera, cuatrimestre) => getPlan()
+  .filter(p => p.carrera === carrera && Number(p.cuatrimestre) === Number(cuatrimestre))
+  .map(p => p.materia);
 // todas las preguntas (con las desactivadas) y solo las activas, que son las que contesta el alumno
 export const getPreguntas = () => leer(K.preguntas);
 export const getPreguntasActivas = () => getPreguntas().filter(p => p.activa !== false);
@@ -126,12 +132,22 @@ export const addClase = (clase) => {
 
 export const getCuatrimestres = carrera => [...new Set(getGrupos().filter(g => g.carrera === carrera).map(g => g.cuatrimestre))].sort((a, b) => a - b);
 export const getGruposDe = (carrera, cuatrimestre) => getGrupos().filter(g => g.carrera === carrera && g.cuatrimestre === cuatrimestre);
-export const getAsignaturasDe = (carrera, cuatrimestre) => getAsignaturas().filter(a => a.carrera === carrera && a.cuatrimestre === cuatrimestre);
+export const getAsignaturasDe = (carrera, cuatrimestre) => {
+  const delPlan = new Set(getPlanDe(carrera, cuatrimestre));
+  return getAsignaturas().filter(a => delPlan.has(a.nombre));
+};
 
 // calificacionesDe, saca las calificaciones de una evaluacion sin importar como se haya guardado
 export function calificacionesDe(e) {
   if (Array.isArray(e?.calificaciones)) return e.calificaciones.map(Number);
-  return Array.from({ length: 12 }, (_, i) => Number(e?.["p" + (i + 1)]) || 0);
+  // evaluaciones viejas: se buscan por id de pregunta en el orden actual, sin suponer que son 12
+  if (e?.respuestas && typeof e.respuestas === "object") {
+    const porId = getPreguntas().filter(p => String(p.id) in e.respuestas)
+      .map(p => Number(e.respuestas[p.id]) || 0);
+    if (porId.length) return porId;
+    return Object.values(e.respuestas).map(Number);
+  }
+  return [];
 }
 
 // promedioDe, el promedio de UNA evaluacion si ya lo trae lo usa y si no lo calcula
@@ -160,6 +176,22 @@ export function promedioPorPregunta(evals, preguntas = getPreguntasActivas()) {
 
 export function evaluacionesDeDocente(nombre) {
   return getEvaluaciones().filter(e => !nombre || e.profesor === nombre);
+}
+
+// participaciones: ya NO se guarda un contador en Grupo, se cuenta de las encuestas de sus clases.
+// en un grupo cada alumno contesta una vez por materia, así que la participación es la clase con más encuestas.
+export function encuestasDeClase(grupo, docente, materia) {
+  return (getEvaluaciones() || []).filter(e =>
+    e.grupo === grupo && e.materia === materia && (!docente || e.profesor === docente)).length;
+}
+
+export function participacionesDeGrupo(clave) {
+  const cuenta = {};
+  (getEvaluaciones() || []).filter(e => e.grupo === clave).forEach(e => {
+    const k = `${e.profesor}|${e.materia}`;
+    cuenta[k] = (cuenta[k] || 0) + 1;
+  });
+  return Math.max(0, ...Object.values(cuenta));
 }
 
 export const getCarrerasConEvaluaciones = () => {

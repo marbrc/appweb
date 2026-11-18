@@ -272,6 +272,7 @@ def Datos():
             "admin_grupos": repo.leer_grupos(cur),
             "admin_docentes": repo.leer_docentes(cur),
             "admin_asignaturas": repo.leer_asignaturas(cur),
+            "admin_plan": repo.leer_plan(cur),
             "admin_clases": repo.leer_clases(cur),
             "evaluaciones": repo.leer_evaluaciones(cur),
             "admin_preguntas": repo.leer_preguntas(cur),
@@ -290,6 +291,7 @@ LEER = {
     "admin_grupos": repo.leer_grupos,
     "admin_docentes": repo.leer_docentes,
     "admin_asignaturas": repo.leer_asignaturas,
+    "admin_plan": repo.leer_plan,
     "admin_clases": repo.leer_clases,
 }
 
@@ -379,22 +381,34 @@ def Codigos():
         return jsonify(repo.generar_codigo(cur, v["grupo"], v["materia"], v["docente"])), 201
 
 # GET    /api/codigos/K7M2QP  valida el código y regresa la clase, lo usa el alumno (no necesita sesion)
-# DELETE /api/codigos/K7M2QP  revoca el código, lo usa el administrador
-@app.route("/api/codigos/<codigo>", methods=["GET", "DELETE"])
+# DELETE /api/codigos/K7M2QP  desactiva el código (se queda guardado), lo usa el administrador
+# PUT    /api/codigos/K7M2QP  {activo: true|false}  lo activa o desactiva de nuevo
+@app.route("/api/codigos/<codigo>", methods=["GET", "DELETE", "PUT"])
 @con_bd
 def Codigo(codigo):
     codigo = codigo.strip().upper()
-    if request.method == "DELETE" and not session.get("id_admin"):
+    if request.method in ("DELETE", "PUT") and not session.get("id_admin"):
         return jsonify({"error": "Tu sesión terminó, vuelve a iniciar sesión."}), 401
     with transaccion() as cur:
         if request.method == "DELETE":
             if not repo.revocar_codigo(cur, codigo):
                 return jsonify({"error": "Código no válido."}), 404
             return jsonify({"ok": True})
-        # un código de una clase/grupo/carrera/docente desactivado ya no sirve
-        d = repo.buscar_codigo_activo(cur, codigo)
+        if request.method == "PUT":
+            activo = cuerpo().get("activo")
+            if not isinstance(activo, bool):
+                return jsonify({"error": "Manda activo en true o false."}), 400
+            return jsonify(repo.cambiar_activo_codigo(cur, codigo, activo))
+        # un código desactivado SÍ existe, pero se le avisa al alumno que está desactivado
+        d = repo.buscar_codigo(cur, codigo)
         if not d:
             return jsonify({"error": "Código no válido."}), 404
+        if not d.get("activo", True):
+            return jsonify({"error": "Este código está desactivado. Pídele a tu profesor que lo reactive."}), 403
+        # y un código de una clase/grupo/carrera/docente desactivado ya no sirve
+        d = repo.buscar_codigo_activo(cur, codigo)
+        if not d:
+            return jsonify({"error": "Ese código ya no está activo. Pídele uno nuevo a tu profesor."}), 404
         return jsonify(d)
 
 

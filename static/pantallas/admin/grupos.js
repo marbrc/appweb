@@ -1,8 +1,9 @@
 // /static/pantallas/admin/grupos.js
 import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getGrupos, setGrupos, getCarreras, getEvaluaciones, alCambiarDatos, refrescarDatos } from "/static/js/nucleo/datos.js";
+import { getGrupos, setGrupos, getCarreras, participacionesDeGrupo, alCambiarDatos, refrescarDatos } from "/static/js/nucleo/datos.js";
 import { abrirPapelera } from "/static/js/nucleo/papelera.js";
+import { filtrar, conectar, cuenta as resumen } from "/static/js/nucleo/filtro.js";
 
 let cont = null;
 let editando = -1;
@@ -10,16 +11,8 @@ let desuscribir = null;
 
 const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-// alumnos que ya respondieron en un grupo:
-// cada alumno manda 1 evaluación por materia, así que tomo la materia con más evaluaciones
-function respondieron(clave) {
-  const cuenta = {};
-  (getEvaluaciones() || []).filter(e => e.grupo === clave).forEach(e => {
-    const k = `${e.profesor}|${e.materia}`;
-    cuenta[k] = (cuenta[k] || 0) + 1;
-  });
-  return Math.max(0, ...Object.values(cuenta));
-}
+// participaciones: se cuentan de las encuestas de las clases del grupo (ya no hay contador guardado)
+const respondieron = clave => participacionesDeGrupo(clave);
 
 function llenarCarreras(form, seleccionada = "") {
   const lista = [...(getCarreras() || [])];
@@ -48,6 +41,9 @@ export function iniciar(contenedor) {
   btnNuevo.onclick = () => abrirForm(-1);
   btnCancelar.onclick = () => { form.reset(); form.hidden = true; editando = -1; };
   buscar("#g-papelera", cont).onclick = () => abrirPapelera("grupos", dibujar);
+  // buscador: filtra por clave, carrera o cuatrimestre
+  const campoBuscar = buscar("#g-buscar", cont);
+  conectar(campoBuscar, () => dibujar());
 
   form.onsubmit = async e => {
     e.preventDefault();
@@ -137,11 +133,13 @@ export function iniciar(contenedor) {
 
   function dibujar() {
     const lista = getGrupos() || [];
+    const q = campoBuscar ? campoBuscar.value : "";
+    const visibles = filtrar(lista, q, g => `${g.clave} ${g.carrera} ${g.cuatrimestre}`);
     const total = buscar("#g-total", cont);
-    if (total) total.textContent = lista.length + (lista.length === 1 ? " registrado" : " registrados");
+    if (total) total.textContent = resumen(visibles.length, lista.length, "registrado", "registrados");
 
-    tabla.innerHTML = lista.length
-      ? lista.map((g, i) => {
+    tabla.innerHTML = visibles.length
+      ? visibles.map(([g, i]) => {
           const ya = respondieron(g.clave);
           const pct = g.alumnos ? Math.min(100, Math.round(ya / g.alumnos * 100)) : null;
           return `
@@ -162,6 +160,8 @@ export function iniciar(contenedor) {
             </td>
           </tr>`;
         }).join("")
-      : `<tr><td colspan="7" class="vacio">Todavía no hay grupos. Toca "+ Nuevo grupo".</td></tr>`;
+      : q.trim()
+        ? `<tr><td colspan="7" class="vacio">Nada coincide con "${esc(q.trim())}".</td></tr>`
+        : `<tr><td colspan="7" class="vacio">Todavía no hay grupos. Toca "+ Nuevo grupo".</td></tr>`;
   }
 }

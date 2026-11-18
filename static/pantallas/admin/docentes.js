@@ -5,6 +5,7 @@ import {
   getDocentes, setDocentes, getClases, setClases, getAsignaturas, refrescarDatos
 } from "/static/js/nucleo/datos.js";
 import { abrirPapelera } from "/static/js/nucleo/papelera.js";
+import { filtrar, conectar, cuenta } from "/static/js/nucleo/filtro.js";
 
 let cont = null;
 let editando = -1;
@@ -62,6 +63,9 @@ export function iniciar(contenedor) {
 
     btnNuevo.onclick = () => abrirForm(-1);
     buscar("#d-papelera", cont).onclick = () => abrirPapelera("docentes", dibujar);
+    // buscador: filtra por nombre, correo o materia que imparte
+    const campoBuscar = buscar("#d-buscar", cont);
+    conectar(campoBuscar, () => dibujar());
 
     btnCancelar.onclick = () => {
         form.reset();
@@ -166,12 +170,15 @@ avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
     function dibujar() {
         const lista = getDocentes() || [];
         const clases = getClases() || [];
+        const q = campoBuscar ? campoBuscar.value : "";
+        const visibles = filtrar(lista, q,
+            doc => `${doc.nombre} ${doc.correo || ""} ${materiasDe(doc, clases).join(" ")}`);
 
         const total = buscar("#d-total", cont);
-        if (total) total.textContent = lista.length + (lista.length === 1 ? " registrado" : " registrados");
+        if (total) total.textContent = cuenta(visibles.length, lista.length, "registrado", "registrados");
 
-        tabla.innerHTML = lista.length
-            ? lista.map((doc, indice) => {
+        tabla.innerHTML = visibles.length
+            ? visibles.map(([doc, indice]) => {
                 const materias = materiasDe(doc, clases);
 
                 const materiasHTML = materias.length === 0
@@ -192,7 +199,9 @@ avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
                     </td>
                 </tr>`;
             }).join("")
-            : `<tr><td colspan="4" class="vacio">Todavía no hay docentes. Toca "+ Nuevo docente".</td></tr>`;
+            : q.trim()
+                ? `<tr><td colspan="4" class="vacio">Nada coincide con "${escaparHTML(q.trim())}".</td></tr>`
+                : `<tr><td colspan="4" class="vacio">Todavía no hay docentes. Toca "+ Nuevo docente".</td></tr>`;
     }
 
     dibujar();

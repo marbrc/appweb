@@ -6,6 +6,7 @@ import { buscar, api, avisar, confirmar, cargando, esc } from "/static/js/nucleo
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import { refrescarDatos } from "/static/js/nucleo/datos.js";
 import { abrirPapelera } from "/static/js/nucleo/papelera.js";
+import { filtrar, conectar, cuenta } from "/static/js/nucleo/filtro.js";
 
 let cont = null;
 let preguntas = [];
@@ -37,6 +38,10 @@ export async function iniciar(contenedor) {
   btnNuevo.onclick = () => abrirForm(null);
   btnCancelar.onclick = cerrar;
   buscar("#p-papelera", cont).onclick = () => abrirPapelera("preguntas", cargar);
+
+  // buscador: filtra por el texto de la pregunta
+  const campoBuscar = buscar("#p-buscar", cont);
+  conectar(campoBuscar, () => dibujar());
 
   // --- GUARDAR (nueva o edición) ---
   form.onsubmit = async e => {
@@ -128,22 +133,29 @@ export async function iniciar(contenedor) {
 
   function dibujar() {
     const activa = activas();
-    const total = buscar("#p-total", cont);
-    if (total) total.textContent = activa.length + (activa.length === 1 ? " pregunta activa" : " preguntas activas");
+    const q = campoBuscar ? campoBuscar.value : "";
+    const visibles = filtrar(activa, q, p => p.texto);
+    const filtrando = !!q.trim();
 
-    lista.innerHTML = activa.length
-      ? activa.map((p, i) => `
+    const total = buscar("#p-total", cont);
+    if (total) total.textContent = cuenta(visibles.length, activa.length, "pregunta activa", "preguntas activas");
+
+    // con búsqueda activa no se reordena (las flechas cambiarían de lugar a media lista)
+    lista.innerHTML = visibles.length
+      ? visibles.map(([p, i]) => `
           <li class="pregunta-item">
             <span class="num">${p.num}</span>
             <p>${esc(p.texto)}</p>
             <div class="acciones-fila">
-              <button class="mini" type="button" data-mv="-1" data-i="${i}" title="Subir" ${i === 0 ? "disabled" : ""}>↑</button>
-              <button class="mini" type="button" data-mv="1" data-i="${i}" title="Bajar" ${i === activa.length - 1 ? "disabled" : ""}>↓</button>
+              <button class="mini" type="button" data-mv="-1" data-i="${i}" title="${filtrando ? "Quita la búsqueda para reordenar" : "Subir"}" ${i === 0 || filtrando ? "disabled" : ""}>↑</button>
+              <button class="mini" type="button" data-mv="1" data-i="${i}" title="${filtrando ? "Quita la búsqueda para reordenar" : "Bajar"}" ${i === activa.length - 1 || filtrando ? "disabled" : ""}>↓</button>
               <button class="mini" type="button" data-ed="${p.id}">Editar</button>
               <button class="mini rojo" type="button" data-del="${p.id}">Eliminar</button>
             </div>
           </li>`).join("")
-      : `<li class="vacio">Todavía no hay preguntas activas. Toca "+ Nueva pregunta" o revisa "Ver eliminados".</li>`;
+      : filtrando
+        ? `<li class="vacio">Nada coincide con "${esc(q.trim())}".</li>`
+        : `<li class="vacio">Todavía no hay preguntas activas. Toca "+ Nueva pregunta" o revisa "Ver eliminados".</li>`;
   }
 
   async function cargar() {

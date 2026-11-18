@@ -48,9 +48,12 @@ async function validar(codigo) {
     history.replaceState(null, "", "/alumno?c=" + codigo);
     ir("#paso-grupo");
   } catch (e) {
-    avisar(e.message.includes("no válido") || e.message.includes("Código")
-      ? "Ese código no es válido o ya no está activo. Pídele uno nuevo a tu profesor."
-      : e.message);
+    const m = e.message || "";
+    avisar(m.toLowerCase().includes("desactivado")
+      ? "Este código está desactivado. Pídele a tu profesor que lo reactive."
+      : m.includes("no válido") || m.includes("Código") || m.includes("código")
+        ? "Ese código no es válido o ya no está activo. Pídele uno nuevo a tu profesor."
+        : m);
   }
   cargando(btn, false);
 }

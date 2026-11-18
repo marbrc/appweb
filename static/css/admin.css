@@ -28,11 +28,21 @@
 .checks label{display:flex;align-items:center;gap:.55rem;padding:.5rem .7rem;font-weight:500;background:var(--sutil);border:1px solid var(--bd);border-radius:8px;cursor:pointer}
 .checks label:has(:checked){background:var(--sel);border-color:var(--pri)}
 
+/* una sola casilla con su texto, como "Mostrar todas las materias" */
+.check-linea{grid-column:1/-1;display:flex;align-items:flex-start;gap:.55rem;font-weight:500;font-size:.88rem;color:var(--mut);cursor:pointer}
+.check-linea input{flex:none;margin-top:.15rem}
+
+/* las carreras y cuatrimestres donde se cursa una asignatura */
+.chips-planes{display:flex;flex-wrap:wrap;gap:.3rem}
+
 /* ---------- barra de filtros y buscador ---------- */
-.filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.7rem}
-.buscador{position:relative}
+.filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.7rem}.buscador{position:relative}
 .buscador input{padding-left:2.3rem}
 .buscador i[data-icono]{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--mut)}
+/* las pantallas de catálogo traen un solo buscador, así no se estira de lado a lado */
+.filtros-uno{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem}
+.filtros-uno .buscador{flex:0 1 26rem;min-width:min(100%,14rem)}
+.filtros-uno .sub{font-size:.82rem}
 
 /* ---------- INICIO ---------- */
 .saludo{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1rem}

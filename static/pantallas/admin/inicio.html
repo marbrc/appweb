@@ -32,6 +32,21 @@
 
   <section class="pg-card" style="padding-bottom:.4rem">
     <header>
+      <h3>Administradores</h3>
+      <button class="btn sec" type="button" data-ruta="admin/registrar">Registrar administrador</button>
+    </header>
+    <div class="tabla-scroll" style="box-shadow:none;border:0;border-radius:0;margin:0 -1.4rem">
+      <table class="tabla">
+        <thead>
+          <tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="a-admins"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="pg-card" style="padding-bottom:.4rem">
+    <header>
       <h3>Últimas evaluaciones</h3>
       <button class="link" type="button" data-ruta="admin/reportes">Ver reportes</button>
     </header>

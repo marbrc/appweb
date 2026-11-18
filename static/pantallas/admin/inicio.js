@@ -1,24 +1,13 @@
 // /static/pantallas/admin/inicio.js
-import { buscar, esc, api } from "/static/js/nucleo/utiles.js";
+import { buscar, esc, api, avisar, confirmar, cargando } from "/static/js/nucleo/utiles.js";
 import { icono } from "/static/js/nucleo/iconos.js";
 import {
   getGrupos, getDocentes, getClases, getEvaluaciones,
-  promedioGeneral, getPreguntasActivas, promedioDe, obtenerSesion
+  promedioGeneral, getPreguntasActivas, promedioDe, participacionesDeGrupo, obtenerSesion
 } from "/static/js/nucleo/datos.js";
 
 // clasePromedio, el color de la pastillita segun el promedio  9 o mas verde  7 o mas amarillo y menos de 7 rojo
 const clasePromedio = n => n >= 9 ? "alta" : n >= 7 ? "media" : "baja";
-
-// respondieron, cuantos alumnos de un grupo ya contestaron
-// cada alumno manda 1 evaluación por materia, así que tomo la materia con más evaluaciones
-function respondieron(evals, clave) {
-  const cuenta = {};
-  evals.filter(e => e.grupo === clave).forEach(e => {
-    const k = `${e.profesor}|${e.materia}`;
-    cuenta[k] = (cuenta[k] || 0) + 1;
-  });
-  return Math.max(0, ...Object.values(cuenta));
-}
 
 export async function iniciar(cont) {
   const evals = getEvaluaciones() || [];
@@ -53,7 +42,7 @@ export async function iniciar(cont) {
   // 2. avance por grupo, la barrita es cuantos ya contestaron de cuantos alumnos tiene el grupo
   buscar("#a-avance", cont).innerHTML = grupos.length
     ? grupos.map(g => {
-        const ya = respondieron(evals, g.clave);
+        const ya = participacionesDeGrupo(g.clave);
         const pct = g.alumnos ? Math.min(100, Math.round(ya / g.alumnos * 100)) : 0;
         return `<li>
           <span class="chip clave">${esc(g.clave)}</span>
@@ -85,11 +74,13 @@ export async function iniciar(cont) {
   const sinCodigo = clases.filter(c => !codigos.some(k => k.grupo === c.grupoId && k.materia === c.asignaturaId)).length;
   const sinAlumnos = grupos.filter(g => !g.alumnos).length;
   const sinCorreo = docentes.filter(d => !d.correo).length;
+  const desactivados = codigos.filter(k => k.activo === false).length;
 
   const p = [];   // [tipo, texto, detalle, boton, ruta]
   if (!preguntas.length) p.push(["warn", "No hay preguntas activas", "Sin preguntas los alumnos no pueden contestar.", "Agregar preguntas", "admin/preguntas"]);
   if (!clases.length) p.push(["warn", "No hay carga académica", "Asigna qué docente da cada materia en cada grupo.", "Ir a carga académica", "admin/clases"]);
   else if (sinCodigo) p.push(["warn", `${sinCodigo} ${sinCodigo === 1 ? "asignación no tiene" : "asignaciones no tienen"} código`, "Sin código el grupo no tiene enlace para evaluar.", "Generar códigos", "admin/accesos"]);
+  if (desactivados) p.push(["warn", `${desactivados} ${desactivados === 1 ? "código desactivado" : "códigos desactivados"}`, "Los alumnos no pueden entrar con esos códigos. Reactívalos o genera otros.", "Ver códigos", "admin/accesos"]);
   if (sinAlumnos) p.push(["warn", `${sinAlumnos} ${sinAlumnos === 1 ? "grupo sin" : "grupos sin"} número de alumnos`, "Sin ese número no se puede calcular la participación.", "Editar grupos", "admin/grupos"]);
   if (sinCorreo) p.push(["info", `${sinCorreo} ${sinCorreo === 1 ? "docente sin" : "docentes sin"} correo`, "No es obligatorio, pero sirve para mandarles sus resultados.", "Ver docentes", "admin/docentes"]);
   if (!p.some(x => x[0] === "warn")) p.unshift(["ok", "Todo listo para evaluar", "Los grupos ya pueden contestar con su enlace.", "", ""]);
@@ -99,4 +90,58 @@ export async function iniciar(cont) {
       ${icono(tipo === "ok" ? "check" : tipo === "warn" ? "alerta" : "info").replace("<svg", '<svg width="18" height="18"')}
       <div><b>${txt}</b><span class="sub">${det}</span>${btn ? `<button class="link" type="button" data-ruta="${ruta}">${btn} →</button>` : ""}</div>
     </li>`).join("");
+
+  // 5. administradores: se pueden activar/desactivar desde aquí sin cerrar la sesión actual
+  const tbodyAdmins = buscar("#a-admins", cont);
+  let admins = null;
+  try { admins = await api("/api/admins"); } catch { /* si falla solo se avisa en la tarjeta */ }
+
+  const soyYo = a => ses?.id != null && Number(a.id) === Number(ses.id);
+
+  function dibujarAdmins() {
+    if (!tbodyAdmins) return;
+    if (!Array.isArray(admins)) {
+      tbodyAdmins.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar la lista de administradores.</td></tr>`;
+      return;
+    }
+    tbodyAdmins.innerHTML = admins.length
+      ? admins.map(a => `
+        <tr>
+          <td><b>${esc(a.nombre)}</b>${soyYo(a) ? ' <span class="chip">Tú</span>' : ""}</td>
+          <td>${esc(a.correo)}</td>
+          <td>${a.activo ? '<span class="chip">Activo</span>' : '<span class="sub">Desactivado</span>'}</td>
+          <td class="acciones-fila">
+            ${a.activo
+              ? `<button class="mini rojo" type="button" data-admin="${a.id}" data-accion="desactivar" ${soyYo(a) ? "disabled title='No puedes desactivar tu propia cuenta'" : ""}>Desactivar</button>`
+              : `<button class="mini" type="button" data-admin="${a.id}" data-accion="activar">Activar</button>`}
+          </td>
+        </tr>`).join("")
+      : `<tr><td colspan="4" class="vacio">Todavía no hay administradores.</td></tr>`;
+  }
+
+  if (tbodyAdmins) {
+    tbodyAdmins.onclick = async e => {
+      const b = e.target.closest("[data-admin]");
+      if (!b) return;
+      const id = +b.dataset.admin;
+      const a = (admins || []).find(x => Number(x.id) === id);
+      if (!a) return;
+      const activar = b.dataset.accion === "activar";
+      if (!await confirmar(activar
+        ? "Podrá volver a entrar al sistema con su correo y contraseña."
+        : "No se borra nada: su cuenta queda desactivada y ya no podrá entrar. Tu sesión sigue abierta.",
+        { titulo: activar ? `¿Activar a "${a.nombre}"?` : `¿Desactivar a "${a.nombre}"?`,
+          si: activar ? "Activar" : "Desactivar", peligro: !activar })) return;
+      cargando(b, true);
+      try {
+        admins = await api(`/api/admins/${id}`, { metodo: "PUT", datos: { activo: activar } });
+        avisar(activar ? "Administrador activado." : "Administrador desactivado.");
+        dibujarAdmins();
+      } catch (err) {
+        avisar(err.message, "err");
+        cargando(b, false);
+      }
+    };
+    dibujarAdmins();
+  }
 }

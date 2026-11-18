@@ -32,6 +32,8 @@ IF OBJECT_ID ('dbo.Encuesta') IS NOT NULL
 DROP TABLE dbo.Encuesta
 IF OBJECT_ID ('dbo.Pregunta') IS NOT NULL
 DROP TABLE dbo.Pregunta
+IF OBJECT_ID ('dbo.Plan_Estudio') IS NOT NULL
+DROP TABLE dbo.Plan_Estudio
 IF OBJECT_ID ('dbo.Clave_Acceso') IS NOT NULL
 DROP TABLE dbo.Clave_Acceso
 IF OBJECT_ID ('dbo.Docente_Grupo') IS NOT NULL
@@ -74,10 +76,10 @@ CREATE TABLE dbo.Grupo(
     ClaveGrupo varchar(7) not null CONSTRAINT UQ_Grupo_ClaveGrupo UNIQUE,
     Cuatrimestre tinyint not null
         CONSTRAINT CK_Grupo_Cuatrimestre CHECK (Cuatrimestre BETWEEN 1 AND 11),
+    --0 = todavía falta capturar cuántos alumnos hay; la pantalla pide mínimo 1 al capturar
     CantidadAlumnos int not null
-        CONSTRAINT CK_Grupo_CantidadAlumnos CHECK (CantidadAlumnos >= 0),
+        CONSTRAINT CK_Grupo_CantidadAlumnos CHECK (CantidadAlumnos BETWEEN 0 AND 100),
     id_carrera int not null,
-    participaciones int not null CONSTRAINT DF_Grupo_participaciones DEFAULT (0),
     --1 = activo, 0 = eliminado (baja lógica)
     activo bit not null CONSTRAINT DF_Grupo_activo DEFAULT (1),
     CONSTRAINT FK_Grupo_Carrera FOREIGN KEY (id_carrera) REFERENCES dbo.Carrera (id_carrera)
@@ -86,12 +88,36 @@ GO
 
 
 GO
--- 3. TABLA ASIGNATURA (FK a Grupo y Carrera)
+--=====================================
+-- 3. TABLA ASIGNATURA (solo el nombre, una vez por materia)
+-- antes guardaba también carrera/cuatrimestre/grupo y la misma materia se repetía
+-- una vez por cada grupo; ahora eso vive en Plan_Estudio
 --=====================================
 CREATE TABLE dbo.Asignatura(
     id_asignatura int not null CONSTRAINT PK_Asignatura PRIMARY KEY,
     NomAsignatura varchar(60) not null,
     activo BIT NOT NULL DEFAULT 1
+);
+GO
+
+-- un solo registro activo por nombre (los desactivados se conservan para no perder historial)
+CREATE UNIQUE INDEX UQ_Asignatura_NombreActivo ON dbo.Asignatura (NomAsignatura) WHERE activo = 1
+GO
+
+--=====================================
+-- 3.1 TABLA PLAN_ESTUDIO (FK a Carrera y Asignatura)
+-- qué materias tocan en cada carrera y cuatrimestre; de aquí el grupo saca sus materias
+--=====================================
+CREATE TABLE dbo.Plan_Estudio(
+    id_plan int not null CONSTRAINT PK_Plan_Estudio PRIMARY KEY,
+    id_carrera int not null,
+    Cuatrimestre tinyint not null
+        CONSTRAINT CK_Plan_Cuatrimestre CHECK (Cuatrimestre BETWEEN 1 AND 11),
+    id_asignatura int not null,
+    CONSTRAINT FK_Plan_Carrera FOREIGN KEY (id_carrera) REFERENCES dbo.Carrera (id_carrera),
+    CONSTRAINT FK_Plan_Asignatura FOREIGN KEY (id_asignatura) REFERENCES dbo.Asignatura (id_asignatura),
+    --una materia no se repite en la misma carrera y cuatrimestre
+    CONSTRAINT UQ_Plan_Estudio UNIQUE (id_carrera, Cuatrimestre, id_asignatura)
 );
 GO
 
@@ -154,6 +180,10 @@ CREATE TABLE dbo.Clase(
 );
 GO
 
+-- una materia solo puede tener un docente por grupo (entre las clases activas)
+CREATE UNIQUE INDEX UQ_Clase_Grupo_Asignatura ON dbo.Clase (id_grupo, id_asignatura) WHERE activo = 1
+GO
+
 --=====================================
 -- 7. TABLA DOCENTE_GRUPO (llave primaria compuesta)
 --=====================================
@@ -176,9 +206,11 @@ GO
 CREATE TABLE dbo.Clave_Acceso(
     id_acceso int not null CONSTRAINT PK_Clave_Acceso PRIMARY KEY,
     id_clase int not null,
-    --si el admin revoca el codigo se queda en NULL pero la fila no se borra porque las encuestas cuelgan de ella
+    -- el código se conserva; si el admin lo desactiva, el alumno ve "código desactivado" y luego se puede reactivar
     Codigo varchar(6) null,
     FechaCreacion datetime not null CONSTRAINT DF_ClaveAcceso_Fecha DEFAULT (GETDATE()),
+    --1 = activo, 0 = desactivado (el código sigue guardado)
+    activo bit not null CONSTRAINT DF_ClaveAcceso_activo DEFAULT (1),
     CONSTRAINT FK_ClaveAcceso_Clase FOREIGN KEY (id_clase) REFERENCES dbo.Clase (id_clase)
 );
 GO
@@ -195,7 +227,7 @@ CREATE TABLE dbo.Encuesta(
     id_encuesta int not null CONSTRAINT PK_Encuesta PRIMARY KEY,
     --si no mandan fecha se pone la fecha y hora actual solita
     FechaEncuesta datetime not null CONSTRAINT DF_Encuesta_Fecha DEFAULT (GETDATE()),
-    Comentario varchar(500) null,
+    Comentario varchar(300) null,
     id_acceso int not null,
     CONSTRAINT FK_Encuesta_ClaveAcceso FOREIGN KEY (id_acceso) REFERENCES dbo.Clave_Acceso (id_acceso)
 );
@@ -211,7 +243,7 @@ CREATE TABLE dbo.Pregunta(
     id_pregunta int not null CONSTRAINT PK_Pregunta PRIMARY KEY,
     --el orden en que le salen al alumno
     NumPregunta tinyint not null CONSTRAINT CK_Pregunta_Num CHECK (NumPregunta > 0),
-    Texto varchar(500) not null,
+    Texto varchar(250) not null,
     --si una pregunta ya tiene respuestas no se puede borrar, solo se desactiva (Activa = 0)
     Activa bit not null CONSTRAINT DF_Pregunta_Activa DEFAULT (1)
 );
@@ -283,51 +315,38 @@ GO
 -- 2. GRUPO (el cuatrimestre es una columna de Grupo)
 -- la cantidad de alumnos queda en 0 hasta tener los numeros reales
 ----------------------------
-INSERT INTO dbo.Grupo (id_grupo, ClaveGrupo, Cuatrimestre, CantidadAlumnos, id_carrera, participaciones) VALUES
-(1, 'GTID241', 4, 0, 1, 0),
-(2, 'GTID242', 4, 0, 1, 0),
-(3, 'GTID243', 4, 0, 1, 0),
-(4, 'GTID244', 4, 0, 1, 0)
+INSERT INTO dbo.Grupo (id_grupo, ClaveGrupo, Cuatrimestre, CantidadAlumnos, id_carrera) VALUES
+(1, 'GTID241', 4, 0, 1),
+(2, 'GTID242', 4, 0, 1),
+(3, 'GTID243', 4, 0, 1),
+(4, 'GTID244', 4, 0, 1)
 GO
 
 ----------------------------
--- 3. ASIGNATURA
--- las 7 de 4to cuatri de Software, una vez por cada grupo
--- formato: (id, nombre, id_grupo, id_carrera)
+-- 3. ASIGNATURA (solo nombres únicos, sin carrera ni cuatrimestre)
 ----------------------------
 INSERT INTO dbo.Asignatura (id_asignatura, NomAsignatura) VALUES
--- GTID241
 (1, 'Inglés IV'),
 (2, 'Ética Profesional'),
 (3, 'Cálculo de Varias Variables'),
 (4, 'Aplicaciones Web'),
 (5, 'Estructura de Datos'),
 (6, 'Desarrollo de Aplicaciones Móviles'),
-(7, 'Análisis y Diseño de Software'),
--- GTID242
-(8, 'Inglés IV'),
-(9, 'Ética Profesional'),
-(10, 'Cálculo de Varias Variables'),
-(11, 'Aplicaciones Web'),
-(12, 'Estructura de Datos'),
-(13, 'Desarrollo de Aplicaciones Móviles'),
-(14, 'Análisis y Diseño de Software'),
--- GTID243
-(15, 'Inglés IV'),
-(16, 'Ética Profesional'),
-(17, 'Cálculo de Varias Variables'),
-(18, 'Aplicaciones Web'),
-(19, 'Estructura de Datos'),
-(20, 'Desarrollo de Aplicaciones Móviles'),
-(21, 'Análisis y Diseño de Software'),
--- GTID244
-(22, 'Inglés IV'),
-(23, 'Ética Profesional'),
-(24, 'Cálculo de Varias Variables'),
-(25, 'Aplicaciones Web'),
-(26, 'Estructura de Datos'),
-(27, 'Desarrollo de Aplicaciones Móviles'),
-(28, 'Análisis y Diseño de Software')
+(7, 'Análisis y Diseño de Software')
+GO
+
+----------------------------
+-- 3.1 PLAN_ESTUDIO
+-- qué materias tocan en cada carrera y cuatrimestre (los 4 grupos son de Software, 4°)
+----------------------------
+INSERT INTO dbo.Plan_Estudio (id_plan, id_carrera, Cuatrimestre, id_asignatura) VALUES
+(1, 1, 4, 1),
+(2, 1, 4, 2),
+(3, 1, 4, 3),
+(4, 1, 4, 4),
+(5, 1, 4, 5),
+(6, 1, 4, 6),
+(7, 1, 4, 7)
 GO
 
 ----------------------------
@@ -405,10 +424,11 @@ SELECT * FROM dbo.Docente
 SELECT * FROM dbo.Administrador
 SELECT * FROM dbo.Pregunta ORDER BY NumPregunta
 
---comprobacion: deben salir Carrera 4, Grupo 4, Asignatura 28, Docente 29, Administrador 1, Pregunta 12
+--comprobacion: deben salir Carrera 4, Grupo 4, Asignatura 7, Plan 7, Docente 29, Administrador 1, Pregunta 12
 SELECT (SELECT COUNT(*) FROM dbo.Carrera) AS Carreras,
        (SELECT COUNT(*) FROM dbo.Grupo) AS Grupos,
        (SELECT COUNT(*) FROM dbo.Asignatura) AS Asignaturas,
+       (SELECT COUNT(*) FROM dbo.Plan_Estudio) AS PlanEstudio,
        (SELECT COUNT(*) FROM dbo.Docente) AS Docentes,
        (SELECT COUNT(*) FROM dbo.Administrador) AS Administradores,
        (SELECT COUNT(*) FROM dbo.Pregunta) AS Preguntas
