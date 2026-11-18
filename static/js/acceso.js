@@ -48,9 +48,12 @@ async function validar(codigo) {
     history.replaceState(null, "", "/alumno?c=" + codigo);
     ir("#paso-grupo");
   } catch (e) {
-    avisar(e.message.includes("no válido") || e.message.includes("Código")
-      ? "Ese código no es válido o ya no está activo. Pídele uno nuevo a tu profesor."
-      : e.message);
+    // el servidor distingue: codigo que no existe (404) y codigo desactivado (403, trae su propio mensaje)
+    avisar(e.message.includes("desactivado")
+      ? e.message
+      : e.message.includes("no válido") || e.message.includes("Código")
+        ? "Ese código no es válido. Pídele uno nuevo a tu profesor."
+        : e.message);
   }
   cargando(btn, false);
 }

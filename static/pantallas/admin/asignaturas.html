@@ -6,27 +6,18 @@
       <span class="cab-ico"><i data-icono="libro"></i></span>
       <div>
         <h2>Asignaturas</h2>
-        <p class="sub">Las materias de cada carrera y cuatrimestre <span class="total" id="s-total"></span></p>
+        <p class="sub">El catálogo de materias: solo el nombre. La carrera y el cuatrimestre los pone el grupo <span class="total" id="s-total"></span></p>
       </div>
     </div>
     <button class="btn" id="s-nuevo" type="button"><i data-icono="mas"></i>Nueva asignatura</button>
   </div>
 
-  <!-- OJO antes el formulario solo pedia el nombre y en la BD cada asignatura va ligada a los grupos
-       de una carrera y cuatrimestre, por eso al guardar se borraban o no se guardaban. Ahora pide los tres -->
   <form id="s-form" class="form-cat" hidden>
     <h3 class="form-tit" id="s-titulo">Datos de la asignatura</h3>
     <label>Nombre de la asignatura
       <input type="text" name="nombre" required maxlength="60" placeholder="Ej. Bases de Datos, Inglés IV"
-        pattern="[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.()-]*"
-        title="Debe empezar con mayúscula. Ej. Inglés IV">
-    </label>
-    <label>Carrera
-      <select name="carrera" required><option value="">Selecciona una carrera</option></select>
-    </label>
-    <label>Cuatrimestre
-      <select name="cuatrimestre" required><option value="">Selecciona</option></select>
-      <small class="ayuda">Se agrega a todos los grupos de esa carrera y cuatrimestre.</small>
+        pattern="[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ]*"
+        title="Debe empezar con mayúscula; puede llevar letras, números y espacios. Ej. Inglés IV, Animación 3D">
     </label>
 
     <div class="acciones">
@@ -35,9 +26,18 @@
     </div>
   </form>
 
+
+  <!-- filtros: buscar por nombre y ver las materias de una carrera y cuatrimestre (sale del plan de estudios) -->
   <div class="filtros">
-    <select id="s-f-carrera" aria-label="Filtrar por carrera"><option value="">Todas las carreras</option></select>
-    <select id="s-f-cuatri" aria-label="Filtrar por cuatrimestre"><option value="">Todos los cuatrimestres</option></select>
+    <label class="buscador" aria-label="Buscar"><i data-icono="buscar"></i><input id="s-buscar" type="search" placeholder="Buscar asignatura…"></label>
+    <select id="s-carrera" aria-label="Carrera"><option value="">Todas las carreras</option></select>
+    <select id="s-cuatri" aria-label="Cuatrimestre"><option value="">Todos los cuatrimestres</option></select>
+    <select id="s-uso" aria-label="Uso">
+      <option value="">Todas</option>
+      <option value="sin-plan">Sin carrera/cuatrimestre aún</option>
+      <option value="en-carga">Con docente asignado</option>
+      <option value="libres">Sin docente asignado</option>
+    </select>
   </div>
 
   <div class="tabla-scroll">
@@ -45,8 +45,8 @@
       <thead>
         <tr>
           <th>Asignatura</th>
-          <th>Carrera</th>
-          <th>Cuatrimestre</th>
+          <th>Se cursa en</th>
+          <th>Grupos con docente</th>
           <th>Acciones</th>
         </tr>
       </thead>

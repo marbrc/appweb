@@ -44,6 +44,18 @@
     </div>
   </form>
 
+  <!-- filtros -->
+  <div class="filtros">
+    <label class="buscador" aria-label="Buscar"><i data-icono="buscar"></i><input id="d-buscar" type="search" placeholder="Buscar nombre o correo…"></label>
+    <select id="d-f-materia" aria-label="Materia"><option value="">Todas las materias</option></select>
+    <select id="d-f-estado" aria-label="Estado">
+      <option value="">Todos los docentes</option>
+      <option value="con-clases">Con asignaciones en Carga Académica</option>
+      <option value="sin-clases">Sin asignaciones</option>
+      <option value="sin-correo">Sin correo</option>
+    </select>
+  </div>
+
   <div class="tabla-scroll">
     <table class="tabla">
       <thead>

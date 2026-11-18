@@ -5,7 +5,7 @@
       <span class="cab-ico"><i data-icono="grupos"></i></span>
       <div>
         <h2>Grupos</h2>
-        <p class="sub">Registra y organiza los grupos de cada carrera <span class="total" id="g-total"></span></p>
+        <p class="sub">Cada grupo tiene su carrera y su cuatrimestre; de ahí salen sus asignaturas <span class="total" id="g-total"></span></p>
       </div>
     </div>
     <button class="btn" id="g-nuevo" type="button"><i data-icono="mas"></i>Nuevo grupo</button>
@@ -32,6 +32,7 @@
 
     <label>Alumnos en el grupo
       <input type="number" name="alumnos" min="1" max="100" step="1" placeholder="Ej. 30" required>
+      <small class="ayuda">De 1 a 100. Con este número se calcula la participación.</small>
     </label>
 
     <div class="acciones">
@@ -39,6 +40,13 @@
       <button class="btn" type="submit">Guardar</button>
     </div>
   </form>
+
+  <!-- filtros -->
+  <div class="filtros">
+    <label class="buscador" aria-label="Buscar"><i data-icono="buscar"></i><input id="g-buscar" type="search" placeholder="Buscar clave del grupo…"></label>
+    <select id="g-f-carrera" aria-label="Carrera"><option value="">Todas las carreras</option></select>
+    <select id="g-f-cuatri" aria-label="Cuatrimestre"><option value="">Todos los cuatrimestres</option></select>
+  </div>
 
   <div class="tabla-scroll">
     <table class="tabla">
@@ -48,6 +56,7 @@
           <th>Carrera</th>
           <th>Cuatrimestre</th>
           <th>Alumnos</th>
+          <th>Clases</th>
           <th>Respondieron</th>
           <th>Participación</th>
           <th>Acciones</th>

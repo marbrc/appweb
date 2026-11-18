@@ -3,22 +3,15 @@ import { buscar, esc, api } from "/static/js/nucleo/utiles.js";
 import { icono } from "/static/js/nucleo/iconos.js";
 import {
   getGrupos, getDocentes, getClases, getEvaluaciones,
-  promedioGeneral, getPreguntasActivas, promedioDe, obtenerSesion
+  promedioGeneral, getPreguntasActivas, promedioDe, obtenerSesion, participacionDe
 } from "/static/js/nucleo/datos.js";
+import { montarAdmins } from "/static/js/nucleo/admins.js";
 
 // clasePromedio, el color de la pastillita segun el promedio  9 o mas verde  7 o mas amarillo y menos de 7 rojo
 const clasePromedio = n => n >= 9 ? "alta" : n >= 7 ? "media" : "baja";
 
-// respondieron, cuantos alumnos de un grupo ya contestaron
-// cada alumno manda 1 evaluación por materia, así que tomo la materia con más evaluaciones
-function respondieron(evals, clave) {
-  const cuenta = {};
-  evals.filter(e => e.grupo === clave).forEach(e => {
-    const k = `${e.profesor}|${e.materia}`;
-    cuenta[k] = (cuenta[k] || 0) + 1;
-  });
-  return Math.max(0, ...Object.values(cuenta));
-}
+// la participacion de cada grupo (cuantos alumnos ya contestaron) la calcula el servidor contando las encuestas,
+// es el mismo dato que se ve en Grupos (participacionDe en datos.js)
 
 export async function iniciar(cont) {
   const evals = getEvaluaciones() || [];
@@ -53,8 +46,8 @@ export async function iniciar(cont) {
   // 2. avance por grupo, la barrita es cuantos ya contestaron de cuantos alumnos tiene el grupo
   buscar("#a-avance", cont).innerHTML = grupos.length
     ? grupos.map(g => {
-        const ya = respondieron(evals, g.clave);
-        const pct = g.alumnos ? Math.min(100, Math.round(ya / g.alumnos * 100)) : 0;
+        const { ya, pct: pctReal } = participacionDe(g);
+        const pct = pctReal ?? 0;
         return `<li>
           <span class="chip clave">${esc(g.clave)}</span>
           <div class="prog" title="${pct}%"><i style="width:${pct}%"></i></div>
@@ -83,6 +76,7 @@ export async function iniciar(cont) {
   let codigos = [];
   try { codigos = await api("/api/codigos"); } catch { /* si falla solo no sale ese pendiente */ }
   const sinCodigo = clases.filter(c => !codigos.some(k => k.grupo === c.grupoId && k.materia === c.asignaturaId)).length;
+  const desactivados = codigos.filter(k => k.activo === false).length;
   const sinAlumnos = grupos.filter(g => !g.alumnos).length;
   const sinCorreo = docentes.filter(d => !d.correo).length;
 
@@ -90,6 +84,7 @@ export async function iniciar(cont) {
   if (!preguntas.length) p.push(["warn", "No hay preguntas activas", "Sin preguntas los alumnos no pueden contestar.", "Agregar preguntas", "admin/preguntas"]);
   if (!clases.length) p.push(["warn", "No hay carga académica", "Asigna qué docente da cada materia en cada grupo.", "Ir a carga académica", "admin/clases"]);
   else if (sinCodigo) p.push(["warn", `${sinCodigo} ${sinCodigo === 1 ? "asignación no tiene" : "asignaciones no tienen"} código`, "Sin código el grupo no tiene enlace para evaluar.", "Generar códigos", "admin/accesos"]);
+  if (desactivados) p.push(["info", `${desactivados} ${desactivados === 1 ? "código desactivado" : "códigos desactivados"}`, "Esos grupos no pueden evaluar hasta que los actives.", "Ver códigos", "admin/accesos"]);
   if (sinAlumnos) p.push(["warn", `${sinAlumnos} ${sinAlumnos === 1 ? "grupo sin" : "grupos sin"} número de alumnos`, "Sin ese número no se puede calcular la participación.", "Editar grupos", "admin/grupos"]);
   if (sinCorreo) p.push(["info", `${sinCorreo} ${sinCorreo === 1 ? "docente sin" : "docentes sin"} correo`, "No es obligatorio, pero sirve para mandarles sus resultados.", "Ver docentes", "admin/docentes"]);
   if (!p.some(x => x[0] === "warn")) p.unshift(["ok", "Todo listo para evaluar", "Los grupos ya pueden contestar con su enlace.", "", ""]);
@@ -99,4 +94,7 @@ export async function iniciar(cont) {
       ${icono(tipo === "ok" ? "check" : tipo === "warn" ? "alerta" : "info").replace("<svg", '<svg width="18" height="18"')}
       <div><b>${txt}</b><span class="sub">${det}</span>${btn ? `<button class="link" type="button" data-ruta="${ruta}">${btn} →</button>` : ""}</div>
     </li>`).join("");
+
+  // 5. administradores: lista y formulario para registrar nuevos
+  montarAdmins(cont);
 }

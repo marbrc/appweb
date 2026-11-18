@@ -39,14 +39,19 @@ export function iniciar(contenedor) {
     const campoMaterno = form.elements.namedItem("materno");
     const campoCorreo = form.elements.namedItem("correo");
 
-    function llenarMaterias(seleccion = []) {
-        const caja = buscar("#d-materias", cont);
-        // la misma materia puede estar en varias carreras, aqui solo sale una vez
-        const asignaturas = [...new Set((getAsignaturas() || []).map(a => a.nombre))].sort();
-        caja.innerHTML = asignaturas.length
-            ? asignaturas.map(n => `<label><input type="checkbox" name="materias" value="${escaparHTML(n)}" ${seleccion.includes(n) ? "checked" : ""}>${escaparHTML(n)}</label>`).join("")
-            : `<span style="color:var(--mut)">No hay asignaturas registradas</span>`;
-    }
+   function llenarMaterias(seleccion = []) {
+    const caja = buscar("#d-materias", cont);
+    const datos = getAsignaturas() || [];
+
+    // Extraer el nombre correctamente si viene como string u objeto ({nombre} o {NomAsignatura})
+    const nombresUnicos = [...new Set(
+        datos.map(a => typeof a === "string" ? a : (a.nombre || a.NomAsignatura)).filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+
+    caja.innerHTML = nombresUnicos.length
+        ? nombresUnicos.map(n => `<label><input type="checkbox" name="materias" value="${escaparHTML(n)}" ${seleccion.includes(n) ? "checked" : ""}>${escaparHTML(n)}</label>`).join("")
+        : `<span style="color:var(--mut)">No hay asignaturas registradas</span>`;
+}
 
     campoCorreo.addEventListener("input", () => {
         campoCorreo.setCustomValidity("");
@@ -92,23 +97,25 @@ export function iniciar(contenedor) {
         const nombreViejo = viejo ? viejo.nombre : nombreCompleto;
 
         const eraEdicion = editando >= 0;
-        if (eraEdicion) lista[editando] = item;
-        else lista.push(item);
-        form.reset();
-        campoCorreo.setCustomValidity("");
-        form.hidden = true;
-        editando = -1;
-        dibujar();
-        // primero se guarda el docente y DESPUES sus clases, si se mandan juntas el servidor
-        // todavia no conoce el correo nuevo y truena
-        await setDocentes(lista);
-        const nuevoId = correo || nombreCompleto;
-        if (eraEdicion && (correoViejo !== correo || nombreViejo !== nombreCompleto)) {
-            const clases = (getClases() || []).map(c =>
-                (c.docenteId === correoViejo || c.docenteId === nombreViejo) ? { ...c, docenteId: nuevoId } : c);
-            setClases(clases);
-        }
-        avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
+if (eraEdicion) lista[editando] = item;
+else lista.push(item);
+form.reset();
+campoCorreo.setCustomValidity("");
+form.hidden = true;
+editando = -1;
+
+await setDocentes(lista);   // guarda y actualiza la copia local
+llenarFiltroMaterias();
+dibujar();                  // ahora sí pinta
+
+const nuevoId = correo || nombreCompleto;
+if (eraEdicion && (correoViejo !== correo || nombreViejo !== nombreCompleto)) {
+    const clases = (getClases() || []).map(c =>
+        (c.docenteId === correoViejo || c.docenteId === nombreViejo) ? { ...c, docenteId: nuevoId } : c);
+    await setClases(clases);
+    dibujar();
+}
+avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
     };
 
     // --- EDITAR / ELIMINAR ---
@@ -156,15 +163,43 @@ export function iniciar(contenedor) {
         campoNombres.focus();
     }
 
+    // ---- filtros ----
+    const fBuscar = buscar("#d-buscar", cont), fMateria = buscar("#d-f-materia", cont), fEstado = buscar("#d-f-estado", cont);
+    function llenarFiltroMaterias() {
+        const previa = fMateria.value;
+        const clases = getClases() || [];
+        const todas = [...new Set((getDocentes() || []).flatMap(d => materiasDe(d, clases)))]
+            .sort((a, b) => a.localeCompare(b, "es"));
+        fMateria.innerHTML = '<option value="">Todas las materias</option>' +
+            todas.map(m => `<option value="${escaparHTML(m)}">${escaparHTML(m)}</option>`).join("");
+        fMateria.value = todas.includes(previa) ? previa : "";
+    }
+    llenarFiltroMaterias();
+    fBuscar.addEventListener("input", dibujar);
+    fMateria.addEventListener("change", dibujar);
+    fEstado.addEventListener("change", dibujar);
+
     function dibujar() {
         const lista = getDocentes() || [];
         const clases = getClases() || [];
+        const q = fBuscar.value.trim().toLowerCase();
+        const tieneClases = doc => clases.some(c => c.docenteId === doc.correo || c.docenteId === doc.nombre);
+
+        // cada docente guarda su lugar real en la lista para que Editar y Eliminar apunten bien aunque haya filtros
+        const visibles = lista.map((doc, indice) => [doc, indice]).filter(([doc]) =>
+            (!q || `${doc.nombre} ${doc.correo || ""}`.toLowerCase().includes(q)) &&
+            (!fMateria.value || materiasDe(doc, clases).includes(fMateria.value)) &&
+            (fEstado.value !== "con-clases" || tieneClases(doc)) &&
+            (fEstado.value !== "sin-clases" || !tieneClases(doc)) &&
+            (fEstado.value !== "sin-correo" || !doc.correo));
 
         const total = buscar("#d-total", cont);
-        if (total) total.textContent = lista.length + (lista.length === 1 ? " registrado" : " registrados");
+        if (total) total.textContent = visibles.length === lista.length
+            ? lista.length + (lista.length === 1 ? " registrado" : " registrados")
+            : `${visibles.length} de ${lista.length}`;
 
-        tabla.innerHTML = lista.length
-            ? lista.map((doc, indice) => {
+        tabla.innerHTML = visibles.length
+            ? visibles.map(([doc, indice]) => {
                 const materias = materiasDe(doc, clases);
 
                 const materiasHTML = materias.length === 0
@@ -185,7 +220,7 @@ export function iniciar(contenedor) {
                     </td>
                 </tr>`;
             }).join("")
-            : `<tr><td colspan="4" class="vacio">Todavía no hay docentes. Toca "+ Nuevo docente".</td></tr>`;
+            : `<tr><td colspan="4" class="vacio">${lista.length ? "Ningún docente coincide con los filtros." : 'Todavía no hay docentes. Toca "+ Nuevo docente".'}</td></tr>`;
     }
 
     dibujar();

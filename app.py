@@ -20,7 +20,7 @@ app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
 
 # ---------- PAGINAS ----------
 
-# el login, el registro y recuperar contraseña estan en la misma pagina
+# el login y recuperar contraseña estan en la misma pagina
 @app.route("/")
 def Inicio():
     return render_template("index.html")
@@ -55,6 +55,7 @@ def con_bd(fn):
             app.logger.exception("Error con SQL Server")
             return jsonify({"error": "No se pudo usar la base de datos. Revisa db.py y que SQL Server esté encendido."}), 500
     return envoltura
+
 
 
 def solo_admin(fn):
@@ -117,16 +118,26 @@ def Login():
     session.permanent = bool(d.get("recordar"))
     return jsonify(usuario)
 
-@app.route("/api/registro", methods=["POST"])
+# Ya NO hay registro publico en el login. Los administradores nuevos los da de alta
+# otro administrador que ya inició sesión (pantalla "Administradores" y el Inicio del dashboard).
+# OJO: la sesión de quien registra NO cambia, antes el registro iniciaba sesión con la cuenta nueva.
+@app.route("/api/admins", methods=["GET", "POST"])
+@solo_admin
 @con_bd
-def Registro():
+def Admins():
     with transaccion() as cur:
+        if request.method == "GET":
+            return jsonify(repo.listar_admins(cur))
         id_admin = repo.registrar_admin(cur, cuerpo())
-        usuario = repo.admin_por_id(cur, id_admin)
-    # al registrarse ya queda con la sesion iniciada
-    session.clear()
-    session["id_admin"] = id_admin
-    return jsonify(usuario), 201
+        return jsonify(repo.admin_por_id(cur, id_admin)), 201
+
+@app.route("/api/admins/<int:id_a>/estatus", methods=["PUT"])
+@solo_admin
+@con_bd
+def AdminEstatus(id_a):
+    with transaccion() as cur:
+        repo.cambiar_estatus_admin(cur, session["id_admin"], id_a, bool(cuerpo().get("activo")))
+        return jsonify(repo.listar_admins(cur))
 
 @app.route("/api/logout", methods=["POST"])
 def Logout():
@@ -281,7 +292,7 @@ def GuardarDatos(clave):
         return jsonify({"error": "Se esperaba una lista."}), 400
     with transaccion() as cur:
         omitidas = SINCRONIZAR[clave](cur, valor)
-        # regresa como quedo en la BD para que el front se quede igualito
+        # Regresa cómo quedó en la BD para que el front se mantenga sincronizado
         return jsonify({"ok": True, "omitidas": omitidas or [], "lista": LEER[clave](cur)})
 
 # POST /api/evaluaciones  el alumno manda {codigo, respuestas: {id_pregunta: calificacion}, comentario}
@@ -355,23 +366,28 @@ def Codigos():
             return jsonify({"error": "Faltan los datos de la asignación."}), 400
         return jsonify(repo.generar_codigo(cur, v["grupo"], v["materia"], v["docente"])), 201
 
-# GET    /api/codigos/K7M2QP  valida el código y regresa la clase, lo usa el alumno (no necesita sesion)
-# DELETE /api/codigos/K7M2QP  revoca el código, lo usa el administrador
-@app.route("/api/codigos/<codigo>", methods=["GET", "DELETE"])
+# GET /api/codigos/K7M2QP  valida el código y regresa la clase, lo usa el alumno (no necesita sesion)
+#                          si el código está desactivado regresa 403
+# PUT /api/codigos/K7M2QP  {activo: true/false}  desactiva o vuelve a activar el código (administrador)
+@app.route("/api/codigos/<codigo>", methods=["GET", "PUT"])
 @con_bd
 def Codigo(codigo):
     codigo = codigo.strip().upper()
-    if request.method == "DELETE" and not session.get("id_admin"):
-        return jsonify({"error": "Tu sesión terminó, vuelve a iniciar sesión."}), 401
-    with transaccion() as cur:
-        if request.method == "DELETE":
-            if not repo.revocar_codigo(cur, codigo):
+    if request.method == "PUT":
+        if not session.get("id_admin"):
+            return jsonify({"error": "Tu sesión terminó, vuelve a iniciar sesión."}), 401
+        activo = cuerpo().get("activo")
+        if not isinstance(activo, bool):
+            return jsonify({"error": "Falta decir si el código se activa o se desactiva."}), 400
+        with transaccion() as cur:
+            if not repo.cambiar_estado_codigo(cur, codigo, activo):
                 return jsonify({"error": "Código no válido."}), 404
-            return jsonify({"ok": True})
+        return jsonify({"ok": True, "activo": activo})
+    with transaccion() as cur:
         d = repo.buscar_codigo(cur, codigo)
-        if not d:
-            return jsonify({"error": "Código no válido."}), 404
-        return jsonify(d)
+    if not d:
+        return jsonify({"error": "Código no válido."}), 404
+    return jsonify(d)
 
 
 # ---------- CALIFICAR EL SISTEMA ----------

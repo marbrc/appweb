@@ -30,6 +30,43 @@
     </section>
   </div>
 
+  <!-- administradores: aquí se registran los administradores nuevos (ya no hay registro en el login) -->
+  <section class="pg-card" id="a-admins">
+    <header>
+      <h3>Administradores <span class="total" id="ad-total"></span></h3>
+      <button class="btn sec" id="ad-nuevo" type="button"><i data-icono="mas"></i>Registrar administrador</button>
+    </header>
+
+    <form id="ad-form" class="form-cat" hidden novalidate>
+      <h3 class="form-tit">Nuevo administrador</h3>
+      <p class="sub completo">La cuenta nueva tiene rol de administrador y puede hacer todo en el sistema.</p>
+      <label>Nombre(s)<input name="nombres" required maxlength="60" autocomplete="off" placeholder="Ej. María Guadalupe"></label>
+      <label>Apellido paterno<input name="paterno" required maxlength="50" autocomplete="off"></label>
+      <label>Apellido materno<input name="materno" maxlength="50" autocomplete="off" placeholder="Opcional"></label>
+      <label>Correo<input type="email" name="correo" required maxlength="100" autocomplete="off" placeholder="correo@utng.edu.mx"></label>
+      <label>Contraseña
+        <span class="pw"><input type="password" name="clave" required minlength="8" maxlength="20" autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+        <span class="fuerza" id="ad-fuerza"><i></i><i></i><i></i><i></i></span>
+        <small class="ayuda">De 8 a 20 caracteres, con una mayúscula, una minúscula y un número.</small>
+      </label>
+      <label>Confirmar contraseña
+        <span class="pw"><input type="password" name="clave2" required autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+      </label>
+      <p class="msg err completo" data-error hidden></p>
+      <div class="acciones">
+        <button class="btn sec" type="button" id="ad-cancelar">Cancelar</button>
+        <button class="btn" type="submit">Registrar</button>
+      </div>
+    </form>
+
+    <div class="tabla-scroll" style="box-shadow:none;border:0;border-radius:0;margin:0 -1.4rem">
+      <table class="tabla">
+        <thead><tr><th>Administrador</th><th>Último acceso</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody id="ad-tabla"></tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="pg-card" style="padding-bottom:.4rem">
     <header>
       <h3>Últimas evaluaciones</h3>

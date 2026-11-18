@@ -1,5 +1,5 @@
 // /static/js/login.js
-// iniciar sesión, registrarse y recuperar contraseña
+// iniciar sesión y recuperar contraseña (el registro de administradores nuevos ya no esta aqui, esta en el Inicio)
 // ANTES el login dejaba entrar con cualquier correo y contraseña porque no le preguntaba nada al servidor,
 // ahora se revisa contra la tabla Administrador de SQL Server (la contraseña va encriptada con SHA2_256)
 import { buscar, buscarTodos, api, cargando, ojitos, fuerza, REGLA_CLAVE, MSG_CLAVE } from "/static/js/nucleo/utiles.js";
@@ -8,19 +8,18 @@ import { pintarIconos } from "/static/js/nucleo/iconos.js";
 pintarIconos();
 ojitos();
 
-// ---------- REGLAS (las mismas de validacion.js de la documentacion) ----------
-const NOMBRE = /^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]*\.?(?:\s+[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]*\.?){0,4}$/;
+// ---------- REGLAS ----------
 const CORREO = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 // error, pone el mensaje rojo en el formulario (o lo quita si va vacio)
 const error = (form, texto) => { const m = buscar("[data-error]", form); m.className = "msg err"; m.textContent = texto || ""; m.hidden = !texto; };
 
 // ---------- CAMBIAR DE VISTA SEGUN EL # ----------
-const VISTAS = { login: "#v-login", registro: "#v-registro", recuperar: "#v-recuperar" };
+const VISTAS = { login: "#v-login", recuperar: "#v-recuperar" };
 function mostrar() {
   const v = VISTAS[location.hash.slice(1)] ? location.hash.slice(1) : "login";
   Object.entries(VISTAS).forEach(([k, sel]) => { buscar(sel).hidden = k !== v; });
-  document.title = { login: "Iniciar sesión", registro: "Crear cuenta", recuperar: "Recuperar contraseña" }[v] + " · Encuesta Docente UTNG";
+  document.title = { login: "Iniciar sesión", recuperar: "Recuperar contraseña" }[v] + " · Encuesta Docente UTNG";
   if (v === "recuperar") paso(1);
   buscar(VISTAS[v] + " input")?.focus();
 }
@@ -57,43 +56,7 @@ fLogin.addEventListener("submit", async e => {
   }
 });
 
-// ---------- 2 REGISTRO ----------
-const fReg = buscar("#v-registro");
-fReg.clave.addEventListener("input", () => buscar("#fuerza-reg").dataset.n = fuerza(fReg.clave.value));
-// marca en rojo el campo que esta mal en cuanto sales de el
-const reglasReg = {
-  nombres: v => NOMBRE.test(v) && v.length >= 2 || "El nombre debe empezar con mayúscula y llevar solo letras.",
-  paterno: v => NOMBRE.test(v) || "El apellido paterno debe empezar con mayúscula y llevar solo letras.",
-  materno: v => !v || NOMBRE.test(v) || "El apellido materno debe empezar con mayúscula y llevar solo letras.",
-  correo: v => CORREO.test(v) || "Escribe un correo válido.",
-  clave: v => REGLA_CLAVE.test(v) || MSG_CLAVE,
-  clave2: v => v === fReg.clave.value || "Las contraseñas no son iguales."
-};
-const revisar = campo => {
-  const r = reglasReg[campo.name]?.(campo.name.startsWith("clave") ? campo.value : campo.value.trim().replace(/\s+/g, " "));
-  campo.setCustomValidity(r === true ? "" : r || "");
-  return r === true ? null : r;
-};
-buscarTodos("input", fReg).forEach(c => c.addEventListener("blur", () => revisar(c)));
-
-fReg.addEventListener("submit", async e => {
-  e.preventDefault();
-  const primero = buscarTodos("input", fReg).map(c => [c, revisar(c)]).find(([, r]) => r);
-  if (primero) { primero[0].focus(); return error(fReg, primero[1]); }
-  error(fReg);
-  const d = Object.fromEntries(new FormData(fReg));
-  ["nombres", "paterno", "materno", "correo"].forEach(k => d[k] = d[k].trim().replace(/\s+/g, " "));
-  const btn = buscar(".btn", fReg);
-  cargando(btn, true);
-  try {
-    entrar(await api("/api/registro", { metodo: "POST", datos: d }));
-  } catch (err) {
-    error(fReg, err.message);
-    cargando(btn, false);
-  }
-});
-
-// ---------- 3 RECUPERAR CONTRASEÑA ----------
+// ---------- 2 RECUPERAR CONTRASEÑA ----------
 const r1 = buscar("#rec-1"), r2 = buscar("#rec-2"), r3 = buscar("#rec-3");
 let correoRec = "", codigoRec = "";
 
