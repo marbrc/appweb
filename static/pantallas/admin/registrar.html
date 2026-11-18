@@ -1,0 +1,67 @@
+<!-- /static/pantallas/admin/registrar.html -->
+<div class="pg">
+  <div class="cab">
+    <div class="cab-txt">
+      <span class="cab-ico"><i data-icono="usuario"></i></span>
+      <div>
+        <h2>Administradores</h2>
+        <p class="sub">Agrega cuentas nuevas, o activa y desactiva las que ya existen. Nadie se borra: solo se desactiva. <span class="total" id="ad-total"></span></p>
+      </div>
+    </div>
+    <button class="btn" id="ad-nuevo" type="button"><i data-icono="mas"></i>Nuevo administrador</button>
+  </div>
+
+  <form id="ad-form" class="form-cat" hidden novalidate>
+    <h3 class="form-tit">Datos del administrador</h3>
+
+    <div class="tres-campos">
+      <label>Nombre(s)
+        <input name="nombres" required maxlength="60" autocomplete="off" placeholder="Ej. María Guadalupe">
+      </label>
+      <label>Apellido paterno
+        <input name="paterno" required maxlength="50" autocomplete="off">
+      </label>
+      <label><span>Apellido materno <small class="ayuda">(opcional)</small></span>
+        <input name="materno" maxlength="50" autocomplete="off">
+      </label>
+    </div>
+
+    <div class="dos-campos">
+      <label>Correo
+        <input type="email" name="correo" required maxlength="100" autocomplete="off" placeholder="tu.correo@utng.edu.mx">
+      </label>
+      <label>Contraseña
+        <span class="pw"><input type="password" name="clave" required minlength="8" maxlength="20" autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+        <span class="fuerza" id="ad-fuerza"><i></i><i></i><i></i><i></i></span>
+      </label>
+    </div>
+
+    <label>Confirmar contraseña
+      <span class="pw"><input type="password" name="clave2" required autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
+    </label>
+    <p class="ayuda">De 8 a 20 caracteres, con una mayúscula, una minúscula y un número.</p>
+
+    <p class="msg err" data-error hidden></p>
+
+    <div class="acciones">
+      <button class="btn sec" type="button" id="ad-cancelar">Cancelar</button>
+      <button class="btn" type="submit">Crear administrador</button>
+    </div>
+  </form>
+
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Desde</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="ad-tabla"></tbody>
+    </table>
+  </div>
+</div>

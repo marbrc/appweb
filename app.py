@@ -118,16 +118,16 @@ def Login():
     session.permanent = bool(d.get("recordar"))
     return jsonify(usuario)
 
+# el registro ya NO es público: se hace desde el panel (pantalla admin/registrar)
+# y solo un administrador con sesión puede crear otro. Al crearlo NO se cambia la sesión
+# de quien lo está creando (antes se cerraba su sesión y entraba como el nuevo).
 @app.route("/api/registro", methods=["POST"])
+@solo_admin
 @con_bd
 def Registro():
     with transaccion() as cur:
         id_admin = repo.registrar_admin(cur, cuerpo())
-        usuario = repo.admin_por_id(cur, id_admin)
-    # al registrarse ya queda con la sesion iniciada
-    session.clear()
-    session["id_admin"] = id_admin
-    return jsonify(usuario), 201
+        return jsonify(repo.admin_por_id(cur, id_admin)), 201
 
 @app.route("/api/logout", methods=["POST"])
 def Logout():
@@ -182,6 +182,28 @@ def CuentaFoto():
     with transaccion() as cur:
         repo.cambiar_foto(cur, session["id_admin"], foto)
         return jsonify(repo.admin_por_id(cur, session["id_admin"]))
+
+
+# ---------- ADMINISTRADORES (agregar, activar y desactivar) ----------
+# GET  /api/admins          la lista completa (activos e inactivos)
+# PUT  /api/admins/<id>     {activo: true|false}  nunca se borra, solo se desactiva
+@app.route("/api/admins", methods=["GET"])
+@solo_admin
+@con_bd
+def Admins():
+    with transaccion() as cur:
+        return jsonify(repo.listar_admins(cur))
+
+@app.route("/api/admins/<int:id_admin>", methods=["PUT"])
+@solo_admin
+@con_bd
+def AdminEstatus(id_admin):
+    activo = cuerpo().get("activo")
+    if not isinstance(activo, bool):
+        return jsonify({"error": "Manda activo en true o false."}), 400
+    with transaccion() as cur:
+        repo.cambiar_estatus_admin(cur, id_admin, activo, session.get("id_admin"))
+        return jsonify(repo.listar_admins(cur))
 
 
 # ---------- RECUPERAR CONTRASEÑA (3 pasos) ----------
@@ -369,10 +391,29 @@ def Codigo(codigo):
             if not repo.revocar_codigo(cur, codigo):
                 return jsonify({"error": "Código no válido."}), 404
             return jsonify({"ok": True})
-        d = repo.buscar_codigo(cur, codigo)
+        # un código de una clase/grupo/carrera/docente desactivado ya no sirve
+        d = repo.buscar_codigo_activo(cur, codigo)
         if not d:
             return jsonify({"error": "Código no válido."}), 404
         return jsonify(d)
+
+
+# ---------- ELIMINADOS (papelera) ----------
+# nada se borra de la base: se desactiva. Aquí se consulta y se puede restaurar.
+@app.route("/api/eliminados", methods=["GET"])
+@solo_admin
+@con_bd
+def Eliminados():
+    with transaccion() as cur:
+        return jsonify(repo.leer_eliminados(cur))
+
+@app.route("/api/eliminados/<tipo>/<int:id_>", methods=["POST"])
+@solo_admin
+@con_bd
+def Restaurar(tipo, id_):
+    with transaccion() as cur:
+        repo.restaurar_eliminado(cur, tipo, id_)
+        return jsonify({"ok": True, "eliminados": repo.leer_eliminados(cur)})
 
 
 # ---------- CALIFICAR EL SISTEMA ----------

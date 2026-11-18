@@ -59,7 +59,9 @@ GO
 --=====================================
 CREATE TABLE dbo.Carrera(
     id_carrera int not null CONSTRAINT PK_Carrera PRIMARY KEY,
-    NomCarrera varchar(60) not null
+    NomCarrera varchar(60) not null,
+    --1 = activa, 0 = eliminada (baja lógica: no se borra para no perder el historial)
+    activo bit not null CONSTRAINT DF_Carrera_activo DEFAULT (1)
 );
 GO
 
@@ -76,17 +78,20 @@ CREATE TABLE dbo.Grupo(
         CONSTRAINT CK_Grupo_CantidadAlumnos CHECK (CantidadAlumnos >= 0),
     id_carrera int not null,
     participaciones int not null CONSTRAINT DF_Grupo_participaciones DEFAULT (0),
+    --1 = activo, 0 = eliminado (baja lógica)
+    activo bit not null CONSTRAINT DF_Grupo_activo DEFAULT (1),
     CONSTRAINT FK_Grupo_Carrera FOREIGN KEY (id_carrera) REFERENCES dbo.Carrera (id_carrera)
 );
 GO
 
---=====================================
+
+GO
 -- 3. TABLA ASIGNATURA (FK a Grupo y Carrera)
 --=====================================
 CREATE TABLE dbo.Asignatura(
     id_asignatura int not null CONSTRAINT PK_Asignatura PRIMARY KEY,
     NomAsignatura varchar(60) not null,
-    activa BIT NOT NULL DEFAULT 1
+    activo BIT NOT NULL DEFAULT 1
 );
 GO
 
@@ -141,6 +146,8 @@ CREATE TABLE dbo.Clase(
     id_grupo int not null,
     id_asignatura int not null,
     id_docente int not null,
+    --1 = activa, 0 = eliminada (baja lógica: se conserva por las encuestas que ya tenga)
+    activo bit not null CONSTRAINT DF_Clase_activo DEFAULT (1),
     CONSTRAINT FK_Clase_Grupo FOREIGN KEY (id_grupo) REFERENCES dbo.Grupo (id_grupo),
     CONSTRAINT FK_Clase_Asignatura FOREIGN KEY (id_asignatura) REFERENCES dbo.Asignatura (id_asignatura),
     CONSTRAINT FK_Clase_Docente FOREIGN KEY (id_docente) REFERENCES dbo.Docente (id_docente)
@@ -153,6 +160,8 @@ GO
 CREATE TABLE dbo.Docente_Grupo(
     id_asignatura int not null,
     id_docente int not null,
+    -- baja lógica: cuando un docente deja de dar una materia el enlace no se borra, solo se desactiva
+    activo bit not null CONSTRAINT DF_DocenteGrupo_activo DEFAULT (1),
     CONSTRAINT PK_Docente_Grupo PRIMARY KEY (id_asignatura, id_docente),
     CONSTRAINT FK_DocenteGrupo_Asignatura FOREIGN KEY (id_asignatura) REFERENCES dbo.Asignatura (id_asignatura),
     CONSTRAINT FK_DocenteGrupo_Docente FOREIGN KEY (id_docente) REFERENCES dbo.Docente (id_docente)

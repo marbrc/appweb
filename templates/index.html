@@ -10,8 +10,9 @@
 <link rel="stylesheet" href="/static/css/acceso.css">
 </head>
 <body>
-<!-- la pagina de entrada del administrador: iniciar sesión, registrarse y recuperar contraseña
-     las tres estan aqui y login.js enseña una u otra segun el # (#login, #registro, #recuperar) -->
+<!-- la pagina de entrada del administrador: iniciar sesión y recuperar contraseña
+     login.js enseña una u otra segun el # (#login, #recuperar).
+     el registro de administradores ya no está aquí: se hace desde el panel (admin/registrar) -->
 <main class="entrada">
 
   <!-- lado izquierdo con el logo, en el celular se esconde -->
@@ -51,40 +52,9 @@
         <label class="check"><input type="checkbox" name="recordar"> Mantener la sesión iniciada</label>
         <p class="msg err" data-error hidden></p>
         <button class="btn ancho">Entrar</button>
-        <p class="cambiar">¿No tienes cuenta? <a href="#registro">Regístrate</a></p>
       </form>
 
-      <!-- ============ 2 REGISTRO ============ -->
-      <form id="v-registro" class="vista-form" novalidate hidden>
-        <header>
-          <a class="volver" href="#login"><i data-icono="izquierda"></i>Volver</a>
-          <h2>Crear cuenta</h2>
-          <p class="sub">La cuenta nueva tiene rol de administrador.</p>
-        </header>
-        <label>Nombre(s)
-          <input name="nombres" required maxlength="60" autocomplete="given-name" placeholder="Ej. María Guadalupe">
-        </label>
-        <div class="dos">
-          <label>Apellido paterno<input name="paterno" required maxlength="50" autocomplete="family-name"></label>
-          <label>Apellido materno<input name="materno" maxlength="50" placeholder="Opcional"></label>
-        </div>
-        <label>Correo
-          <input type="email" name="correo" required maxlength="100" autocomplete="email" placeholder="tu.correo@utng.edu.mx">
-        </label>
-        <label>Contraseña
-          <span class="pw"><input type="password" name="clave" required minlength="8" maxlength="20" autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
-          <span class="fuerza" id="fuerza-reg"><i></i><i></i><i></i><i></i></span>
-          <small class="ayuda">De 8 a 20 caracteres, con una mayúscula, una minúscula y un número.</small>
-        </label>
-        <label>Confirmar contraseña
-          <span class="pw"><input type="password" name="clave2" required autocomplete="new-password"><button type="button" class="ojo" aria-label="Ver contraseña"></button></span>
-        </label>
-        <p class="msg err" data-error hidden></p>
-        <button class="btn ancho">Crear cuenta</button>
-        <p class="cambiar">¿Ya tienes cuenta? <a href="#login">Inicia sesión</a></p>
-      </form>
-
-      <!-- ============ 3 RECUPERAR CONTRASEÑA (3 pasos) ============ -->
+      <!-- ============ 2 RECUPERAR CONTRASEÑA (3 pasos) ============ -->
       <div id="v-recuperar" class="vista-form" hidden>
         <header>
           <a class="volver" href="#login"><i data-icono="izquierda"></i>Volver</a>

@@ -15,6 +15,7 @@ const o = (ruta, nombre, icono, desc) => ({ ruta, nombre, icono, desc });
 export const MENUS = {
   admin: [
     o("admin/inicio", "Inicio", "inicio", "Resumen general del sistema"),
+    o("admin/registrar", "Administradores", "usuario", "Agrega, activa y desactiva administradores"),
     o("admin/grupos", "Grupos", "grupos", "Administra los grupos registrados"),
     o("admin/carreras", "Carreras", "carreras", "Administra las carreras registradas"),
     o("admin/docentes", "Docentes", "docentes", "Administra los docentes"),

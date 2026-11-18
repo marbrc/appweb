@@ -8,11 +8,15 @@
         <p class="sub">Lo que van a responder los alumnos, del 5 al 10 <span class="total" id="p-total"></span></p>
       </div>
     </div>
-    <button class="btn" id="p-nuevo" type="button"><i data-icono="mas"></i>Nueva pregunta</button>
+    <div class="cab-acc">
+      <button class="btn sec" id="p-papelera" type="button"><i data-icono="basura"></i>Ver eliminados</button>
+      <button class="btn" id="p-nuevo" type="button"><i data-icono="mas"></i>Nueva pregunta</button>
+    </div>
   </div>
 
-  <p class="nota-caja"><i data-icono="info"></i><span>Las preguntas se guardan en la base de datos. Si una pregunta ya tiene respuestas
-    no se borra (se perderían los reportes), se <b>desactiva</b> y deja de salirle a los alumnos.</span></p>
+  <p class="nota-caja"><i data-icono="info"></i><span>Las preguntas se guardan en la base de datos. Ninguna se borra:
+    al eliminar una se <b>desactiva</b> y deja de salirle a los alumnos, pero puedes recuperarla en
+    <b>Ver eliminados</b>.</span></p>
 
   <form id="p-form" class="form-cat" hidden>
     <h3 class="form-tit" id="p-titulo">Nueva pregunta</h3>

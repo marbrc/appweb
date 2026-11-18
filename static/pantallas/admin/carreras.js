@@ -1,7 +1,8 @@
 // /static/pantallas/admin/carreras.js
 import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getCarreras, setCarreras, alCambiarDatos, getGrupos, setGrupos, refrescarDatos } from "/static/js/nucleo/datos.js";
+import { getCarreras, setCarreras, alCambiarDatos, getGrupos, refrescarDatos } from "/static/js/nucleo/datos.js";
+import { abrirPapelera } from "/static/js/nucleo/papelera.js";
 
 let cont = null;
 let editando = -1;
@@ -27,6 +28,8 @@ export function iniciar(contenedor) {
 
   btnNuevo.onclick = () => abrirForm(-1);
   btnCancelar.onclick = () => { form.reset(); form.hidden = true; editando = -1; };
+  // la tabla de las carreras que se desactivaron (no se borran)
+  buscar("#c-papelera", cont).onclick = () => abrirPapelera("carreras", dibujar);
 
   // limpia lo que escriben: quita lo que no sea letra y pone la primera en mayuscula
   // (esto antes estaba en un <script> dentro de carreras.html pero ahi NUNCA se ejecutaba porque el router mete el html con innerHTML)
@@ -79,15 +82,17 @@ export function iniciar(contenedor) {
       const nombreCarrera = lista[+del.dataset.del];
       const gruposConCarrera = (getGrupos() || []).filter(g => g.carrera === nombreCarrera);
 
-      let mensaje = "Esta acción no se puede deshacer.";
-      if (gruposConCarrera.length > 0)
-        mensaje = `Esta carrera tiene ${gruposConCarrera.length} grupo(s). Si la eliminas, también se eliminarán esos grupos y sus asignaturas.`;
-      if (!await confirmar(mensaje, { titulo: `¿Eliminar "${nombreCarrera}"?`, si: "Eliminar", peligro: true })) return;
+      // NADA se borra: la carrera y sus grupos solo se desactivan (baja lógica).
+      // El servidor hace el resto y luego refrescamos para que todo quede igualito a la BD.
+      const extra = gruposConCarrera.length
+        ? ` También se desactivan sus ${gruposConCarrera.length} grupo(s) y sus asignaciones.`
+        : "";
+      if (!await confirmar(`No se borra: queda desactivada y la puedes recuperar en "Ver eliminados".${extra}`,
+        { titulo: `¿Desactivar "${nombreCarrera}"?`, si: "Desactivar", peligro: true })) return;
 
-      // primero los grupos y DESPUES la carrera, al reves la BD no deja (los grupos apuntan a la carrera)
-      if (gruposConCarrera.length > 0) await setGrupos((getGrupos() || []).filter(g => g.carrera !== nombreCarrera));
       lista.splice(+del.dataset.del, 1);
       await setCarreras(lista);
+      await refrescarDatos();
       dibujar();
     }
   };

@@ -5,8 +5,6 @@ from contextlib import contextmanager
 import pyodbc
 
 # El punto significa "esta misma computadora", así le sirve a todo el equipo.
-import os
-import pyodbc
 
 # En Linux no se usa ".\SQLEXPRESS". Pon "localhost" o la IP del servidor.
 # Si la instancia usa un puerto específico: "localhost,1433"

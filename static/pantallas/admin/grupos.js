@@ -1,7 +1,8 @@
 // /static/pantallas/admin/grupos.js
 import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getGrupos, setGrupos, getCarreras, getEvaluaciones, getClases, alCambiarDatos } from "/static/js/nucleo/datos.js";
+import { getGrupos, setGrupos, getCarreras, getEvaluaciones, alCambiarDatos, refrescarDatos } from "/static/js/nucleo/datos.js";
+import { abrirPapelera } from "/static/js/nucleo/papelera.js";
 
 let cont = null;
 let editando = -1;
@@ -46,8 +47,9 @@ export function iniciar(contenedor) {
 
   btnNuevo.onclick = () => abrirForm(-1);
   btnCancelar.onclick = () => { form.reset(); form.hidden = true; editando = -1; };
+  buscar("#g-papelera", cont).onclick = () => abrirPapelera("grupos", dibujar);
 
-  form.onsubmit = e => {
+  form.onsubmit = async e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
     const clave = d.clave.trim().toUpperCase();
@@ -80,7 +82,7 @@ export function iniciar(contenedor) {
     if (editando >= 0) lista[editando] = item;
     else lista.push(item);
 
-    setGrupos(lista);
+    await setGrupos(lista);
     avisar(editando >= 0 ? "Grupo actualizado." : "Grupo registrado.");
     e.target.reset();
     form.hidden = true;
@@ -97,12 +99,13 @@ export function iniciar(contenedor) {
     if (del) {
       const lista = getGrupos() || [];
       const g = lista[+del.dataset.del];
-      // si tiene clases en carga academica la BD no deja borrarlo, mejor avisar antes
-      if ((getClases() || []).some(c => c.grupoId === g.clave))
-        return avisar(`El grupo ${g.clave} tiene asignaciones en Carga Académica. Elimínalas primero.`, "err");
-      if (!await confirmar("También se quitan sus asignaturas.", { titulo: `¿Eliminar el grupo ${g.clave}?`, si: "Eliminar", peligro: true })) return;
+      // nada se borra: el grupo, sus asignaciones y sus códigos solo se desactivan
+      if (!await confirmar('No se borra: queda desactivado y lo puedes recuperar en "Ver eliminados". ' +
+        "También se desactivan sus asignaciones de Carga Académica y sus códigos dejan de servir.",
+        { titulo: `¿Desactivar el grupo ${g.clave}?`, si: "Desactivar", peligro: true })) return;
       lista.splice(+del.dataset.del, 1);
-      setGrupos(lista);
+      await setGrupos(lista);
+      await refrescarDatos();
       dibujar();
     }
   };

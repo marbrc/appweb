@@ -1,7 +1,8 @@
 // /static/pantallas/admin/clases.js
 import { buscar, esc, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
-import { getGrupos, getDocentes, getClases, getAsignaturas, addClase, setClases, alCambiarDatos } from "/static/js/nucleo/datos.js";
+import { getGrupos, getDocentes, getClases, getAsignaturas, addClase, setClases, alCambiarDatos, refrescarDatos } from "/static/js/nucleo/datos.js";
+import { abrirPapelera } from "/static/js/nucleo/papelera.js";
 
 let cont = null;
 
@@ -91,8 +92,10 @@ export function iniciar(contenedor) {
 
   btnCancelar.onclick = () => { form.hidden = true; };
 
+  buscar("#cl-papelera", cont).onclick = () => abrirPapelera("clases", dibujar);
+
   // --- GUARDAR ---
-  form.onsubmit = e => {
+  form.onsubmit = async e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
 
@@ -105,7 +108,7 @@ export function iniciar(contenedor) {
       return avisar("Esta materia ya tiene un docente en este grupo. Elimina la asignación anterior primero.", "err");
     }
 
-    addClase({
+    await addClase({
       grupoId: d.grupo,
       asignaturaId: d.asignatura,
       docenteId: d.docente,
@@ -115,18 +118,21 @@ export function iniciar(contenedor) {
     avisar("Asignación guardada. Ya le puedes generar su código de acceso.");
     form.reset();
     form.hidden = true;
+    await refrescarDatos();
     dibujar();
   };
 
-  // --- ELIMINAR ---
+  // --- ELIMINAR (en realidad solo se desactiva) ---
   tabla.onclick = async e => {
     const del = e.target.closest("[data-del]");
     if (del) {
-      if (!await confirmar("Su código de acceso también deja de servir. Si ya tiene evaluaciones no se podrá eliminar.",
-        { titulo: "¿Eliminar esta asignación?", si: "Eliminar", peligro: true })) return;
+      if (!await confirmar('No se borra: la asignación queda desactivada y la puedes recuperar en "Ver eliminados". ' +
+        "Su código de acceso deja de servir.",
+        { titulo: "¿Desactivar esta asignación?", si: "Desactivar", peligro: true })) return;
       const lista = getClases();
       lista.splice(+del.dataset.del, 1);
-      setClases(lista);
+      await setClases(lista);
+      await refrescarDatos();
       dibujar();
     }
   };

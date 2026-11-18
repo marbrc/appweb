@@ -2,8 +2,9 @@
 import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 import {
-  getDocentes, setDocentes, getClases, setClases, getAsignaturas
+  getDocentes, setDocentes, getClases, setClases, getAsignaturas, refrescarDatos
 } from "/static/js/nucleo/datos.js";
+import { abrirPapelera } from "/static/js/nucleo/papelera.js";
 
 let cont = null;
 let editando = -1;
@@ -60,6 +61,7 @@ export function iniciar(contenedor) {
     });
 
     btnNuevo.onclick = () => abrirForm(-1);
+    buscar("#d-papelera", cont).onclick = () => abrirPapelera("docentes", dibujar);
 
     btnCancelar.onclick = () => {
         form.reset();
@@ -128,16 +130,15 @@ avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
             const indice = Number(botonEliminar.dataset.del);
             const lista = getDocentes() || [];
             const docente = lista[indice];
-            const clases = getClases() || [];
 
-            const asignadas = clases.filter(c => c.docenteId === docente.correo || c.docenteId === docente.nombre);
-            if (asignadas.length > 0) {
-                return avisar(`No puedes eliminar a "${docente.nombre}" porque tiene grupos asignados en Carga Académica. Elimina esas asignaciones primero.`, "err");
-            }
+            // nada se borra: el docente solo se desactiva junto con sus asignaciones
+            if (!await confirmar('No se borra: queda desactivado y lo puedes recuperar en "Ver eliminados". ' +
+                "También se desactivan sus asignaciones de Carga Académica y sus códigos dejan de servir.",
+                { titulo: `¿Desactivar a ${docente.nombre}?`, si: "Desactivar", peligro: true })) return;
 
-            if (!await confirmar("Esta acción no se puede deshacer.", { titulo: `¿Eliminar a ${docente.nombre}?`, si: "Eliminar", peligro: true })) return;
             lista.splice(indice, 1);
-            setDocentes(lista);
+            await setDocentes(lista);
+            await refrescarDatos();
             dibujar();
         }
     };

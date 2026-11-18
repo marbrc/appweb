@@ -1,6 +1,7 @@
 // /static/pantallas/admin/asignaturas.js
 import { buscar, esc, avisar, confirmar } from "/static/js/nucleo/utiles.js";
-import { getAsignaturas, setAsignaturas, getClases } from "/static/js/nucleo/datos.js";
+import { getAsignaturas, setAsignaturas, refrescarDatos } from "/static/js/nucleo/datos.js";
+import { abrirPapelera } from "/static/js/nucleo/papelera.js";
 
 let cont = null;
 let editando = -1;
@@ -18,6 +19,7 @@ export function iniciar(contenedor) {
 
   buscar("#s-nuevo", cont).onclick = () => abrirForm(-1);
   buscar("#s-cancelar", cont).onclick = () => { form.reset(); form.hidden = true; editando = -1; };
+  buscar("#s-papelera", cont).onclick = () => abrirPapelera("asignaturas", dibujar);
 
   // Agregamos `async` aquí para esperar la respuesta del backend
   form.onsubmit = async e => {
@@ -58,21 +60,15 @@ export function iniciar(contenedor) {
     if (ed) abrirForm(+ed.dataset.ed);
     if (del) {
       const lista = getAsignaturas(), a = lista[+del.dataset.del];
-      
-      // Si ya está asignada en la Carga Académica global, no permitir eliminar
-      if (getClases().some(c => c.asignaturaId === a.nombre || c.asignaturaId === a.id))
-        return avisar(`"${a.nombre}" está asignada en la Carga Académica, elimínala de ahí primero.`, "err");
 
-      if (!await confirmar(`La asignatura "${a.nombre}" se eliminará del catálogo general.`,
-        { titulo: `¿Eliminar "${a.nombre}"?`, si: "Eliminar", peligro: true })) return;
+      // nada se borra: la asignatura y sus asignaciones de Carga Académica solo se desactivan
+      if (!await confirmar('No se borra: queda desactivada y la puedes recuperar en "Ver eliminados". ' +
+        "También se desactivan sus asignaciones de Carga Académica y sus códigos dejan de servir.",
+        { titulo: `¿Desactivar "${a.nombre}"?`, si: "Desactivar", peligro: true })) return;
 
-      // 1. Eliminar de la lista local
       lista.splice(+del.dataset.del, 1);
-      
-      // 2. Enviar los cambios a la BD (esperar a que el backend procese la eliminación)
       await setAsignaturas(lista);
-      
-      // 3. Redibujar la tabla
+      await refrescarDatos();
       dibujar();
     }
   };
