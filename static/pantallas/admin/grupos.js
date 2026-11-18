@@ -1,9 +1,13 @@
 // /static/pantallas/admin/grupos.js
 import { buscar, avisar, confirmar } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
+<<<<<<< HEAD
 import { getGrupos, setGrupos, getCarreras, participacionesDeGrupo, alCambiarDatos, refrescarDatos } from "/static/js/nucleo/datos.js";
 import { abrirPapelera } from "/static/js/nucleo/papelera.js";
 import { filtrar, conectar, cuenta as resumen } from "/static/js/nucleo/filtro.js";
+=======
+import { getGrupos, setGrupos, getCarreras, getClases, participacionDe, alCambiarDatos } from "/static/js/nucleo/datos.js";
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
 let cont = null;
 let editando = -1;
@@ -11,8 +15,13 @@ let desuscribir = null;
 
 const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
+<<<<<<< HEAD
 // participaciones: se cuentan de las encuestas de las clases del grupo (ya no hay contador guardado)
 const respondieron = clave => participacionesDeGrupo(clave);
+=======
+// las participaciones de cada grupo las calcula el servidor contando las encuestas (participacionDe en datos.js),
+// ya no se guardan en un contador que se puede desfasar
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
 function llenarCarreras(form, seleccionada = "") {
   const lista = [...(getCarreras() || [])];
@@ -65,14 +74,14 @@ export function iniciar(contenedor) {
     }
 
     // no dejar menos alumnos de los que ya respondieron
-    const claveVieja = editando >= 0 ? lista[editando].clave : clave;
-    const ya = respondieron(claveVieja);
+    const ya = editando >= 0 ? participacionDe(lista[editando]).ya : 0;
     if (alumnos < ya) {
       avisar(`Este grupo ya tiene ${ya} alumnos que respondieron. No puedes poner menos.`, "err");
       form.alumnos.focus();
       return;
     }
 
+    // solo se mandan los datos del grupo; las participaciones las calcula el servidor
     const item = { clave, carrera: d.carrera, cuatrimestre: Number(d.cuatrimestre), alumnos };
 
     if (editando >= 0) lista[editando] = item;
@@ -95,10 +104,17 @@ export function iniciar(contenedor) {
     if (del) {
       const lista = getGrupos() || [];
       const g = lista[+del.dataset.del];
+<<<<<<< HEAD
       // nada se borra: el grupo, sus asignaciones y sus códigos solo se desactivan
       if (!await confirmar('No se borra: queda desactivado y lo puedes recuperar en "Ver eliminados". ' +
         "También se desactivan sus asignaciones de Carga Académica y sus códigos dejan de servir.",
         { titulo: `¿Desactivar el grupo ${g.clave}?`, si: "Desactivar", peligro: true })) return;
+=======
+      // si tiene clases en carga academica la BD no deja borrarlo, mejor avisar antes
+      if ((getClases() || []).some(c => c.grupoId === g.clave))
+        return avisar(`El grupo ${g.clave} tiene asignaciones en Carga Académica. Elimínalas primero.`, "err");
+      if (!await confirmar("El grupo se quita de la lista. Esta acción no se puede deshacer.", { titulo: `¿Eliminar el grupo ${g.clave}?`, si: "Eliminar", peligro: true })) return;
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
       lista.splice(+del.dataset.del, 1);
       await setGrupos(lista);
       await refrescarDatos();
@@ -108,8 +124,24 @@ export function iniciar(contenedor) {
 
   if (desuscribir) desuscribir();
   desuscribir = alCambiarDatos("admin_carreras", () => {
+    llenarFiltroCarreras();
     if (!form.hidden) llenarCarreras(form, form.carrera.value);
   });
+
+  // ---- filtros: buscar por clave, carrera y cuatrimestre ----
+  const fBuscar = buscar("#g-buscar", cont), fCarrera = buscar("#g-f-carrera", cont), fCuatri = buscar("#g-f-cuatri", cont);
+  const llenarFiltroCarreras = () => {
+    const previa = fCarrera.value;
+    fCarrera.innerHTML = '<option value="">Todas las carreras</option>' +
+      (getCarreras() || []).map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    fCarrera.value = previa;
+  };
+  llenarFiltroCarreras();
+  fCuatri.innerHTML = '<option value="">Todos los cuatrimestres</option>' +
+    Array.from({ length: 11 }, (_, i) => `<option value="${i + 1}">${i + 1}°</option>`).join("");
+  fBuscar.addEventListener("input", dibujar);
+  fCarrera.addEventListener("change", dibujar);
+  fCuatri.addEventListener("change", dibujar);
 
   dibujar();
 
@@ -133,6 +165,7 @@ export function iniciar(contenedor) {
 
   function dibujar() {
     const lista = getGrupos() || [];
+<<<<<<< HEAD
     const q = campoBuscar ? campoBuscar.value : "";
     const visibles = filtrar(lista, q, g => `${g.clave} ${g.carrera} ${g.cuatrimestre}`);
     const total = buscar("#g-total", cont);
@@ -142,12 +175,28 @@ export function iniciar(contenedor) {
       ? visibles.map(([g, i]) => {
           const ya = respondieron(g.clave);
           const pct = g.alumnos ? Math.min(100, Math.round(ya / g.alumnos * 100)) : null;
+=======
+    const q = fBuscar.value.trim().toUpperCase(), c = fCarrera.value, ct = fCuatri.value;
+    // cada fila guarda su lugar real en la lista para que Editar y Eliminar apunten bien aunque haya filtros
+    const visibles = lista.map((g, i) => [g, i]).filter(([g]) =>
+      (!q || g.clave.includes(q)) && (!c || g.carrera === c) && (!ct || String(g.cuatrimestre) === ct));
+
+    const total = buscar("#g-total", cont);
+    if (total) total.textContent = visibles.length === lista.length
+      ? lista.length + (lista.length === 1 ? " registrado" : " registrados")
+      : `${visibles.length} de ${lista.length}`;
+
+    tabla.innerHTML = visibles.length
+      ? visibles.map(([g, i]) => {
+          const { ya, pct, clases } = participacionDe(g);
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
           return `
           <tr>
             <td><span class="chip clave">${esc(g.clave)}</span></td>
             <td>${esc(g.carrera)}</td>
             <td><span class="chip">${esc(g.cuatrimestre)}°</span></td>
-            <td>${g.alumnos ?? "—"}</td>
+            <td>${g.alumnos || "—"}</td>
+            <td>${clases || '<span class="sub">0</span>'}</td>
             <td>${g.alumnos ? `${ya} / ${g.alumnos}` : ya}</td>
             <td style="min-width:8rem">
               ${pct === null
@@ -160,8 +209,12 @@ export function iniciar(contenedor) {
             </td>
           </tr>`;
         }).join("")
+<<<<<<< HEAD
       : q.trim()
         ? `<tr><td colspan="7" class="vacio">Nada coincide con "${esc(q.trim())}".</td></tr>`
         : `<tr><td colspan="7" class="vacio">Todavía no hay grupos. Toca "+ Nuevo grupo".</td></tr>`;
+=======
+      : `<tr><td colspan="8" class="vacio">${lista.length ? "Ningún grupo coincide con los filtros." : 'Todavía no hay grupos. Toca "+ Nuevo grupo".'}</td></tr>`;
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
   }
 }

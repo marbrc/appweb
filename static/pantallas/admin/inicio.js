@@ -3,12 +3,23 @@ import { buscar, esc, api, avisar, confirmar, cargando } from "/static/js/nucleo
 import { icono } from "/static/js/nucleo/iconos.js";
 import {
   getGrupos, getDocentes, getClases, getEvaluaciones,
+<<<<<<< HEAD
   promedioGeneral, getPreguntasActivas, promedioDe, participacionesDeGrupo, obtenerSesion
+=======
+  promedioGeneral, getPreguntasActivas, promedioDe, obtenerSesion, participacionDe
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 } from "/static/js/nucleo/datos.js";
+import { montarAdmins } from "/static/js/nucleo/admins.js";
 
 // clasePromedio, el color de la pastillita segun el promedio  9 o mas verde  7 o mas amarillo y menos de 7 rojo
 const clasePromedio = n => n >= 9 ? "alta" : n >= 7 ? "media" : "baja";
 
+<<<<<<< HEAD
+=======
+// la participacion de cada grupo (cuantos alumnos ya contestaron) la calcula el servidor contando las encuestas,
+// es el mismo dato que se ve en Grupos (participacionDe en datos.js)
+
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 export async function iniciar(cont) {
   const evals = getEvaluaciones() || [];
   const grupos = getGrupos() || [];
@@ -42,8 +53,13 @@ export async function iniciar(cont) {
   // 2. avance por grupo, la barrita es cuantos ya contestaron de cuantos alumnos tiene el grupo
   buscar("#a-avance", cont).innerHTML = grupos.length
     ? grupos.map(g => {
+<<<<<<< HEAD
         const ya = participacionesDeGrupo(g.clave);
         const pct = g.alumnos ? Math.min(100, Math.round(ya / g.alumnos * 100)) : 0;
+=======
+        const { ya, pct: pctReal } = participacionDe(g);
+        const pct = pctReal ?? 0;
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
         return `<li>
           <span class="chip clave">${esc(g.clave)}</span>
           <div class="prog" title="${pct}%"><i style="width:${pct}%"></i></div>
@@ -72,6 +88,7 @@ export async function iniciar(cont) {
   let codigos = [];
   try { codigos = await api("/api/codigos"); } catch { /* si falla solo no sale ese pendiente */ }
   const sinCodigo = clases.filter(c => !codigos.some(k => k.grupo === c.grupoId && k.materia === c.asignaturaId)).length;
+  const desactivados = codigos.filter(k => k.activo === false).length;
   const sinAlumnos = grupos.filter(g => !g.alumnos).length;
   const sinCorreo = docentes.filter(d => !d.correo).length;
   const desactivados = codigos.filter(k => k.activo === false).length;
@@ -80,7 +97,11 @@ export async function iniciar(cont) {
   if (!preguntas.length) p.push(["warn", "No hay preguntas activas", "Sin preguntas los alumnos no pueden contestar.", "Agregar preguntas", "admin/preguntas"]);
   if (!clases.length) p.push(["warn", "No hay carga académica", "Asigna qué docente da cada materia en cada grupo.", "Ir a carga académica", "admin/clases"]);
   else if (sinCodigo) p.push(["warn", `${sinCodigo} ${sinCodigo === 1 ? "asignación no tiene" : "asignaciones no tienen"} código`, "Sin código el grupo no tiene enlace para evaluar.", "Generar códigos", "admin/accesos"]);
+<<<<<<< HEAD
   if (desactivados) p.push(["warn", `${desactivados} ${desactivados === 1 ? "código desactivado" : "códigos desactivados"}`, "Los alumnos no pueden entrar con esos códigos. Reactívalos o genera otros.", "Ver códigos", "admin/accesos"]);
+=======
+  if (desactivados) p.push(["info", `${desactivados} ${desactivados === 1 ? "código desactivado" : "códigos desactivados"}`, "Esos grupos no pueden evaluar hasta que los actives.", "Ver códigos", "admin/accesos"]);
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
   if (sinAlumnos) p.push(["warn", `${sinAlumnos} ${sinAlumnos === 1 ? "grupo sin" : "grupos sin"} número de alumnos`, "Sin ese número no se puede calcular la participación.", "Editar grupos", "admin/grupos"]);
   if (sinCorreo) p.push(["info", `${sinCorreo} ${sinCorreo === 1 ? "docente sin" : "docentes sin"} correo`, "No es obligatorio, pero sirve para mandarles sus resultados.", "Ver docentes", "admin/docentes"]);
   if (!p.some(x => x[0] === "warn")) p.unshift(["ok", "Todo listo para evaluar", "Los grupos ya pueden contestar con su enlace.", "", ""]);
@@ -91,6 +112,7 @@ export async function iniciar(cont) {
       <div><b>${txt}</b><span class="sub">${det}</span>${btn ? `<button class="link" type="button" data-ruta="${ruta}">${btn} →</button>` : ""}</div>
     </li>`).join("");
 
+<<<<<<< HEAD
   // 5. administradores: se pueden activar/desactivar desde aquí sin cerrar la sesión actual
   const tbodyAdmins = buscar("#a-admins", cont);
   let admins = null;
@@ -144,4 +166,8 @@ export async function iniciar(cont) {
     };
     dibujarAdmins();
   }
+=======
+  // 5. administradores: lista y formulario para registrar nuevos
+  montarAdmins(cont);
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 }

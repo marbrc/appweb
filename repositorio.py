@@ -8,6 +8,8 @@ import secrets
 from datetime import datetime
 
 ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"   # sin 0, O, 1, I, L
+# los mismos correos que deja el formulario de Docentes (docentes.js)
+CORREO_DOCENTE = re.compile(r"[a-z0-9._%+-]+@(gmail\.com|utng\.edu\.mx|outlook\.com)")
 
 
 class ErrorDatos(Exception):
@@ -67,13 +69,16 @@ def _normalizar_asignaturas(cur):
 
 
 def asegurar_esquema(cur):
-    """Revisa que la BD sea la version nueva (Pregunta como catalogo y Respuesta con id_encuesta).
+    """Revisa que la BD sea la version nueva: Asignatura solo con nombre, tabla Plan_Estudio,
+    Clave_Acceso con la columna Activo y Grupo sin el contador viejo de participaciones.
     Si es la vieja avisa que hay que volver a correr DB_EncuestaDocente.sql y la insercion."""
-    cur.execute("SELECT COL_LENGTH('dbo.Respuesta','id_encuesta'), COL_LENGTH('dbo.Administrador','Foto'), "
+    cur.execute("SELECT OBJECT_ID('dbo.Plan_Estudio'), COL_LENGTH('dbo.Clave_Acceso','Activo'), "
+                "COL_LENGTH('dbo.Respuesta','id_encuesta'), COL_LENGTH('dbo.Administrador','Foto'), "
                 "OBJECT_ID('dbo.Recuperacion'), OBJECT_ID('dbo.Opinion')")
     if any(v is None for v in cur.fetchone()):
         raise ErrorDatos("La base de datos es la versión vieja. Vuelve a ejecutar DB_EncuestaDocente.sql "
                          "y después INSERCION_DE_DATOS_REALES.sql", 500)
+<<<<<<< HEAD
     # columnas de baja lógica: lo que se "elimina" solo se desactiva (activo = 0) para no perder historial.
     # se agregan solitas si la base ya existía sin ellas.
     cur.execute("IF COL_LENGTH('dbo.Carrera','activo') IS NULL "
@@ -99,6 +104,12 @@ def asegurar_esquema(cur):
                 "AND object_id=OBJECT_ID('dbo.Clave_Acceso')) "
                 "EXEC('CREATE UNIQUE INDEX UQ_ClaveAcceso_Codigo ON dbo.Clave_Acceso (Codigo) "
                 "WHERE Codigo IS NOT NULL')")
+=======
+    cur.execute("SELECT COL_LENGTH('dbo.Asignatura','id_carrera'), COL_LENGTH('dbo.Grupo','participaciones')")
+    if any(v is not None for v in cur.fetchone()):
+        raise ErrorDatos("La tabla Asignatura o Grupo todavía tiene columnas viejas. Vuelve a ejecutar "
+                         "DB_EncuestaDocente.sql y después INSERCION_DE_DATOS_REALES.sql", 500)
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
     # Plan_Estudio: qué materias tocan en cada carrera y cuatrimestre (Asignatura ya solo guarda el nombre)
     cur.execute("IF OBJECT_ID('dbo.Plan_Estudio') IS NULL "
@@ -252,12 +263,31 @@ def sync_carreras(cur, lista):
 
 # ---------------------------------------------------------------- GRUPOS
 def leer_grupos(cur):
-    cur.execute("""SELECT g.ClaveGrupo, c.NomCarrera, g.Cuatrimestre, g.CantidadAlumnos
+    """Cada grupo trae sus participaciones, calculadas (no guardadas):
+       encuestas   = cuantas encuestas se han contestado en todas las clases del grupo
+       clases      = cuantas clases (materia + docente) tiene el grupo en Carga Academica
+       respondieron= los alumnos que ya contestaron = la clase con mas encuestas (cada alumno
+                     contesta una encuesta por clase y es anonimo, asi que no se puede contar mas fino)"""
+    cur.execute("""SELECT cl.id_grupo, cl.id_clase, COUNT(e.id_encuesta) AS n
+                   FROM dbo.Clase cl
+                   LEFT JOIN dbo.Clave_Acceso k ON k.id_clase = cl.id_clase
+                   LEFT JOIN dbo.Encuesta e ON e.id_acceso = k.id_acceso
+                   GROUP BY cl.id_grupo, cl.id_clase""")
+    part = {}
+    for id_g, _id_clase, n in cur.fetchall():
+        d = part.setdefault(id_g, {"encuestas": 0, "clases": 0, "respondieron": 0})
+        d["encuestas"] += n
+        d["clases"] += 1
+        d["respondieron"] = max(d["respondieron"], n)
+    cur.execute("""SELECT g.id_grupo, g.ClaveGrupo, c.NomCarrera, g.Cuatrimestre, g.CantidadAlumnos
                    FROM dbo.Grupo g JOIN dbo.Carrera c ON c.id_carrera = g.id_carrera
                    WHERE ISNULL(g.activo, 1) = 1 AND ISNULL(c.activo, 1) = 1
                    ORDER BY g.id_grupo""")
-    return [{"clave": r[0], "carrera": r[1], "cuatrimestre": int(r[2]), "alumnos": r[3]}
-            for r in cur.fetchall()]
+    out = []
+    for r in cur.fetchall():
+        d = part.get(r[0], {"encuestas": 0, "clases": 0, "respondieron": 0})
+        out.append({"clave": r[1], "carrera": r[2], "cuatrimestre": int(r[3]), "alumnos": r[4], **d})
+    return out
 
 
 def sync_grupos(cur, lista):
@@ -272,7 +302,11 @@ def sync_grupos(cur, lista):
         if not 1 <= cuatri <= 11:
             raise ErrorDatos(f"El cuatrimestre del grupo {clave} debe estar entre 1 y 11.")
         if not 0 <= alumnos <= 100:
+<<<<<<< HEAD
             raise ErrorDatos(f"Los alumnos del grupo {clave} deben ser de 0 a 100.")
+=======
+            raise ErrorDatos(f"Los alumnos del grupo {clave} deben estar entre 0 y 100.")
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
         nuevos[clave] = {"carrera": _carrera_id(cur, it.get("carrera")), "cuatri": cuatri, "alumnos": alumnos}
 
     cur.execute("SELECT ClaveGrupo, id_grupo FROM dbo.Grupo")
@@ -291,6 +325,7 @@ def sync_grupos(cur, lista):
     ids = _contador(cur, "Grupo", "id_grupo")
     for clave in crear:
         d, id_g = nuevos[clave], next(ids)
+<<<<<<< HEAD
         cur.execute("INSERT INTO dbo.Grupo (id_grupo, ClaveGrupo, Cuatrimestre, CantidadAlumnos, id_carrera, activo) "
                     "VALUES (?, ?, ?, ?, ?, 1)", id_g, clave, d["cuatri"], d["alumnos"], d["carrera"])
 
@@ -302,6 +337,13 @@ def sync_grupos(cur, lista):
         # sus códigos de acceso dejan de servir
         cur.execute("UPDATE dbo.Clave_Acceso SET Codigo = NULL WHERE id_clase IN "
                     "(SELECT id_clase FROM dbo.Clase WHERE id_grupo = ?)", id_g)
+=======
+        cur.execute("INSERT INTO dbo.Grupo (id_grupo, ClaveGrupo, Cuatrimestre, CantidadAlumnos, id_carrera) "
+                    "VALUES (?, ?, ?, ?, ?)", id_g, clave, d["cuatri"], d["alumnos"], d["carrera"])
+
+    for clave in borrar:
+        cur.execute("DELETE FROM dbo.Grupo WHERE id_grupo = ?", act[clave])   # si tiene clases -> 409
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
 
 # ---------------------------------------------------------------- DOCENTES
@@ -342,12 +384,17 @@ def _docente_de_item(it):
     _texto(nombres, 60, "el nombre del docente")
     _texto(paterno, 50, "el apellido paterno")
     _texto(materno, 50, "el apellido materno", obligatorio=False)
+<<<<<<< HEAD
     if correo:
         if len(correo) > 100:
             raise ErrorDatos("El correo no puede pasar de 100 caracteres.")
         # las mismas reglas que la pantalla: Gmail, UTNG u Outlook
         if not re.fullmatch(r"[a-z0-9._%+\-]+@(gmail\.com|utng\.edu\.mx|outlook\.com)", correo):
             raise ErrorDatos("El correo del docente debe ser de Gmail, UTNG o Outlook.")
+=======
+    if correo and (len(correo) > 100 or not CORREO_DOCENTE.fullmatch(correo)):
+        raise ErrorDatos("Solo se permiten correos Gmail, UTNG u Outlook.")
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
     mats = it.get("materias")
     mats = list(dict.fromkeys(str(m) for m in mats)) if isinstance(mats, list) else None
     return {"nombres": nombres, "paterno": paterno, "materno": materno or None,
@@ -415,6 +462,7 @@ def sync_docentes(cur, lista):
 
 
 # ---------------------------------------------------------------- ASIGNATURAS
+<<<<<<< HEAD
 # Catálogo de asignaturas: SOLO el nombre (uno por materia). Qué carrera y cuatrimestre la llevan
 # vive en Plan_Estudio. El borrado sigue siendo lógico (activo = 0).
 def leer_asignaturas(cur):
@@ -511,6 +559,56 @@ def _id_asignatura(cur, nombre):
                 "WHERE NomAsignatura = ? AND ISNULL(activo, 1) = 1", nombre)
     r = cur.fetchone()
     return r[0] if r else None
+=======
+# Ahora Asignatura es solo un catalogo de nombres. La carrera y el cuatrimestre los tiene el GRUPO;
+# para ofrecer las materias que le tocan a un grupo se usa Plan_Estudio (carrera + cuatrimestre -> asignaturas).
+def leer_asignaturas(cur):
+    cur.execute("""SELECT p.id_asignatura, c.NomCarrera, p.Cuatrimestre
+                   FROM dbo.Plan_Estudio p JOIN dbo.Carrera c ON c.id_carrera = p.id_carrera
+                   ORDER BY p.id_carrera, p.Cuatrimestre""")
+    planes = {}
+    for id_a, carrera, cuatri in cur.fetchall():
+        planes.setdefault(id_a, []).append({"carrera": carrera, "cuatrimestre": int(cuatri)})
+    cur.execute("""SELECT a.id_asignatura, a.NomAsignatura,
+                          (SELECT COUNT(*) FROM dbo.Clase cl WHERE cl.id_asignatura = a.id_asignatura)
+                   FROM dbo.Asignatura a ORDER BY a.NomAsignatura""")
+    return [{"id": r[0], "nombre": r[1], "planes": planes.get(r[0], []), "clases": r[2]}
+            for r in cur.fetchall()]
+
+
+def sync_asignaturas(cur, lista):
+    """el front manda la lista completa; lo que trae id se edita (renombrar), lo que no trae se crea
+    y lo que ya no viene se borra (si esta en Carga Academica la BD no deja -> 409)"""
+    cur.execute("SELECT id_asignatura, NomAsignatura FROM dbo.Asignatura")
+    act = {r[0]: r[1] for r in cur.fetchall()}
+    vistos = set()
+    por_editar, por_crear = [], []
+    for it in lista:
+        nom = _texto(it.get("nombre"), 60, "el nombre de la asignatura")
+        nom = nom[0].upper() + nom[1:]
+        if nom.lower() in vistos:
+            raise ErrorDatos(f"«{nom}» está repetida en la lista.", 409)
+        vistos.add(nom.lower())
+        id_a = it.get("id")
+        if id_a in act:
+            por_editar.append((id_a, nom))
+        else:
+            por_crear.append(nom)
+    conservar = {i for i, _ in por_editar}
+
+    # primero lo que se borra (para liberar nombres), luego renombres y al final lo nuevo
+    for id_a in set(act) - conservar:
+        cur.execute("DELETE FROM dbo.Plan_Estudio WHERE id_asignatura = ?", id_a)
+        cur.execute("DELETE FROM dbo.Docente_Grupo WHERE id_asignatura = ?", id_a)
+        cur.execute("DELETE FROM dbo.Asignatura WHERE id_asignatura = ?", id_a)   # si esta en una clase -> 409
+    for id_a, nom in por_editar:
+        if act[id_a] != nom:
+            cur.execute("UPDATE dbo.Asignatura SET NomAsignatura = ? WHERE id_asignatura = ?", nom, id_a)
+    ids = _contador(cur, "Asignatura", "id_asignatura")
+    for nom in por_crear:
+        cur.execute("INSERT INTO dbo.Asignatura (id_asignatura, NomAsignatura) VALUES (?, ?)", next(ids), nom)
+    return []
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
 
 # ---------------------------------------------------------------- CLASES (Carga Académica)
@@ -562,6 +660,7 @@ def sync_clases(cur, lista):
         id_doc = docentes.get(doc)
         if not id_doc:
             raise ErrorDatos(f"El docente «{doc}» no existe en la base de datos.")
+<<<<<<< HEAD
         id_asig = _id_asignatura(cur, asig)
         if not id_asig:
             raise ErrorDatos(f"La asignatura «{asig}» no existe o está desactivada.")
@@ -576,6 +675,24 @@ def sync_clases(cur, lista):
             continue
         cur.execute("INSERT INTO dbo.Clase (id_clase, id_grupo, id_asignatura, id_docente, activo) "
                     "VALUES (?, ?, ?, ?, 1)", next(ids), id_grupo, id_asig, id_doc)
+=======
+        # el grupo ya trae su carrera y su cuatrimestre; la asignatura se busca por nombre
+        cur.execute("SELECT id_grupo, id_carrera, Cuatrimestre FROM dbo.Grupo WHERE ClaveGrupo = ?", grupo)
+        g = cur.fetchone()
+        if not g:
+            raise ErrorDatos(f"El grupo «{grupo}» no existe en la base de datos.")
+        cur.execute("SELECT id_asignatura FROM dbo.Asignatura WHERE NomAsignatura = ?", asig)
+        a = cur.fetchone()
+        if not a:
+            raise ErrorDatos(f"La asignatura «{asig}» no existe en el catálogo.")
+        cur.execute("INSERT INTO dbo.Clase (id_clase, id_grupo, id_asignatura, id_docente) VALUES (?, ?, ?, ?)",
+                    next(ids), g[0], a[0], id_doc)
+        # si la materia no estaba en el plan de esa carrera y cuatrimestre se agrega, asi la proxima vez
+        # ya sale sola en la lista de ese grupo
+        cur.execute("""IF NOT EXISTS (SELECT 1 FROM dbo.Plan_Estudio WHERE id_carrera = ? AND Cuatrimestre = ? AND id_asignatura = ?)
+                       INSERT INTO dbo.Plan_Estudio (id_carrera, Cuatrimestre, id_asignatura) VALUES (?, ?, ?)""",
+                    g[1], g[2], a[0], g[1], g[2], a[0])
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
     for k, (id_clase, _) in act.items():
         if k not in nuevos:
@@ -586,8 +703,16 @@ def sync_clases(cur, lista):
 
 
 # ---------------------------------------------------------------- CÓDIGOS DE ACCESO
+<<<<<<< HEAD
 _SQL_CODIGOS = """SELECT k.id_acceso, k.Codigo, k.FechaCreacion, k.activo, g.ClaveGrupo, c.NomCarrera, g.Cuatrimestre,
                          a.NomAsignatura, d.NomDocente, d.ApellidoPaterno, d.ApellidoMaterno, d.Correo
+=======
+# Un codigo por clase. Se puede DESACTIVAR (el alumno ya no entra) y volver a ACTIVAR; Regenerar da uno nuevo.
+_SQL_CODIGOS = """SELECT k.id_acceso, k.Codigo, k.Activo, k.FechaCreacion, g.ClaveGrupo, g.CantidadAlumnos,
+                         c.NomCarrera, g.Cuatrimestre, a.NomAsignatura,
+                         d.NomDocente, d.ApellidoPaterno, d.ApellidoMaterno, d.Correo,
+                         (SELECT COUNT(*) FROM dbo.Encuesta e WHERE e.id_acceso = k.id_acceso) AS Contestaron
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
                   FROM dbo.Clave_Acceso k
                   JOIN dbo.Clase cl ON cl.id_clase = k.id_clase
                   JOIN dbo.Grupo g ON g.id_grupo = cl.id_grupo
@@ -597,33 +722,48 @@ _SQL_CODIGOS = """SELECT k.id_acceso, k.Codigo, k.FechaCreacion, k.activo, g.Cla
 
 
 def _fila_codigo(r):
+<<<<<<< HEAD
     return {"codigo": r.Codigo, "activo": bool(r.activo), "grupo": r.ClaveGrupo, "carrera": r.NomCarrera,
+=======
+    return {"codigo": r.Codigo, "activo": bool(r.Activo), "grupo": r.ClaveGrupo, "carrera": r.NomCarrera,
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
             "cuatri": str(int(r.Cuatrimestre)),
             "docente": _clave_docente(r.NomDocente, r.ApellidoPaterno, r.ApellidoMaterno, r.Correo),
             "docenteNombre": _nombre(r.NomDocente, r.ApellidoPaterno, r.ApellidoMaterno),
-            "materia": r.NomAsignatura, "creado": r.FechaCreacion.strftime("%d/%m/%Y")}
+            "materia": r.NomAsignatura, "creado": r.FechaCreacion.strftime("%d/%m/%Y"),
+            # participacion de ESTA clase: cuantos ya contestaron con este codigo y de cuantos alumnos
+            "contestaron": r.Contestaron, "alumnos": r.CantidadAlumnos}
 
 
 def listar_codigos(cur):
+<<<<<<< HEAD
     # solo los de clases/grupos/carreras/materias/docentes activos: son los que se ven en Códigos de acceso.
     # los desactivados SÍ se listan (con activo = 0) para poder volver a activarlos.
     cur.execute(_SQL_CODIGOS + " WHERE k.Codigo IS NOT NULL "
                                "AND ISNULL(cl.activo, 1) = 1 AND ISNULL(g.activo, 1) = 1 "
                                "AND ISNULL(c.activo, 1) = 1 AND ISNULL(a.activo, 1) = 1 AND d.Estatus = 1 "
                                "ORDER BY k.id_acceso")
+=======
+    cur.execute(_SQL_CODIGOS + " ORDER BY k.id_acceso")
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
     return [_fila_codigo(r) for r in cur.fetchall()]
 
 
 def buscar_codigo(cur, codigo):
+    """lo usa el alumno. Si el codigo esta desactivado avisa con 403 (distinto a que no exista)"""
     cur.execute(_SQL_CODIGOS + " WHERE k.Codigo = ?", codigo)
     r = cur.fetchone()
     if not r:
         return None
+    if not r.Activo:
+        raise ErrorDatos("Este código está desactivado. Pídele a tu profesor que lo active.", 403)
     d = _fila_codigo(r)
-    d.pop("creado")
+    for k in ("creado", "contestaron", "alumnos", "activo"):
+        d.pop(k)
     return d
 
 
+<<<<<<< HEAD
 def buscar_codigo_activo(cur, codigo):
     """igual que buscar_codigo, pero solo si el código y la clase, el grupo, la carrera, la asignatura
     y el docente siguen activos. Un código desactivado o de algo eliminado ya no sirve."""
@@ -641,6 +781,11 @@ def buscar_codigo_activo(cur, codigo):
 def revocar_codigo(cur, codigo):
     """desactiva el código. NO se borra: se queda guardado y se puede volver a activar."""
     cur.execute("UPDATE dbo.Clave_Acceso SET activo = 0 WHERE Codigo = ?", codigo)
+=======
+def cambiar_estado_codigo(cur, codigo, activo):
+    """desactivar o volver a activar un codigo; la fila y el codigo se quedan igual"""
+    cur.execute("UPDATE dbo.Clave_Acceso SET Activo = ? WHERE Codigo = ?", 1 if activo else 0, codigo)
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
     return cur.rowcount > 0
 
 
@@ -675,10 +820,11 @@ def generar_codigo(cur, grupo, materia, docente):
         cur.execute("SELECT 1 FROM dbo.Clave_Acceso WHERE Codigo = ?", codigo)
         if not cur.fetchone():
             break
-    # si la clase ya tenía código, el anterior deja de servir (se reemplaza en la misma fila)
+    # si la clase ya tenía código, el anterior deja de servir (se reemplaza en la misma fila) y queda activo
     cur.execute("SELECT TOP 1 id_acceso FROM dbo.Clave_Acceso WHERE id_clase = ? ORDER BY id_acceso", id_clase)
     r = cur.fetchone()
     if r:
+<<<<<<< HEAD
         cur.execute("UPDATE dbo.Clave_Acceso SET Codigo = ?, FechaCreacion = GETDATE(), activo = 1 "
                     "WHERE id_acceso = ?", codigo, r[0])
     else:
@@ -686,6 +832,16 @@ def generar_codigo(cur, grupo, materia, docente):
         cur.execute("INSERT INTO dbo.Clave_Acceso (id_acceso, id_clase, Codigo, activo) VALUES (?, ?, ?, 1)",
                     id_a, id_clase, codigo)
     return buscar_codigo(cur, codigo) | {"creado": datetime.now().strftime("%d/%m/%Y")}
+=======
+        cur.execute("UPDATE dbo.Clave_Acceso SET Codigo = ?, Activo = 1, FechaCreacion = GETDATE() WHERE id_acceso = ?",
+                    codigo, r[0])
+    else:
+        id_a = next(_contador(cur, "Clave_Acceso", "id_acceso"))
+        cur.execute("INSERT INTO dbo.Clave_Acceso (id_acceso, id_clase, Codigo, Activo) VALUES (?, ?, ?, 1)",
+                    id_a, id_clase, codigo)
+    cur.execute(_SQL_CODIGOS + " WHERE k.Codigo = ?", codigo)
+    return _fila_codigo(cur.fetchone())
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
 
 # ---------------------------------------------------------------- PREGUNTAS
@@ -797,7 +953,11 @@ def leer_evaluaciones(cur):
 
 def guardar_evaluacion(cur, codigo, respuestas, comentario=""):
     """el alumno manda el codigo de su enlace y sus respuestas {id_pregunta: calificacion}"""
+<<<<<<< HEAD
     cur.execute("""SELECT k.id_acceso, cl.id_clase, g.CantidadAlumnos
+=======
+    cur.execute("""SELECT k.id_acceso, cl.id_clase, g.id_grupo, g.CantidadAlumnos, k.Activo
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
                    FROM dbo.Clave_Acceso k JOIN dbo.Clase cl ON cl.id_clase = k.id_clase
                    JOIN dbo.Grupo g ON g.id_grupo = cl.id_grupo
                    JOIN dbo.Carrera c ON c.id_carrera = g.id_carrera
@@ -809,7 +969,13 @@ def guardar_evaluacion(cur, codigo, respuestas, comentario=""):
     r = cur.fetchone()
     if not r:
         raise ErrorDatos("El código ya no es válido. Pídele uno nuevo a tu profesor.", 404)
+<<<<<<< HEAD
     id_acceso, id_clase, alumnos = r
+=======
+    id_acceso, id_clase, id_grupo, alumnos, activo = r
+    if not activo:
+        raise ErrorDatos("Este código está desactivado. Pídele a tu profesor que lo active.", 403)
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
     # si el grupo tiene su numero de alumnos no se dejan mas encuestas que alumnos
     if alumnos:
@@ -842,6 +1008,10 @@ def guardar_evaluacion(cur, codigo, respuestas, comentario=""):
     for id_p, cal in califs.items():
         cur.execute("INSERT INTO dbo.Respuesta (id_respuesta, Calificacion, id_pregunta, id_encuesta) VALUES (?, ?, ?, ?)",
                     next(ids_r), cal, id_p, id_enc)
+<<<<<<< HEAD
+=======
+    # ya no se suma ningun contador: la participacion del grupo se calcula contando Encuesta (leer_grupos)
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
     return id_enc
 
 
@@ -918,6 +1088,20 @@ def registrar_admin(cur, d):
                 "Contrasena, Estatus) VALUES (?, ?, ?, ?, ?, ?, 1)",
                 id_a, nombres, paterno, materno, correo, hash_clave(clave))
     return id_a
+
+
+def listar_admins(cur):
+    cur.execute(_SQL_ADMIN + " ORDER BY id_admin")
+    return [{**_fila_admin(r), "activo": bool(r.Estatus), "foto": ""} for r in cur.fetchall()]
+
+
+def cambiar_estatus_admin(cur, id_actual, id_admin, activo):
+    """activar o desactivar a otro administrador (nadie puede desactivarse a si mismo ni dejar el sistema sin admins)"""
+    if id_actual == id_admin:
+        raise ErrorDatos("No puedes desactivar tu propia cuenta.", 409)
+    cur.execute("UPDATE dbo.Administrador SET Estatus = ? WHERE id_admin = ?", 1 if activo else 0, id_admin)
+    if cur.rowcount == 0:
+        raise ErrorDatos("Ese administrador no existe.", 404)
 
 
 def _revisar_clave_actual(cur, id_admin, clave):

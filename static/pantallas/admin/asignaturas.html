@@ -6,7 +6,11 @@
       <span class="cab-ico"><i data-icono="libro"></i></span>
       <div>
         <h2>Asignaturas</h2>
+<<<<<<< HEAD
         <p class="sub">Catálogo de materias; el plan dice en qué carrera y cuatrimestre se cursan <span class="total" id="s-total"></span></p>
+=======
+        <p class="sub">El catálogo de materias: solo el nombre. La carrera y el cuatrimestre los pone el grupo <span class="total" id="s-total"></span></p>
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
       </div>
     </div>
     <div class="cab-acc">
@@ -15,6 +19,7 @@
     </div>
   </div>
 
+<<<<<<< HEAD
   <!-- Antes el formulario pedía carrera y cuatrimestre y la misma materia se duplicaba por grupo.
        Ahora la asignatura es solo el nombre (único). El plan de estudios se arma desde Carga Académica:
        ahí se elige el grupo y salen las materias de su carrera y cuatrimestre. -->
@@ -24,6 +29,14 @@
       <input type="text" name="nombre" required maxlength="60" placeholder="Ej. Bases de Datos, Inglés IV, Animación 3D"
         pattern="[A-ZÁÉÍÓÚÜÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,\-]*"
         title="Debe empezar con mayúscula. Puede llevar letras, números, espacios y signos como Animación 3D">
+=======
+  <form id="s-form" class="form-cat" hidden>
+    <h3 class="form-tit" id="s-titulo">Datos de la asignatura</h3>
+    <label>Nombre de la asignatura
+      <input type="text" name="nombre" required maxlength="60" placeholder="Ej. Bases de Datos, Inglés IV"
+        pattern="[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ]*"
+        title="Debe empezar con mayúscula; puede llevar letras, números y espacios. Ej. Inglés IV, Animación 3D">
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
     </label>
 
     <div class="acciones">
@@ -33,10 +46,24 @@
   </form>
 
 
+<<<<<<< HEAD
   <div class="filtros-uno">
     <label class="buscador" aria-label="Buscar asignatura"><i data-icono="buscar"></i>
       <input id="s-buscar" type="search" placeholder="Buscar asignatura…" autocomplete="off">
     </label>
+=======
+  <!-- filtros: buscar por nombre y ver las materias de una carrera y cuatrimestre (sale del plan de estudios) -->
+  <div class="filtros">
+    <label class="buscador" aria-label="Buscar"><i data-icono="buscar"></i><input id="s-buscar" type="search" placeholder="Buscar asignatura…"></label>
+    <select id="s-carrera" aria-label="Carrera"><option value="">Todas las carreras</option></select>
+    <select id="s-cuatri" aria-label="Cuatrimestre"><option value="">Todos los cuatrimestres</option></select>
+    <select id="s-uso" aria-label="Uso">
+      <option value="">Todas</option>
+      <option value="sin-plan">Sin carrera/cuatrimestre aún</option>
+      <option value="en-carga">Con docente asignado</option>
+      <option value="libres">Sin docente asignado</option>
+    </select>
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
   </div>
 
   <div class="tabla-scroll">
@@ -45,6 +72,10 @@
         <tr>
           <th>Asignatura</th>
           <th>Se cursa en</th>
+<<<<<<< HEAD
+=======
+          <th>Grupos con docente</th>
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
           <th>Acciones</th>
         </tr>
       </thead>

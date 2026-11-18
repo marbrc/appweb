@@ -1,14 +1,24 @@
 // /static/js/login.js
+<<<<<<< HEAD
 // iniciar sesión y recuperar contraseña
 // el registro de administradores ya NO vive aquí: ahora se hace desde el panel
 // (pantalla admin/registrar), así que esta página solo tiene login y recuperación.
 // se revisa contra la tabla Administrador de SQL Server (la contraseña va encriptada con SHA2_256)
+=======
+// iniciar sesión y recuperar contraseña (el registro de administradores nuevos ya no esta aqui, esta en el Inicio)
+// ANTES el login dejaba entrar con cualquier correo y contraseña porque no le preguntaba nada al servidor,
+// ahora se revisa contra la tabla Administrador de SQL Server (la contraseña va encriptada con SHA2_256)
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 import { buscar, buscarTodos, api, cargando, ojitos, fuerza, REGLA_CLAVE, MSG_CLAVE } from "/static/js/nucleo/utiles.js";
 import { pintarIconos } from "/static/js/nucleo/iconos.js";
 
 pintarIconos();
 ojitos();
 
+<<<<<<< HEAD
+=======
+// ---------- REGLAS ----------
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 const CORREO = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 // error, pone el mensaje rojo en el formulario (o lo quita si va vacio)
@@ -18,7 +28,11 @@ const error = (form, texto) => { const m = buscar("[data-error]", form); m.class
 const VISTAS = { login: "#v-login", recuperar: "#v-recuperar" };
 function mostrar() {
   const v = VISTAS[location.hash.slice(1)] ? location.hash.slice(1) : "login";
+<<<<<<< HEAD
   Object.entries(VISTAS).forEach(([k, sel]) => { const el = buscar(sel); if (el) el.hidden = k !== v; });
+=======
+  Object.entries(VISTAS).forEach(([k, sel]) => { buscar(sel).hidden = k !== v; });
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
   document.title = { login: "Iniciar sesión", recuperar: "Recuperar contraseña" }[v] + " · Encuesta Docente UTNG";
   if (v === "recuperar") paso(1);
   buscar(VISTAS[v] + " input")?.focus();

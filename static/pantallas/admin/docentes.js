@@ -111,6 +111,10 @@ form.hidden = true;
 editando = -1;
 
 await setDocentes(lista);   // guarda y actualiza la copia local
+<<<<<<< HEAD
+=======
+llenarFiltroMaterias();
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 dibujar();                  // ahora sí pinta
 
 const nuevoId = correo || nombreCompleto;
@@ -167,15 +171,49 @@ avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
         campoNombres.focus();
     }
 
+    // ---- filtros ----
+    const fBuscar = buscar("#d-buscar", cont), fMateria = buscar("#d-f-materia", cont), fEstado = buscar("#d-f-estado", cont);
+    function llenarFiltroMaterias() {
+        const previa = fMateria.value;
+        const clases = getClases() || [];
+        const todas = [...new Set((getDocentes() || []).flatMap(d => materiasDe(d, clases)))]
+            .sort((a, b) => a.localeCompare(b, "es"));
+        fMateria.innerHTML = '<option value="">Todas las materias</option>' +
+            todas.map(m => `<option value="${escaparHTML(m)}">${escaparHTML(m)}</option>`).join("");
+        fMateria.value = todas.includes(previa) ? previa : "";
+    }
+    llenarFiltroMaterias();
+    fBuscar.addEventListener("input", dibujar);
+    fMateria.addEventListener("change", dibujar);
+    fEstado.addEventListener("change", dibujar);
+
     function dibujar() {
         const lista = getDocentes() || [];
         const clases = getClases() || [];
+<<<<<<< HEAD
         const q = campoBuscar ? campoBuscar.value : "";
         const visibles = filtrar(lista, q,
             doc => `${doc.nombre} ${doc.correo || ""} ${materiasDe(doc, clases).join(" ")}`);
 
         const total = buscar("#d-total", cont);
         if (total) total.textContent = cuenta(visibles.length, lista.length, "registrado", "registrados");
+=======
+        const q = fBuscar.value.trim().toLowerCase();
+        const tieneClases = doc => clases.some(c => c.docenteId === doc.correo || c.docenteId === doc.nombre);
+
+        // cada docente guarda su lugar real en la lista para que Editar y Eliminar apunten bien aunque haya filtros
+        const visibles = lista.map((doc, indice) => [doc, indice]).filter(([doc]) =>
+            (!q || `${doc.nombre} ${doc.correo || ""}`.toLowerCase().includes(q)) &&
+            (!fMateria.value || materiasDe(doc, clases).includes(fMateria.value)) &&
+            (fEstado.value !== "con-clases" || tieneClases(doc)) &&
+            (fEstado.value !== "sin-clases" || !tieneClases(doc)) &&
+            (fEstado.value !== "sin-correo" || !doc.correo));
+
+        const total = buscar("#d-total", cont);
+        if (total) total.textContent = visibles.length === lista.length
+            ? lista.length + (lista.length === 1 ? " registrado" : " registrados")
+            : `${visibles.length} de ${lista.length}`;
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 
         tabla.innerHTML = visibles.length
             ? visibles.map(([doc, indice]) => {
@@ -199,9 +237,13 @@ avisar(eraEdicion ? "Docente actualizado." : "Docente registrado.");
                     </td>
                 </tr>`;
             }).join("")
+<<<<<<< HEAD
             : q.trim()
                 ? `<tr><td colspan="4" class="vacio">Nada coincide con "${escaparHTML(q.trim())}".</td></tr>`
                 : `<tr><td colspan="4" class="vacio">Todavía no hay docentes. Toca "+ Nuevo docente".</td></tr>`;
+=======
+            : `<tr><td colspan="4" class="vacio">${lista.length ? "Ningún docente coincide con los filtros." : 'Todavía no hay docentes. Toca "+ Nuevo docente".'}</td></tr>`;
+>>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
     }
 
     dibujar();
