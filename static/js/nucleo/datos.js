@@ -130,7 +130,6 @@ export const addClase = (clase) => {
   return guardar(K.clases, lista);
 };
 
-<<<<<<< HEAD
 export const getCuatrimestres = carrera => [...new Set(getGrupos().filter(g => g.carrera === carrera).map(g => g.cuatrimestre))].sort((a, b) => a - b);
 export const getGruposDe = (carrera, cuatrimestre) => getGrupos().filter(g => g.carrera === carrera && g.cuatrimestre === cuatrimestre);
 export const getAsignaturasDe = (carrera, cuatrimestre) => {
@@ -149,30 +148,6 @@ export function calificacionesDe(e) {
     return Object.values(e.respuestas).map(Number);
   }
   return [];
-=======
-// el grupo ya trae su carrera y su cuatrimestre, con eso se buscan sus asignaturas en el plan de estudios
-// (cada asignatura trae en "planes" las carreras y cuatrimestres donde toca; ya no las lleva la asignatura)
-export const getGrupo = clave => getGrupos().find(g => g.clave === clave);
-export const getAsignaturasDe = (carrera, cuatrimestre) =>
-  getAsignaturas().filter(a => (a.planes || []).some(p => p.carrera === carrera && Number(p.cuatrimestre) === Number(cuatrimestre)));
-export const getAsignaturasDeGrupo = clave => {
-  const g = getGrupo(clave);
-  return g ? getAsignaturasDe(g.carrera, g.cuatrimestre) : [];
-};
-
-// participacion de un grupo, la calcula el servidor contando las encuestas (ya no hay contador guardado)
-// respondieron = alumnos que ya contestaron, alumnos = los que tiene el grupo, pct = el porcentaje (null si falta capturar alumnos)
-export function participacionDe(g) {
-  const alumnos = Number(g?.alumnos) || 0, ya = Number(g?.respondieron) || 0;
-  return { ya, alumnos, encuestas: Number(g?.encuestas) || 0, clases: Number(g?.clases) || 0,
-           pct: alumnos ? Math.min(100, Math.round(ya / alumnos * 100)) : null };
-}
-
-// calificacionesDe, saca las calificaciones de una evaluacion sin importar como se haya guardado
-export function calificacionesDe(e) {
-  // las calificaciones van del 5 al 10 y el numero de preguntas puede cambiar, por eso no se asume que son 12
-  return Array.isArray(e?.calificaciones) ? e.calificaciones.map(Number) : [];
->>>>>>> 0611d46e8103fa63312fb97be4b26444c8cc1e36
 }
 
 // promedioDe, el promedio de UNA evaluacion si ya lo trae lo usa y si no lo calcula
