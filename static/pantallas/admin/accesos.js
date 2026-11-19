@@ -60,7 +60,7 @@ export async function iniciar(cont) {
 
     cuerpo.innerHTML = visibles.length ? visibles.map(([f, i]) => {
       const c = buscarCodigo(f);
-      const contestaron = encuestasDeClase(f.grupo, f.docente, f.materia);
+      const contestaron = encuestasDeClase(f.grupo, f.docenteNombre, f.materia);
       const avance = f.alumnos ? `${contestaron} de ${f.alumnos}` : `${contestaron} (falta # alumnos)`;
 
       const acciones = !c

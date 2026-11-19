@@ -546,10 +546,15 @@ def sync_clases(cur, lista):
                 "WHERE ISNULL(activo, 1) = 1")
     grupos = {r.ClaveGrupo: (r.id_grupo, r.id_carrera, int(r.Cuatrimestre)) for r in cur.fetchall()}
 
-    cur.execute("""SELECT cl.id_clase, g.ClaveGrupo, a.NomAsignatura, cl.id_docente
+    cur.execute("""SELECT cl.id_clase, g.ClaveGrupo, a.NomAsignatura, cl.id_docente, cl.id_asignatura,
+                          ISNULL(cl.activo, 1) AS activo
                    FROM dbo.Clase cl JOIN dbo.Grupo g ON g.id_grupo = cl.id_grupo
-                   JOIN dbo.Asignatura a ON a.id_asignatura = cl.id_asignatura""")
-    act = {(r.ClaveGrupo, r.NomAsignatura): (r.id_clase, r.id_docente) for r in cur.fetchall()}
+                   JOIN dbo.Asignatura a ON a.id_asignatura = cl.id_asignatura
+                   ORDER BY ISNULL(cl.activo, 1) DESC, cl.id_clase""")
+    # si hay una fila activa se usa esa (aunque existan copias viejas desactivadas); si no, la primera desactivada
+    act = {}
+    for r in cur.fetchall():
+        act.setdefault((r.ClaveGrupo, r.NomAsignatura), (r.id_clase, r.id_docente, r.id_asignatura))
     nuevos = {}
     for it in lista:
         nuevos[(str(it.get("grupoId") or ""), str(it.get("asignaturaId") or ""))] = str(it.get("docenteId") or "")
@@ -568,16 +573,18 @@ def sync_clases(cur, lista):
         # si la materia no estaba en el plan, se agrega sola (así no se arma a mano ni se duplica)
         _asegurar_plan(cur, id_carrera, cuatri, id_asig)
         if (grupo, asig) in act:
-            id_clase, id_actual = act[(grupo, asig)]
-            # si estaba desactivada y vuelve a la lista, se reactiva
-            cur.execute("UPDATE dbo.Clase SET activo = 1 WHERE id_clase = ?", id_clase)
+            id_clase, id_actual, id_asig_fila = act[(grupo, asig)]
+            # si estaba desactivada y vuelve a la lista, se reactiva; si apuntaba a una copia vieja
+            # de la asignatura, se pasa a la fila activa para que sí se vea en Carga Académica
+            cur.execute("UPDATE dbo.Clase SET activo = 1, id_asignatura = ? WHERE id_clase = ?",
+                        id_asig, id_clase)
             if id_doc != id_actual:
                 cur.execute("UPDATE dbo.Clase SET id_docente = ? WHERE id_clase = ?", id_doc, id_clase)
             continue
         cur.execute("INSERT INTO dbo.Clase (id_clase, id_grupo, id_asignatura, id_docente, activo) "
                     "VALUES (?, ?, ?, ?, 1)", next(ids), id_grupo, id_asig, id_doc)
 
-    for k, (id_clase, _) in act.items():
+    for k, (id_clase, *_) in act.items():
         if k not in nuevos:
             # baja lógica: la asignación no se borra (puede tener encuestas), solo se desactiva
             cur.execute("UPDATE dbo.Clase SET activo = 0 WHERE id_clase = ?", id_clase)
@@ -1077,6 +1084,40 @@ def leer_eliminados(cur):
             "asignaturas": asignaturas, "clases": clases, "preguntas": preguntas}
 
 
+def _reactivar_clases(cur, filtro, *params):
+    """Reactiva UNA sola clase por grupo+materia de las que cumplen el filtro.
+    La base tiene el índice único UQ_Clase_Grupo_Asignatura (id_grupo, id_asignatura) WHERE activo = 1,
+    así que no se pueden reactivar dos copias viejas de la misma materia en el mismo grupo.
+    Si ese grupo+materia ya tiene una clase activa se respeta; de las desactivadas se reactiva la de
+    menor id_clase y las demás se quedan desactivadas (no se borra nada)."""
+    cur.execute(f"""
+        UPDATE cl SET cl.activo = 1
+        FROM dbo.Clase cl
+        WHERE cl.id_clase IN (
+            SELECT MIN(c2.id_clase)
+            FROM dbo.Clase c2
+            WHERE ISNULL(c2.activo, 1) = 0 AND ({filtro})
+              AND EXISTS (
+                SELECT 1
+                FROM dbo.Grupo g
+                JOIN dbo.Carrera c ON c.id_carrera = g.id_carrera
+                JOIN dbo.Asignatura a ON a.id_asignatura = c2.id_asignatura
+                JOIN dbo.Docente d ON d.id_docente = c2.id_docente
+                WHERE g.id_grupo = c2.id_grupo
+                  AND ISNULL(g.activo, 1) = 1 AND ISNULL(c.activo, 1) = 1
+                  AND ISNULL(a.activo, 1) = 1 AND d.Estatus = 1
+              )
+            GROUP BY c2.id_grupo, c2.id_asignatura
+        )
+          AND NOT EXISTS (
+            SELECT 1 FROM dbo.Clase x
+            WHERE x.id_grupo = cl.id_grupo
+              AND x.id_asignatura = cl.id_asignatura
+              AND ISNULL(x.activo, 1) = 1
+          )
+    """, *params)
+
+
 def restaurar_eliminado(cur, tipo, id_):
     """vuelve a activar algo de la papelera (y lo necesario para que se pueda ver otra vez).
     como al desactivar también se desactivó lo que colgaba de eso, al restaurar se devuelve igual."""
@@ -1088,8 +1129,7 @@ def restaurar_eliminado(cur, tipo, id_):
         cur.execute("UPDATE dbo.Carrera SET activo = 1 WHERE id_carrera = ?", id_)
         # sus grupos y las asignaciones de esos grupos vuelven con ella
         cur.execute("UPDATE dbo.Grupo SET activo = 1 WHERE id_carrera = ?", id_)
-        cur.execute("UPDATE dbo.Clase SET activo = 1 WHERE id_grupo IN "
-                    "(SELECT id_grupo FROM dbo.Grupo WHERE id_carrera = ?)", id_)
+        _reactivar_clases(cur, "id_grupo IN (SELECT id_grupo FROM dbo.Grupo WHERE id_carrera = ?)", id_)
     elif tipo == "grupos":
         cur.execute("SELECT id_carrera FROM dbo.Grupo WHERE id_grupo = ?", id_)
         r = cur.fetchone()
@@ -1097,13 +1137,13 @@ def restaurar_eliminado(cur, tipo, id_):
             raise ErrorDatos("Ese grupo no existe.", 404)
         cur.execute("UPDATE dbo.Grupo SET activo = 1 WHERE id_grupo = ?", id_)
         cur.execute("UPDATE dbo.Carrera SET activo = 1 WHERE id_carrera = ?", r.id_carrera)
-        cur.execute("UPDATE dbo.Clase SET activo = 1 WHERE id_grupo = ?", id_)
+        _reactivar_clases(cur, "id_grupo = ?", id_)
     elif tipo == "docentes":
         cur.execute("SELECT 1 FROM dbo.Docente WHERE id_docente = ?", id_)
         if not cur.fetchone():
             raise ErrorDatos("Ese docente no existe.", 404)
         cur.execute("UPDATE dbo.Docente SET Estatus = 1 WHERE id_docente = ?", id_)
-        cur.execute("UPDATE dbo.Clase SET activo = 1 WHERE id_docente = ?", id_)
+        _reactivar_clases(cur, "id_docente = ?", id_)
     elif tipo == "asignaturas":
         cur.execute("SELECT NomAsignatura FROM dbo.Asignatura WHERE id_asignatura = ?", id_)
         r = cur.fetchone()
@@ -1112,14 +1152,48 @@ def restaurar_eliminado(cur, tipo, id_):
         # solo se reactiva una fila (la de menor id); las copias viejas siguen desactivadas
         cur.execute("UPDATE dbo.Asignatura SET activo = 1 WHERE id_asignatura = "
                     "(SELECT MIN(id_asignatura) FROM dbo.Asignatura WHERE NomAsignatura = ?)", r.NomAsignatura)
-        cur.execute("UPDATE dbo.Clase SET activo = 1 WHERE id_asignatura IN "
-                    "(SELECT id_asignatura FROM dbo.Asignatura WHERE NomAsignatura = ?)", r.NomAsignatura)
+        cur.execute("SELECT MIN(id_asignatura) FROM dbo.Asignatura WHERE NomAsignatura = ?", r.NomAsignatura)
+        id_activa = cur.fetchone()[0]
+        # las clases que quedaron apuntando a una copia vieja se pasan a la fila activa
+        # (si el grupo ya tiene esa materia activa, la copia se queda desactivada)
+        cur.execute("""UPDATE cl SET cl.id_asignatura = ?
+                       FROM dbo.Clase cl
+                       WHERE cl.id_asignatura IN
+                             (SELECT id_asignatura FROM dbo.Asignatura
+                              WHERE NomAsignatura = ? AND id_asignatura <> ?)
+                         AND NOT EXISTS (SELECT 1 FROM dbo.Clase x
+                                         WHERE x.id_grupo = cl.id_grupo
+                                           AND x.id_asignatura = ?
+                                           AND ISNULL(x.activo, 1) = 1)""",
+                    id_activa, r.NomAsignatura, id_activa, id_activa)
+        _reactivar_clases(cur, "id_asignatura = ?", id_activa)
     elif tipo == "clases":
-        cur.execute("SELECT id_grupo FROM dbo.Clase WHERE id_clase = ?", id_)
+        cur.execute("""SELECT cl.id_grupo, cl.id_asignatura, a.NomAsignatura, d.Estatus
+                       FROM dbo.Clase cl
+                       JOIN dbo.Asignatura a ON a.id_asignatura = cl.id_asignatura
+                       JOIN dbo.Docente d ON d.id_docente = cl.id_docente
+                       WHERE cl.id_clase = ?""", id_)
         r = cur.fetchone()
         if not r:
             raise ErrorDatos("Esa asignación no existe.", 404)
-        cur.execute("UPDATE dbo.Clase SET activo = 1 WHERE id_clase = ?", id_)
+        if not r.Estatus:
+            raise ErrorDatos("El docente de esa asignación está desactivado. "
+                             "Restáuralo primero en Docentes.")
+        cur.execute("SELECT MIN(id_asignatura) FROM dbo.Asignatura "
+                    "WHERE NomAsignatura = ? AND ISNULL(activo, 1) = 1", r.NomAsignatura)
+        id_asig = cur.fetchone()[0]
+        if not id_asig:
+            raise ErrorDatos("La materia de esa asignación está desactivada. "
+                             "Restáurala primero en Asignaturas.")
+        # una materia solo puede tener un docente activo por grupo; si ya hay otra asignación activa
+        # de la misma materia en ese grupo, primero hay que desactivarla
+        cur.execute("""SELECT 1 FROM dbo.Clase
+                       WHERE id_grupo = ? AND id_asignatura = ? AND id_clase <> ?
+                         AND ISNULL(activo, 1) = 1""", r.id_grupo, id_asig, id_)
+        if cur.fetchone():
+            raise ErrorDatos("Ya hay otra asignación activa de esa materia en ese grupo. "
+                             "Desactívala primero si quieres restaurar esta.")
+        cur.execute("UPDATE dbo.Clase SET activo = 1, id_asignatura = ? WHERE id_clase = ?", id_asig, id_)
         # para que se vea, también se reactiva su grupo y su carrera
         cur.execute("UPDATE dbo.Grupo SET activo = 1 WHERE id_grupo = ?", r.id_grupo)
         cur.execute("UPDATE dbo.Carrera SET activo = 1 WHERE id_carrera = "
